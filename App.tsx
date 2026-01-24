@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import SizeButton from './src/components/SizeButton';
+import { NavigationContainer } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
+import AppNavigator from './src/navigation/AppNavigaor';
 
 export default function App() {
   
@@ -16,22 +16,9 @@ export default function App() {
   const [selected, setSelected] = useState(false);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <SizeButton
-  title="Tall"
-  volume="355ml"
-  selected={selected}
-  onPress={() => setSelected((prev) => !prev)}
-/>
-    </SafeAreaView>
+    <NavigationContainer>
+      <StatusBar style="light" />
+      <AppNavigator />
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0B0B0B',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
