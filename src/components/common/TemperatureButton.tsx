@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import PropTypes from "prop-types";
-import { colors } from "../constants/colors";
+import { colors } from "../../constants/colors";
 
 type TemperatureButtonProps = {
     value: 'ice' | 'hot';
