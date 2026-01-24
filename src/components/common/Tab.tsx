@@ -76,6 +76,7 @@ const styles = StyleSheet.create({
   labelActive: {
     color: colors.primary[500],
     fontFamily: 'Pretendard-SemiBold',
+    borderBottomWidth: 3,
   },
 
   indicator: {

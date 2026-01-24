@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import Tab from './src/components/common/Tab';
+import ListItem from './src/components/common/ListItem';
 
 export default function App() {
-  const [tab, setTab] = useState<'drink' | 'brand'>('drink');
 
   const [loaded] = useFonts({
     'Pretendard-Regular': require('./assets/fonts/Pretendard-Regular.otf'),
@@ -18,14 +17,11 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ width: '100%' }}>
-        <Tab
-          tabs={[
-            { key: 'drink', label: '음료' },
-            { key: 'brand', label: '브랜드' },
-          ]}
-          value={tab}
-          onChange={(next) => setTab(next as 'drink' | 'brand')}
+      <View style={{ width: '100%', marginTop: 100 }}>
+        <ListItem
+        title='메인 텍스트'
+        subtitle='서브 텍스트'
+        onPress={() => console.log('clicked')}
         />
       </View>
     </SafeAreaView>
