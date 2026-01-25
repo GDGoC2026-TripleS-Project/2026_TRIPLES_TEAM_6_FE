@@ -1,29 +1,29 @@
-import React, { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View, Animated } from 'react-native';
+import { useRef, useState } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../constants/colors';
+import { useOptionGroup } from '../../hooks/useOptionGroup';
 
 type AccordionItemProps = {
+  id: string;
   title: string;
   children: React.ReactNode;
-  onToggle?: (expanded: boolean) => void;
 };
 
-const AccordionItem = ({ title, children, onToggle }: AccordionItemProps) => {
+const AccordionItem = ({ id, title, children }: AccordionItemProps) => {
   const [expanded, setExpanded] = useState(false);
   const anim = useRef(new Animated.Value(0)).current;
 
-  const toggle = () => {
-    const next = expanded ? 0 : 1;
+  const { hasChanged } = useOptionGroup(id);
 
+  const toggle = () => {
     Animated.timing(anim, {
-      toValue: next,
+      toValue: expanded ? 0 : 1,
       duration: 300,
       useNativeDriver: false,
     }).start();
 
-    setExpanded(!expanded);
-    onToggle?.(!expanded);
+    setExpanded(prev => !prev);
   };
 
   const rotate = anim.interpolate({
@@ -39,9 +39,17 @@ const AccordionItem = ({ title, children, onToggle }: AccordionItemProps) => {
   return (
     <View style={styles.wrap}>
       <Pressable style={styles.header} onPress={toggle}>
-        <Text style={styles.title}>{title}</Text>
+        <View style={styles.titleWrap}>
+          <Text style={styles.title}>{title}</Text>
+          {hasChanged && <View style={styles.dot} />}
+        </View>
+
         <Animated.View style={{ transform: [{ rotate }] }}>
-          <MaterialIcons name="keyboard-arrow-down" size={26} color={colors.grayscale[200]} />
+          <MaterialIcons
+            name="keyboard-arrow-down"
+            size={26}
+            color={colors.grayscale[200]}
+          />
         </Animated.View>
       </Pressable>
 
@@ -61,10 +69,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  titleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   title: {
     fontSize: 16,
     color: colors.grayscale[100],
     fontFamily: 'Pretendard-SemiBold',
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.primary[500],
   },
   body: {
     overflow: 'hidden',
@@ -79,4 +98,3 @@ const styles = StyleSheet.create({
 });
 
 export default AccordionItem;
-

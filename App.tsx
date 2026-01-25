@@ -16,8 +16,6 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ width: '100%', marginTop: 100 }}>
-      
-
       </View>
     </SafeAreaView>
   );

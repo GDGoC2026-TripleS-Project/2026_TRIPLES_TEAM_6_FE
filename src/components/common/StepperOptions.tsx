@@ -8,17 +8,25 @@ type StepperOption = {
 };
 
 type StepperOptionsProps = {
+  groupId: string;
   options: StepperOption[];
 };
 
-const StepperOptions = ({ options }: StepperOptionsProps) => (
-  <>
-    <Text style={styles.optionText}>추가 옵션</Text>
-    {options.map(option => (
-      <StepperItem key={option.id} optionTitle={option.title} />
-    ))}
-  </>
-);
+const StepperOptions = ({ groupId, options }: StepperOptionsProps) => {
+  return (
+    <>
+      <Text style={styles.optionText}>추가 옵션</Text>
+      {options.map(option => (
+        <StepperItem
+          key={option.id}
+          groupId={groupId}
+          id={option.id}
+          optionTitle={option.title}
+        />
+      ))}
+    </>
+  );
+};
 
 const styles = StyleSheet.create({
   optionText: {

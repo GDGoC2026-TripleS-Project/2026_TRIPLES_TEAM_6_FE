@@ -8,19 +8,32 @@ type ChipOption = {
 };
 
 type ChipOptionsProps = {
+  groupId: string;  
   options: ChipOption[];
+  optionText?: string;
 };
 
-const ChipOptions = ({ options }: ChipOptionsProps) => (
-  <>
-    <Text style={styles.optionText}>(기본 or 추가 옵션 텍스트)</Text>
-    <View style={styles.chipContainer}>
-      {options.map(option => (
-        <Chip key={option.id} label={option.label} />
-      ))}
-    </View>
-  </>
-);
+const ChipOptions = ({
+  groupId,
+  options,
+  optionText = '(기본 or 추가 옵션 텍스트)',
+}: ChipOptionsProps) => {
+  return (
+    <>
+      <Text style={styles.optionText}>{optionText}</Text>
+      <View style={styles.chipContainer}>
+        {options.map(option => (
+          <Chip
+            key={option.id}
+            groupId={groupId}
+            id={option.id}
+            label={option.label}
+          />
+        ))}
+      </View>
+    </>
+  );
+};
 
 const styles = StyleSheet.create({
   optionText: {

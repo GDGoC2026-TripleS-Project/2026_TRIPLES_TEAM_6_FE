@@ -1,33 +1,27 @@
-import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { colors } from '../../constants/colors';
+import { useOptionGroup } from '../../hooks/useOptionGroup';
 
 type ChipProps = {
+  groupId: string;
+  id: string;
   label: string;
-  defaultVariant?: 'outlined' | 'filled';
-  onToggle?: (variant: 'outlined' | 'filled') => void;
 };
 
-const Chip = ({ label, defaultVariant = 'outlined', onToggle }: ChipProps) => {
-  const [variant, setVariant] = useState(defaultVariant);
-  const isFilled = variant === 'filled';
-
-  const handlePress = () => {
-    const newVariant = isFilled ? 'outlined' : 'filled';
-    setVariant(newVariant);
-    onToggle?.(newVariant);
-  };
+const Chip = ({ groupId, id, label }: ChipProps) => {
+  const { chipSelected, toggleChip } = useOptionGroup(groupId);
+  const selected = chipSelected.has(id);
 
   return (
     <Pressable
-      onPress={handlePress}
-      style={[styles.base, isFilled ? styles.filled : styles.outlined]}
+      onPress={() => toggleChip(id)}
+      style={[styles.base, selected ? styles.filled : styles.outlined]}
     >
       <Text
         style={[
           styles.text,
-          isFilled ? styles.textFilled : styles.textOutlined,
-          { fontFamily: isFilled ? 'Pretendard-SemiBold' : 'Pretendard-Regular' },
+          selected ? styles.textFilled : styles.textOutlined,
+          { fontFamily: selected ? 'Pretendard-SemiBold' : 'Pretendard-Regular' },
         ]}
       >
         {label}
@@ -47,11 +41,11 @@ const styles = StyleSheet.create({
   },
   outlined: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
     borderColor: colors.grayscale[300],
   },
   filled: {
     backgroundColor: colors.primary[500],
+    borderColor: colors.primary[500],
   },
   text: {
     fontSize: 14,

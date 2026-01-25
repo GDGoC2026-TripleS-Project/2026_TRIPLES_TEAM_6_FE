@@ -1,38 +1,37 @@
-import { StyleSheet, View, Text, Pressable } from "react-native";
-import { useState } from "react";
+import { StyleSheet, View, Text, Pressable } from 'react-native';
 
-import PlusOn from "../../../assets/plusOn.svg";
-import PlusOff from "../../../assets/plusOff.svg";
-import MinusOn from "../../../assets/minusOn.svg";
-import MinusOff from "../../../assets/minusOff.svg";
+import PlusOn from '../../../assets/plusOn.svg';
+import PlusOff from '../../../assets/plusOff.svg';
+import MinusOn from '../../../assets/minusOn.svg';
+import MinusOff from '../../../assets/minusOff.svg';
 
-import { colors } from "../../constants/colors";
+import { colors } from '../../constants/colors';
 
 interface StepperProps {
+  value: number;
   min?: number;
   max?: number;
-  initialValue?: number;
+  onChange: (value: number) => void;
 }
 
-const Stepper: React.FC<StepperProps> = ({
+const Stepper = ({
+  value,
   min = 0,
   max = 99,
-  initialValue = 0,
-}) => {
-  const [count, setCount] = useState<number>(initialValue);
-
-  const isMinusDisabled = count <= min;
-  const isPlusDisabled = count >= max;
+  onChange,
+}: StepperProps) => {
+  const isMinusDisabled = value <= min;
+  const isPlusDisabled = value >= max;
 
   const handleMinus = () => {
     if (!isMinusDisabled) {
-      setCount(prev => prev - 1);
+      onChange(value - 1);
     }
   };
 
   const handlePlus = () => {
     if (!isPlusDisabled) {
-      setCount(prev => prev + 1);
+      onChange(value + 1);
     }
   };
 
@@ -42,7 +41,7 @@ const Stepper: React.FC<StepperProps> = ({
         {isMinusDisabled ? <MinusOff /> : <MinusOn />}
       </Pressable>
 
-      <Text style={styles.count}>{count}</Text>
+      <Text style={styles.count}>{value}</Text>
 
       <Pressable onPress={handlePlus} disabled={isPlusDisabled}>
         {isPlusDisabled ? <PlusOff /> : <PlusOn />}
@@ -53,15 +52,15 @@ const Stepper: React.FC<StepperProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     width: 100,
   },
   count: {
     fontSize: 18,
     color: colors.grayscale[100],
-    fontFamily: "Pretendard-Medium",
+    fontFamily: 'Pretendard-Medium',
   },
 });
 
