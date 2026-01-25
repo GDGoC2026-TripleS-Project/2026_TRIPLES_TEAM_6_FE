@@ -1,14 +1,23 @@
 import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import ToggleSwitch from './src/components/common/ToggleSwitch';
+import { useFonts } from 'expo-font';
+import List from './src/components/common/List';
 
 export default function App() {
-  const [isOn, setIsOn] = useState(false);
+
+  const [loaded] = useFonts({
+    'Pretendard-Regular': require('./assets/fonts/Pretendard-Regular.otf'),
+    'Pretendard-Medium': require('./assets/fonts/Pretendard-Medium.otf'),
+    'Pretendard-SemiBold': require('./assets/fonts/Pretendard-SemiBold.otf'),
+    'Pretendard-Bold': require('./assets/fonts/Pretendard-Bold.otf'),
+  });
+
+  if (!loaded) return null;
 
   return (
     <SafeAreaView style={styles.container}>
-      <ToggleSwitch value={isOn} onValueChange={setIsOn} />
+      <List title="아메리카노" />
     </SafeAreaView>
   );
 }
