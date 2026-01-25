@@ -1,20 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
-import PropTypes from 'prop-types';
 import { colors } from '../../constants/colors';
 
 type ChipProps = {
   label: string;
-  variant?: 'outlined' | 'filled';
-  onPress?: (() => void) | null;
+  defaultVariant?: 'outlined' | 'filled';
+  onToggle?: (variant: 'outlined' | 'filled') => void;
 };
 
-const Chip = ({ label, variant = 'outlined', onPress = null }: ChipProps) => {
+const Chip = ({ label, defaultVariant = 'outlined', onToggle }: ChipProps) => {
+  const [variant, setVariant] = useState(defaultVariant);
   const isFilled = variant === 'filled';
+
+  const handlePress = () => {
+    const newVariant = isFilled ? 'outlined' : 'filled';
+    setVariant(newVariant);
+    onToggle?.(newVariant);
+  };
 
   return (
     <Pressable
-      onPress={onPress ?? undefined}
+      onPress={handlePress}
       style={[styles.base, isFilled ? styles.filled : styles.outlined]}
     >
       <Text
@@ -30,44 +36,29 @@ const Chip = ({ label, variant = 'outlined', onPress = null }: ChipProps) => {
   );
 };
 
-Chip.propTypes = {
-  label: PropTypes.string.isRequired,
-  variant: PropTypes.oneOf(['outlined', 'filled']),
-  onPress: PropTypes.func,
-};
-
-Chip.defaultProps = {
-  variant: 'outlined',
-  onPress: null,
-};
-
 const styles = StyleSheet.create({
   base: {
-    paddingHorizontal: 16,
-    height: 36,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
   },
-
   outlined: {
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: colors.grayscale[300],
   },
-
   filled: {
     backgroundColor: colors.primary[500],
   },
-
   text: {
     fontSize: 14,
   },
-
   textOutlined: {
     color: colors.grayscale[300],
   },
-
   textFilled: {
     color: colors.grayscale[1000],
   },
