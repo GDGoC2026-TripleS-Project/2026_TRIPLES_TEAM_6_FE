@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import BrandSmallList from './src/components/common/BrandSmallList';
+import MenuItemRow from './src/components/common/DrinkList';
 
 export default function App() {
 
@@ -17,10 +17,17 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <BrandSmallList
-      brands={['메가', '컴포즈']}
-      onChange={(index) => {
-        console.log('선택된 탭: ', index);
+      <MenuItemRow
+      brandName='스타벅스'
+      menuName='자몽허니블랙티'
+      optionText='Ice/Grande'
+      pills={[
+        { label: '카페인', value: 120, unit: 'mg' },
+        { label: '당류', value: 18, unit: 'g' },
+      ]}
+      rightText='10잔'
+      onPress={() => {
+        console.log('Pressed');
       }}
       />
     </SafeAreaView>

@@ -4,13 +4,13 @@ import PropTypes from "prop-types";
 import { colors } from "../../constants/colors";
 
 type TemperatureButtonProps = {
-    value: 'ice' | 'hot';
-    onChange: (next: 'ice' | 'hot') => void;
+    value: 'hot' | 'ice';
+    onChange: (next: 'hot' | 'ice') => void;
 };
 
 const TemperatureButton = ({ value, onChange}: TemperatureButtonProps) => {
-    const isIce = value === 'ice';
     const isHot = value === 'hot';
+    const isIce = value === 'ice';
 
     return (
   <View style={styles.wrap}>
@@ -34,7 +34,7 @@ const TemperatureButton = ({ value, onChange}: TemperatureButtonProps) => {
 };
 
 TemperatureButton.propTypes = {
-    value: PropTypes.oneOf(['ice', 'hot']).isRequired,
+    value: PropTypes.oneOf(['hot', 'ice']).isRequired,
     onChange: PropTypes.func.isRequired,
 };
 
