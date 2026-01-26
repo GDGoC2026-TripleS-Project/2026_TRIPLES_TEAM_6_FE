@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import MenuItemRow from './src/components/common/DrinkList';
+import GoalField from './src/components/common/GoalField';
 
 export default function App() {
 
@@ -17,19 +17,20 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MenuItemRow
-      brandName='스타벅스'
-      menuName='자몽허니블랙티'
-      optionText='Ice/Grande'
-      pills={[
-        { label: '카페인', value: 120, unit: 'mg' },
-        { label: '당류', value: 18, unit: 'g' },
-      ]}
-      rightText='10잔'
-      onPress={() => {
-        console.log('Pressed');
-      }}
-      />
+      <GoalField
+  brandName="브랜드이름"
+  menuName="메뉴이름"
+  rows={[
+    { label: "카페인", valueText: "150mg", hintText: "에스프레소 약 2잔", emphasized: true },
+    { label: "당류", valueText: "3g", hintText: "각설탕 약 1개", emphasized: true },
+    { label: "칼로리", valueText: "0kcal" },
+    { label: "나트륨", valueText: "60mg" },
+    { label: "단백질", valueText: "0g" },
+    { label: "지방", valueText: "0g" },
+  ]}
+  onEdit={() => console.log("edit")}
+  onDelete={() => console.log("delete")}
+/>
     </SafeAreaView>
   );
 }

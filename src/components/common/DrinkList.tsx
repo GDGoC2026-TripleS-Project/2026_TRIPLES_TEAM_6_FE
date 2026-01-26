@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { colors } from "../../constants/colors";
+import TagPill from "./TagPill";
 
 type NutritionPillProps = {
     label: string;
@@ -36,13 +37,12 @@ function MenuItemRow({
 
                 <View style={styles.pillRow}>
                     {pills.map((p) => (
-                        <View key={p.label} style={styles.pill}>
-                            <Text style={styles.pillLabel}>{p.label}</Text>
-                            <Text style={styles.pillValue}>
-                                {p.value}
-                                <Text style={styles.pillUnit}> {p.unit}</Text>
-                            </Text>
-                            </View>
+                        <TagPill
+                        key={p.label}
+                        label={p.label}
+                        value={p.value}
+                        unit={p.unit}
+                        />
                     ))}
                 </View>
             </View>
@@ -95,36 +95,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 12,
     },
-
-    pill: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-        borderRadius: 18,
-        borderWidth: 0.8,
-        borderColor: colors.grayscale[600],
-        backgroundColor: colors.grayscale[1000],
-        gap: 6,
-    },
-
-    pillLabel: {
-        color: colors.grayscale[500],
-        fontSize: 14,
-        fontFamily: 'Pretendard-Regular',
-    },
-
-    pillValue: {
-        color: colors.primary[600],
-        fontSize: 13,
-        fontFamily: 'Pretendard-Regular',
-    },
-
-    pillUnit: {
-        color: colors.primary[600],
-        fontFamily: 'Pretendard-Regular',
-    },
-
+    
     right: {
         alignItems: 'flex-end',
         justifyContent: 'center',
