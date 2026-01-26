@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
+import GoalField from './src/components/common/GoalField';
 
 export default function App() {
   const [loaded] = useFonts({
@@ -15,7 +16,8 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ width: '100%', marginTop: 100 }}>
+      <View style={{ width: '100%', marginTop: 100 , alignItems: 'center' }}>
+          <GoalField />
       </View>
     </SafeAreaView>
   );
