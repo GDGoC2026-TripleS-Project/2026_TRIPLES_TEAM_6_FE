@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
 
     handle: {
         alignSelf: 'center',
-        width: 52,
+        width: 60,
         height: 5,
         borderRadius: 999,
         backgroundColor: colors.grayscale[700],

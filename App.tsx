@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import GoalField from './src/components/common/GoalField';
+import HeaderDetail from './src/components/common/HeaderDetail';
 
 export default function App() {
 
@@ -17,20 +17,10 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <GoalField
-  brandName="브랜드이름"
-  menuName="메뉴이름"
-  rows={[
-    { label: "카페인", valueText: "150mg", hintText: "에스프레소 약 2잔", emphasized: true },
-    { label: "당류", valueText: "3g", hintText: "각설탕 약 1개", emphasized: true },
-    { label: "칼로리", valueText: "0kcal" },
-    { label: "나트륨", valueText: "60mg" },
-    { label: "단백질", valueText: "0g" },
-    { label: "지방", valueText: "0g" },
-  ]}
-  onEdit={() => console.log("edit")}
-  onDelete={() => console.log("delete")}
-/>
+      <HeaderDetail
+      title='뭐쓰지'
+      onBack={() => console.log('back')}
+      />
     </SafeAreaView>
   );
 }
