@@ -118,8 +118,6 @@ const LoginScreen: React.FC = () => {
   );
 };
 
-const WIDTH = 370;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -130,7 +128,7 @@ const styles = StyleSheet.create({
   },
 
   logoWrap: {
-    width: WIDTH,
+    width: '100%',
     alignItems: "center",
     marginBottom: 56,
   },
@@ -143,7 +141,7 @@ const styles = StyleSheet.create({
   },
 
   form: {
-    width: WIDTH,
+    width: '100%',
     marginBottom: 30
   },
 
@@ -152,7 +150,7 @@ const styles = StyleSheet.create({
   },
 
   rowBetween: {
-    width: WIDTH,
+    width: '100%',
     marginTop: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -211,12 +209,12 @@ const styles = StyleSheet.create({
   },
 
   loginBtnWrap: {
-    width: WIDTH,
+    width: '100%',
     marginTop: 18,
   },
 
   simpleWrap: {
-    width: WIDTH,
+    width: '100%',
     marginTop: 34,
     flexDirection: "row",
     alignItems: "center",
@@ -239,7 +237,7 @@ const styles = StyleSheet.create({
   },
 
   socialRow: {
-    width: WIDTH,
+    width: '100%',
     marginTop: 22,
     flexDirection: "row",
     justifyContent: "center",

@@ -194,8 +194,6 @@ const SignUpScreen: React.FC = () => {
     );
 };
 
-const WIDTH = 370;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -219,7 +217,7 @@ const styles = StyleSheet.create({
   },
 
   form: {
-    width: WIDTH,
+    width: '100%',
     gap: 10,
   },
 
@@ -231,7 +229,7 @@ const styles = StyleSheet.create({
   },
 
   agreeRow: {
-    width: WIDTH,
+    width: '100%',
     marginTop: 80,
     flexDirection: "row",
     alignItems: "center",
@@ -278,7 +276,7 @@ const styles = StyleSheet.create({
   },
 
   submitWrap: {
-    width: WIDTH,
+    width: '100%',
     marginTop: 16,
   },
 });

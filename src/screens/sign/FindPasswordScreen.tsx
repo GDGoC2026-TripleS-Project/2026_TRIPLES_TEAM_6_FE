@@ -102,8 +102,6 @@ const FindPasswordScreen: React.FC = () => {
   );
 };
 
-const WIDTH = 370;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -114,7 +112,7 @@ const styles = StyleSheet.create({
   },
 
   headerArea: {
-    width: WIDTH,
+    width: '100%',
     marginBottom: 22,
   },
 
@@ -134,7 +132,7 @@ const styles = StyleSheet.create({
   },
 
   form: {
-    width: WIDTH,
+    width: '100%',
     gap: 10,
   },
 
@@ -147,7 +145,7 @@ const styles = StyleSheet.create({
   },
 
   submitWrap: {
-    width: WIDTH,
+    width: '100%',
     marginTop: 60,
   },
 });
