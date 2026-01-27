@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import TermsScreen from './src/screens/sign/TermsScreen';
+import SignUpCompleteScreen from './src/screens/sign/SignUpCompleteScreen';
 
 export default function App() {
 
@@ -17,7 +17,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TermsScreen />
+      <SignUpCompleteScreen />
     </SafeAreaView>
   );
 }
