@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import GoalField from './src/components/common/GoalField';
+import Calendar from './src/components/common/Calendar';
 
 export default function App() {
   const [loaded] = useFonts({
@@ -17,7 +18,11 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ width: '100%', marginTop: 100 , alignItems: 'center' }}>
-          <GoalField />
+          <Calendar events={[
+        '2026-01-15',
+        '2026-01-20',
+        '2026-01-25'
+    ]}/>
       </View>
     </SafeAreaView>
   );
