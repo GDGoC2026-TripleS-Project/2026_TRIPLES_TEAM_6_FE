@@ -6,9 +6,10 @@ interface TextFieldProps extends Omit<TextInputProps, 'value' | 'onChangeText'> 
   value: string;
   onChangeText: (text: string) => void;
   error?: string;
+  style?: object;
 }
 
-const TextField = ({ value, onChangeText, error, ...props }: TextFieldProps) => {
+const TextField = ({ value, onChangeText, error, style, ...props }: TextFieldProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
   const getBorderColor = () => {
@@ -28,6 +29,7 @@ const TextField = ({ value, onChangeText, error, ...props }: TextFieldProps) => 
       <TextInput 
         style={[
           styles.textInput,
+          style,
           {
             borderWidth: 1,
             borderColor: getBorderColor(),
@@ -64,7 +66,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard',
     fontSize: 12,
     fontWeight: '400',
-    marginTop: 6,
+    marginTop: 4,
   }
 });
 
