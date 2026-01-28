@@ -23,7 +23,7 @@ const Button = ({ title, disabled = false, onPress, variant = 'primary' }: Butto
   };
 
   return (
-    <View style={styles.container}>
+    <View>
       <Pressable
         onPress={onPress}
         disabled={disabled}
@@ -47,16 +47,9 @@ const Button = ({ title, disabled = false, onPress, variant = 'primary' }: Butto
 };
 
 const styles = StyleSheet.create({
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 370,
-    height: 56,
-  },
   button: {
     width: '100%',
-    height: '100%',
+    height: 48,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',

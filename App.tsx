@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { StyleSheet } from 'react-native';
+import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import PasswordResetInputScreen from './src/screens/sign/PasswordResetInputScreen';
+
+import OnboardingScreen from './src/screens/onBoarding/OnBoardingScreen';
 
 export default function App() {
-
   const [loaded] = useFonts({
     'Pretendard-Regular': require('./assets/fonts/Pretendard-Regular.otf'),
     'Pretendard-Medium': require('./assets/fonts/Pretendard-Medium.otf'),
@@ -16,16 +15,8 @@ export default function App() {
   if (!loaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <PasswordResetInputScreen />
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }}>
+      <OnboardingScreen />
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0B0B0B',
-    alignItems: 'center'
-  },
-});
