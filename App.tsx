@@ -5,7 +5,6 @@ import { useFonts } from 'expo-font';
 import HeaderDetail from './src/components/common/HeaderDetail';
 
 export default function App() {
-
   const [loaded] = useFonts({
     'Pretendard-Regular': require('./assets/fonts/Pretendard-Regular.otf'),
     'Pretendard-Medium': require('./assets/fonts/Pretendard-Medium.otf'),
