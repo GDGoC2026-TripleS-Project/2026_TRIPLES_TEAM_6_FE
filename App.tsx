@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import GoalField from './src/components/common/GoalField';
-import Calendar from './src/components/common/Calendar';
+import HeaderDetail from './src/components/common/HeaderDetail';
 
 export default function App() {
   const [loaded] = useFonts({
@@ -17,13 +16,10 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ width: '100%', marginTop: 100 , alignItems: 'center' }}>
-          <Calendar events={[
-        '2026-01-15',
-        '2026-01-20',
-        '2026-01-25'
-    ]}/>
-      </View>
+      <HeaderDetail
+      title='뭐쓰지'
+      onBack={() => console.log('back')}
+      />
     </SafeAreaView>
   );
 }
@@ -32,6 +28,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0B0B0B',
-    paddingTop: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
