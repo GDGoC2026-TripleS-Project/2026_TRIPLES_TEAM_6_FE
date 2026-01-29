@@ -5,6 +5,7 @@ import TextField from "../../components/common/TextField";
 import Button from "../../components/common/Button";
 import GoogleLogin from "../../../assets/ComponentsImage/GoogleLogin.svg"
 import KakaoLogin from "../../../assets/ComponentsImage/KakaoLogin.svg";
+import AppleLogin from "../../../assets/ComponentsImage/AppleLogin.svg";
 
 const LoginScreen: React.FC = () => {
   const [userName, setUserName] = useState<string>("");
@@ -112,6 +113,12 @@ const LoginScreen: React.FC = () => {
 
         <Pressable style={styles.socialBtn} onPress={() => {}} hitSlop={10}>
           <GoogleLogin width={44} height={44} />
+        </Pressable>
+
+        <View style={styles.socialGap} />
+
+        <Pressable style={styles.socialBtn} onPress={() => {}} hitSlop={10}>
+          <AppleLogin width={44} height={44} />
         </Pressable>
       </View>
     </View>
@@ -253,7 +260,7 @@ const styles = StyleSheet.create({
   },
 
   socialGap: {
-    width: 18,
+    width: 16,
   },
 });
 
