@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
 import { colors } from "../../constants/colors";
 import TextField from "../../components/common/TextField";
 import Button from "../../components/common/Button";
+
+import { useAuthStore } from "../../app/features/auth/auth.store";
 
 const SignUpScreen: React.FC = () => {
     const [userName, setUserName] = useState("");
@@ -18,6 +20,10 @@ const SignUpScreen: React.FC = () => {
     const [emailError, setEmailError] = useState<string | undefined>();
 
     const [agree, setAgree] = useState(false);
+
+    const signup = useAuthStore((s) => s.signup);
+    const isLoading = useAuthStore((s) => s.isLoading);
+    const errorMessage = useAuthStore((s) => s.errorMessage);
 
     const isValidUsername = (v: string) => /^[a-zA-Z0-9]+$/.test(v) && /[a-zA-Z]/.test(v) && /[0-9]/.test(v);
     const isValidPassword = (v: string) => v.length >= 8 && /[a-zA-Z]/.test(v) && /[0-9]/.test(v);
@@ -98,11 +104,25 @@ const SignUpScreen: React.FC = () => {
         );
     }, [userName, password, passwordCheck, nickname, email, agree]);
 
-    const onSubmit = () => {
+    const onSubmit = async () => {
         const ok = validateAll();
         if (!ok) return;
 
-        console.log('회원가입 시도');
+        const success = await signup({
+            loginId: userName.trim(),
+            password,
+            nickname: nickname.trim(),
+            autoLogin: true,
+        });
+
+        if (!success) {
+            Alert.alert("회원가입 실패", errorMessage ?? '다시 시도해 주세요.');
+            return;
+        }
+
+        if (success) {
+            Alert.alert('가입 완료', '회원가입이 완료되었어요!')
+        }
     };
 
     return (
@@ -187,7 +207,11 @@ const SignUpScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.submitWrap}>
-                    <Button title="가입하기" disabled={!canSubmit} onPress={onSubmit} />
+                    <Button
+                    title={isLoading ? '가입 중...' : '가입하기'}
+                    disabled={!canSubmit || isLoading}
+                    onPress={onSubmit}
+                    />
                 </View>
             </View>
         </View>

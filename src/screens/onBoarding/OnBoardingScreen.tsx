@@ -6,6 +6,9 @@ import { colors } from '../../constants/colors';
 
 import Beverage1 from '../../../assets/ComponentsImage/beverage1.svg';
 import Beverage2 from '../../../assets/ComponentsImage/beverage2.svg';
+import Criteria1 from '../../../assets/ComponentsImage/criteria1.svg';
+import Criteria2 from '../../../assets/ComponentsImage/criteria2.svg';
+import Chart from '../../../assets/ComponentsImage/chart.svg';
 
 const { width } = Dimensions.get('window');
 
@@ -23,7 +26,8 @@ const slides = [
     id: '2',
     type: 'text',
     title: '어려운 단위, 눈에 보이게 바꿨어요!',
-    description: '에스프레소 몇 잔인지,\n각설탕 몇 개인지로 알려드릴게요.',
+    description: '복잡한 수치 대신 그래프 라인으로\n오늘 나의 섭취량을 한눈에 확인해 보세요.',
+    criteria: [Criteria1, Criteria2],
   },
 
   {
@@ -31,6 +35,7 @@ const slides = [
     type: 'text',
     title: '나만의 기준을 정하고, 초과 여부를 확인하세요!',
     description: '라스트컵과 정한 기준이 꼭 정답은 아니에요.\n나에게 맞는 건강한 밸런스를 찾아봐요.',
+    chart: Chart,
   },
 
   {
@@ -198,6 +203,11 @@ explain: {
   fontSize: 13,
   justifyContent: 'center',
   flexDirection: 'row',
+},
+
+criteria: {
+  flexDirection: 'column',
+  width: 50,
 },
 
 });

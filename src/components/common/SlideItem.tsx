@@ -15,6 +15,8 @@ type SlideBase = {
   explain?: string;
   mainIllust?: SvgComp;
   icons?: SvgComp[];
+  criteria?: SvgComp[];
+  chart?: SvgComp[];
 };
 
 type SliderSlide = SlideBase & {
@@ -34,6 +36,8 @@ type SlideItemProps = {
 
 export default function SlideItem({ item }: SlideItemProps) {
   const hasSlider = item.type === 'caffeine' || item.type === 'sugar';
+
+  const [isSliding, setIsSliding] = useState(false);
 
   const [value, setValue] = useState<number>(
     hasSlider ? (item as SliderSlide).defaultValue : 0
@@ -74,11 +78,27 @@ export default function SlideItem({ item }: SlideItemProps) {
         </View>
       )}
 
-      {item.type === 'text' && <View style={{ flex: 1 }} />}
+      {item.type === 'text' && (
+  <View style={styles.textBody}>
+    {!!item.criteria?.length && (
+      <View style={styles.criteriaWrap}>
+        {item.criteria.map((CriteriaSvg, idx) => (
+          <View key={idx} style={styles.criteriaItem}>
+            <CriteriaSvg width={width * 0.82} />
+          </View>
+        ))}
+      </View>
+    )}
+  </View>
+)}
 
       {hasSlider && (
         <View style={styles.sliderArea}>
-          <View style={styles.valueBox}>
+          <View style={[
+            styles.valueBox,
+            isSliding && styles.valueBoxActive,
+          ]}
+          >
             <Text style={styles.valueText}>{valueLabel}</Text>
           </View>
 
@@ -94,6 +114,8 @@ export default function SlideItem({ item }: SlideItemProps) {
               maximumValue={(item as SliderSlide).max}
               value={value}
               onValueChange={setValue}
+              onSlidingStart={() => setIsSliding(true)}
+              onSlidingComplete={() => setIsSliding(false)}
               minimumTrackTintColor={colors.primary[500]}
               maximumTrackTintColor={colors.grayscale[500]}
               thumbTintColor={'#fff'}
@@ -182,6 +204,11 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
 
+  valueBoxActive: {
+    borderWidth: 1.5,
+    borderColor: colors.primary[500],
+  },
+
   valueText: {
     color: colors.grayscale[100],
     fontSize: 16,
@@ -206,4 +233,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+  textBody: {
+  flex: 1,
+  width: '100%',
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingHorizontal: 18,
+  marginTop: -240
+},
+
+criteriaWrap: {
+  width: '100%',
+  alignItems: 'center',
+  gap: 30,
+},
+
+criteriaItem: {
+  width: '100%',
+  alignItems: 'center',
+},
+
 });

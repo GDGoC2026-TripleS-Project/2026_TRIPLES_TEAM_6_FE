@@ -1,42 +1,56 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
 import { colors } from "../../constants/colors";
 import TextField from "../../components/common/TextField";
 import Button from "../../components/common/Button";
-import GoogleLogin from "../../../assets/ComponentsImage/GoogleLogin.svg"
+import GoogleLogin from "../../../assets/ComponentsImage/GoogleLogin.svg";
 import KakaoLogin from "../../../assets/ComponentsImage/KakaoLogin.svg";
 import AppleLogin from "../../../assets/ComponentsImage/AppleLogin.svg";
+
+import { useAuthStore } from "../../app/features/auth/auth.store";
 
 const LoginScreen: React.FC = () => {
   const [userName, setUserName] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [autoLogin, setAutoLogin] = useState<boolean>(false);
-  
+
   const [userNameError, setUserNameError] = useState<string | undefined>();
   const [passwordError, setPasswordError] = useState<string | undefined>();
 
-  const handleLogin = () => {
-  let valid = true;
+  // ✅ store에서 꺼내기
+  const login = useAuthStore((s) => s.login);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const errorMessage = useAuthStore((s) => s.errorMessage);
 
-  if (!userName.trim()) {
-    setUserNameError("아이디를 입력해 주세요.");
-    valid = false;
-  } else {
-    setUserNameError(undefined);
-  }
+  // ✅ async로
+  const handleLogin = async () => {
+    let valid = true;
 
-  if (!password.trim()) {
-    setPasswordError("비밀번호를 입력해 주세요.");
-    valid = false;
-  } else {
-    setPasswordError(undefined);
-  }
+    if (!userName.trim()) {
+      setUserNameError("아이디를 입력해 주세요.");
+      valid = false;
+    } else setUserNameError(undefined);
 
-  if (!valid) return;
+    if (!password.trim()) {
+      setPasswordError("비밀번호를 입력해 주세요.");
+      valid = false;
+    } else setPasswordError(undefined);
 
-  console.log("로그인 시도");
-};
+    if (!valid) return;
 
+    const ok = await login({
+      loginId: userName.trim(),
+      password: password.trim(),
+      autoLogin,
+    });
+
+    if (!ok) {
+      Alert.alert("로그인 실패", errorMessage ?? "다시 시도해 주세요.");
+      return;
+    }
+
+    // TODO: 성공 시 이동 (expo-router면 router.replace('/(main)/home') 같은 거)
+  };
 
   return (
     <View style={styles.container}>
@@ -95,7 +109,11 @@ const LoginScreen: React.FC = () => {
       </View>
 
       <View style={styles.loginBtnWrap}>
-        <Button title="로그인" onPress={() => console.log("clicked")} />
+        <Button 
+        title={isLoading ? '로그인 중...' : '로그인'} 
+        onPress={handleLogin}
+        disabled={isLoading} 
+        />
       </View>
 
       <View style={styles.simpleWrap}>
@@ -105,19 +123,19 @@ const LoginScreen: React.FC = () => {
       </View>
 
       <View style={styles.socialRow}>
-        <Pressable style={styles.socialBtn} onPress={() => {}} hitSlop={10}>
+        <Pressable style={styles.socialBtn} onPress={() => console.log('kakao')} hitSlop={10}>
           <KakaoLogin width={44} height={44} />
         </Pressable>
 
         <View style={styles.socialGap} />
 
-        <Pressable style={styles.socialBtn} onPress={() => {}} hitSlop={10}>
+        <Pressable style={styles.socialBtn} onPress={() => console.log('google')} hitSlop={10}>
           <GoogleLogin width={44} height={44} />
         </Pressable>
 
         <View style={styles.socialGap} />
 
-        <Pressable style={styles.socialBtn} onPress={() => {}} hitSlop={10}>
+        <Pressable style={styles.socialBtn} onPress={() => console.log('apple')} hitSlop={10}>
           <AppleLogin width={44} height={44} />
         </Pressable>
       </View>
@@ -255,12 +273,13 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
+    marginTop: 8,
     alignItems: "center",
     justifyContent: "center",
   },
 
   socialGap: {
-    width: 16,
+    width: 20,
   },
 });
 
