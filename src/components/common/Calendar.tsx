@@ -21,9 +21,10 @@ LocaleConfig.defaultLocale = 'ko';
 
 type CalendarProps = {
     events?: string[]; 
+    onSelectDate?: (dateString: string) => void;
 };
 
-const Calendar = ({ events = [] }: CalendarProps) => {
+const Calendar = ({ events = [], onSelectDate }: CalendarProps) => {
     const [selected, setSelected] = useState('');
     
     const getMarkedDates = () => {
@@ -52,6 +53,7 @@ const Calendar = ({ events = [] }: CalendarProps) => {
             <RNCalendar
                 onDayPress={(day) => {
                     setSelected(day.dateString);
+                    onSelectDate?.(day.dateString);
                 }}
                 markedDates={getMarkedDates()}
                 markingType="dot"
@@ -84,7 +86,7 @@ const Calendar = ({ events = [] }: CalendarProps) => {
                     textDayHeaderFontSize: 12,
                     'stylesheet.day.basic': {
                         selected: {
-                            backgroundColor: colors.grayscale[600],
+                            backgroundColor: colors.primary[500],
                             borderRadius: 14,
                             width: 28,
                             height: 28,
@@ -132,7 +134,7 @@ const Calendar = ({ events = [] }: CalendarProps) => {
 
 const styles = StyleSheet.create({
     container: {
-        width: 370,
+        width: '100%',
     },
     header: {
         flexDirection: 'row',
