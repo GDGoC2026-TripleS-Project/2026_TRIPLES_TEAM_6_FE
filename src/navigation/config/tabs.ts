@@ -13,6 +13,8 @@ import PlusIcon from '../../../assets/plus.svg';
 
 import { MainTabParamList } from '../../types/navigation';
 
+const EmptyScreen = () => null;
+
 export type TabConfig = {
   name: keyof MainTabParamList;
   component: React.ComponentType<any>;
@@ -36,7 +38,7 @@ export const tabs: readonly TabConfig[] = [
   },
   {
     name: 'Plus',
-    component: HomeScreen,
+    component: EmptyScreen,
     title: '',
     icon: PlusIcon,
     isPlus: true,

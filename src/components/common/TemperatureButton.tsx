@@ -15,19 +15,21 @@ const TemperatureButton = ({ value, onChange}: TemperatureButtonProps) => {
     return (
   <View style={styles.wrap}>
     <Pressable
-      onPress={() => onChange('ice')}
-      style={[styles.item, isIce ? styles.active : styles.inactive]}
-    >
-      <Text style={[styles.text, isIce ? styles.textActive : styles.textInactive]}>Ice</Text>
-    </Pressable>
-
-    <View style={styles.separator} />
-
-    <Pressable
       onPress={() => onChange('hot')}
       style={[styles.item, isHot ? styles.active : styles.inactive]}
     >
       <Text style={[styles.text, isHot ? styles.textActive : styles.textInactive]}>Hot</Text>
+    </Pressable>
+
+    <View style={styles.separator} />
+
+    
+
+    <Pressable
+      onPress={() => onChange('ice')}
+      style={[styles.item, isIce ? styles.active : styles.inactive]}
+    >
+      <Text style={[styles.text, isIce ? styles.textActive : styles.textInactive]}>Ice</Text>
     </Pressable>
   </View>
 );
@@ -75,7 +77,7 @@ separator: {
     },
 
     text: {
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Pretendard-SemiBold',
     },
 

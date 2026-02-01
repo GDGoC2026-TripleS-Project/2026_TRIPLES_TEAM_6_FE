@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    width: 370,
+    width: '100%',
     height: 56,
   },
   button: {

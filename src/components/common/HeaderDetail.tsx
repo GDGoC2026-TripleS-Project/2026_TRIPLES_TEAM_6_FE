@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { colors } from "../../constants/colors";
 import { Ionicons } from '@expo/vector-icons';
+import Heart from '../../../assets/headerH.svg'
 
 type HeaderDetailProps = {
     title: string;
     onBack?: () => void;
-    initialRightType?: 'close' | 'heart';
+    initialRightType?: 'close' | 'heart' | 'none';
 };
 
 function HeaderDetail({
@@ -14,35 +15,45 @@ function HeaderDetail({
     onBack,
     initialRightType = 'close',
 }: HeaderDetailProps) {
-    const [rightType, setRightType] = useState<'close' | 'heart'>(initialRightType);
+    const [rightType, setRightType] = useState<'close' | 'heart' | 'none'>(initialRightType);
 
     const handleRightPress = () => {
-        setRightType((prev) => (prev === 'close' ? 'heart' : 'close'));
+        if (rightType === 'none') return;
+
+        setRightType(prev =>
+            prev === 'close' ? 'heart' : 'close'
+        );
     };
 
     return (
         <View style={styles.container}>
             <Pressable style={styles.side} onPress={onBack}>
                 <Ionicons
-                name="chevron-back"
-                size={24}
-                color={colors.grayscale[100]}
+                    name="chevron-back"
+                    size={24}
+                    color={colors.grayscale[100]}
                 />
             </Pressable>
 
             <Text style={styles.title}>{title}</Text>
 
-            <Pressable style={styles.side} onPress={handleRightPress}>
-                <Ionicons
-                name={rightType === 'close' ? 'close' : 'heart-outline'}
-                size={24}
-                color={
-                    rightType === 'heart'
-                    ? colors.primary[100]
-                    : colors.primary[100]
+            {rightType === 'none' ? (
+                <View style={styles.side} />
+            ) : (
+                <Pressable style={styles.side} onPress={handleRightPress}>
+                    
+                    {rightType === 'close' ? (
+                        <Ionicons
+                            name={'close'}
+                            size={24}
+                            color={colors.primary[100]}
+                        />
+                    ): (
+                        <Heart width={24} height={24} />
+                    )
                 }
-                />
-            </Pressable>
+                </Pressable>
+            )}
         </View>
     );
 }
@@ -55,7 +66,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderBottomWidth: 1,
-        borderBottomColor: colors.grayscale[700],
+        borderBottomColor: colors.grayscale[800],
     },
 
     side: {

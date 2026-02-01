@@ -42,7 +42,7 @@ SizeButton.defaultProps = {
 
 const styles = StyleSheet.create({
   wrap: {
-    width: 126,
+    width: 118,
     height: 64,
     borderRadius: 7,
     alignItems: 'center',
@@ -67,12 +67,12 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 19,
+    fontSize: 16,
   },
 
   volume: {
     marginTop: 6,
-    fontSize: 15,
+    fontSize: 12,
   },
 
   titleInactive: {

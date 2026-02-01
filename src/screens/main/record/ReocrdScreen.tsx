@@ -1,0 +1,66 @@
+import { FlatList, StyleSheet, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import SearchField from '../../../components/common/SearchField';
+import List from '../../../components/common/List';
+import { RootStackParamList } from '../../../types/navigation';
+
+type RecordScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Record'>;
+
+const RecordScreen = () => {
+  const navigation = useNavigation<RecordScreenNavigationProp>();
+
+  // 카페 목록 데이터(추후에 삭제 예정임다)
+  const cafeList = [
+    { id: '1', name: '스타벅스' },
+    { id: '2', name: '메가커피' },
+    { id: '3', name: '투썸플레이스' },
+    { id: '4', name: '이디야' },
+    { id: '5', name: '컴포즈커피' },
+    { id: '6', name: '빽다방' },
+    { id: '7', name: '파스쿠찌' },
+    { id: '8', name: '할리스' },
+    { id: '9', name: '메머드커피' },
+  ];
+
+  const handleBrandPress = (brandId: string, brandName: string) => {
+    navigation.navigate('RecordDetail', { brandId, brandName });
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={{ paddingVertical: 16 }}>
+        <SearchField placeholder="브랜드 검색" variant="default" />
+      </View>
+      <View style={styles.listContainer}>
+        <FlatList
+          data={cafeList}
+          renderItem={({ item }) => (
+            <List
+              title={item.name}
+              onPress={() => handleBrandPress(item.id, item.name)}
+            />
+          )}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+        />
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    flexDirection: 'column',
+  },
+  listContainer: {
+    flex: 1,
+    width: '100%',
+  },
+  listContent: {},
+});
+
+export default RecordScreen;
