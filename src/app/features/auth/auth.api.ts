@@ -27,6 +27,11 @@ export const authApiLayer = {
       headers: { Authorization: `Bearer ${refreshToken}` },
     }),
 
+    socialLogin: (args: { provider: 'KAKAO' | 'GOOGLE' | 'APPLE'; providerAccessToken: string }) =>
+      authApi.post(`/auth/social/${args.provider}/login`, {
+        providerAccessToken: args.providerAccessToken,
+      }),
+
   // 보호 API 예시는 api 사용
   // getMe: () => api.get<UserMeRes>('/users/me'),
 };

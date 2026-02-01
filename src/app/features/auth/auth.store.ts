@@ -14,6 +14,12 @@ type AuthState = {
   logout: () => Promise<void>;
   hydrate: () => Promise<void>;
   signup: (args: { loginId: string; password: string; nickname: string; autoLogin: boolean }) => Promise<boolean>;
+  socialLogin: (args: {
+  provider: 'KAKAO' | 'GOOGLE' | 'APPLE';
+  providerAccessToken: string;
+  autoLogin: boolean;
+}) => Promise<boolean>;
+
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -51,6 +57,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       } else {
         await storage.remove(storageKeys.autoLogin);
       }
+
+      console.log('[LOGIN RES]', result.data);
+console.log('[LOGIN DATA]', result.data.data);
+console.log('[LOGIN USER]', user);
+console.log('[LOGIN TOKENS]', tokens);
 
       set({
         user,
@@ -110,4 +121,40 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return false;
     }
   },
+
+  socialLogin: async ({ provider, providerAccessToken, autoLogin }) => {
+  set({ isLoading: true, errorMessage: undefined });
+
+  try {
+    const result = await authApiLayer.socialLogin({ provider, providerAccessToken });
+    const { user, tokens } = result.data.data;
+
+    if (autoLogin) {
+      await Promise.all([
+        storage.set(storageKeys.accessToken, tokens.accessToken),
+        storage.set(storageKeys.refreshToken, tokens.refreshToken),
+        storage.set(storageKeys.autoLogin, 'true'),
+      ]);
+    } else {
+      await storage.remove(storageKeys.autoLogin);
+    }
+
+    set({
+      user,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      isLoading: false,
+    });
+
+    return true;
+  } catch (e: any) {
+    const msg =
+      e?.response?.data?.message ??
+      e?.message ??
+      '소셜 로그인에 실패했어요. 다시 시도해 주세요.';
+    set({ isLoading: false, errorMessage: msg });
+    return false;
+  }
+},
+
 }));

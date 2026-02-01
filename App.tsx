@@ -1,18 +1,8 @@
 import React from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer, DarkTheme } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 
-import CalendarScreen from './src/screens/main/CalendarScreen';
-import PeriodSearchScreen from './src/screens/main/PeriodSearchScreen';
-
-export type RootStackParamList = {
-  Calendar: undefined;
-  PeriodSearch: undefined;
-};
-
-const Stack = createNativeStackNavigator<RootStackParamList>();
+import LoginScreen from './src/screens/sign/LoginScreen';
 
 export default function App() {
   const [loaded] = useFonts({
@@ -25,18 +15,8 @@ export default function App() {
   if (!loaded) return null;
 
   return (
-    <SafeAreaProvider>
-      <NavigationContainer theme={DarkTheme}>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: '#0B0B0B' },
-          }}
-        >
-          <Stack.Screen name="Calendar" component={CalendarScreen} />
-          <Stack.Screen name="PeriodSearch" component={PeriodSearchScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }}>
+      <LoginScreen />
+    </SafeAreaView>
   );
 }

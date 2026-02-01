@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
 import { colors } from "../../constants/colors";
 import TextField from "../../components/common/TextField";
@@ -7,7 +7,12 @@ import GoogleLogin from "../../../assets/ComponentsImage/GoogleLogin.svg";
 import KakaoLogin from "../../../assets/ComponentsImage/KakaoLogin.svg";
 import AppleLogin from "../../../assets/ComponentsImage/AppleLogin.svg";
 
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+
 import { useAuthStore } from "../../app/features/auth/auth.store";
+
+WebBrowser.maybeCompleteAuthSession();
 
 const LoginScreen: React.FC = () => {
   const [userName, setUserName] = useState<string>("");
@@ -17,12 +22,53 @@ const LoginScreen: React.FC = () => {
   const [userNameError, setUserNameError] = useState<string | undefined>();
   const [passwordError, setPasswordError] = useState<string | undefined>();
 
-  // store에서 꺼내기
+  // zustand store
   const login = useAuthStore((s) => s.login);
+  const socialLogin = useAuthStore((s) => s.socialLogin);
   const isLoading = useAuthStore((s) => s.isLoading);
   const errorMessage = useAuthStore((s) => s.errorMessage);
 
-  // async로
+  // Google AuthSession (Expo)
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: "1073477248905-t75dpkijvnlgdu7p3pgr81k7vtplii2u.apps.googleusercontent.com",
+  });
+
+  // Google 로그인 완료 후 서버로 토큰 전달
+  useEffect(() => {
+    const run = async () => {
+      if (response?.type !== "success") return;
+
+      const providerAccessToken = response.authentication?.accessToken;
+
+      if (!providerAccessToken) {
+        Alert.alert("구글 로그인 실패", "accessToken을 가져오지 못했어요.");
+        return;
+      }
+
+      const ok = await socialLogin({
+        provider: "GOOGLE",
+        providerAccessToken,
+        autoLogin: true,
+      });
+
+      if (!ok) {
+        Alert.alert("로그인 실패", errorMessage ?? "다시 시도해 주세요.");
+      }
+    };
+
+    run();
+  }, [response]);
+
+  // Google 버튼 클릭 → 구글 로그인 창 열기
+  const onGooglePress = async () => {
+    try {
+      await promptAsync();
+    } catch (e) {
+      Alert.alert("구글 로그인 실패", "다시 시도해 주세요.");
+    }
+  };
+
+  // 로컬 로그인
   const handleLogin = async () => {
     let valid = true;
 
@@ -49,7 +95,7 @@ const LoginScreen: React.FC = () => {
       return;
     }
 
-    // TODO: 성공 시 이동 (expo-router면 router.replace('/(main)/home') 같은 거)
+    // TODO: 성공 시 이동
   };
 
   return (
@@ -129,7 +175,7 @@ const LoginScreen: React.FC = () => {
 
         <View style={styles.socialGap} />
 
-        <Pressable style={styles.socialBtn} onPress={() => console.log('google')} hitSlop={10}>
+        <Pressable style={styles.socialBtn} onPress={onGooglePress} hitSlop={10}>
           <GoogleLogin width={44} height={44} />
         </Pressable>
 
