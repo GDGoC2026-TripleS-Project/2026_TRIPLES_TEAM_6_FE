@@ -4,6 +4,7 @@ import { colors } from '../../constants/colors';
 
 import Calendar from '../../components/common/Calendar';
 import Button from '../../components/common/Button';
+import MenuItemRow from '../../components/common/DrinkList';
 
 import { findDrinksByRange, type Drink } from '../../data/drinksData';
 
@@ -37,7 +38,6 @@ export default function PeriodSearchScreen() {
 
   const canSearch = !!start && !!end;
 
-  // 결과
   const resultDrinks: Drink[] = useMemo(() => {
     if (step !== 'result' || !canSearch) return [];
     return findDrinksByRange(start, end);
@@ -57,14 +57,11 @@ export default function PeriodSearchScreen() {
   const onPickEnd = () => setStep('pickEnd');
 
   const onSelectStart = (date: string) => {
-    // 미래 날짜 선택 막고 싶으면 여기서 필터 가능
-    // if (date > todayString()) return;
     setStartDate(date);
     setStep('form');
   };
 
   const onSelectEnd = (date: string) => {
-    // if (date > todayString()) return;
     setEndDate(date);
     setStep('form');
   };
@@ -82,14 +79,12 @@ export default function PeriodSearchScreen() {
 
   return (
     <View style={styles.container}>
-      {/* ---------- FORM ---------- */}
       {step === 'form' && (
         <>
           <View style={styles.header}>
             <Text style={styles.title}>기간별 조회</Text>
           </View>
 
-          {/* 디자인처럼 “시작/끝 날짜 입력칸” */}
           <View style={styles.inputRow}>
             <Button
               title={startDate ? toKoreanDate(startDate) : 'YYYY.MM.DD'}
@@ -116,7 +111,6 @@ export default function PeriodSearchScreen() {
         </>
       )}
 
-      {/* ---------- PICK START ---------- */}
       {step === 'pickStart' && (
         <>
           <View style={styles.header}>
@@ -134,7 +128,6 @@ export default function PeriodSearchScreen() {
         </>
       )}
 
-      {/* ---------- PICK END ---------- */}
       {step === 'pickEnd' && (
         <>
           <View style={styles.header}>
@@ -152,7 +145,6 @@ export default function PeriodSearchScreen() {
         </>
       )}
 
-      {/* ---------- RESULT ---------- */}
       {step === 'result' && (
         <>
           <View style={styles.header}>
@@ -224,6 +216,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.grayscale[1000],
     paddingHorizontal: 16,
     paddingTop: 20,
+    marginTop: 50,
   },
 
   header: {

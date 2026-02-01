@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../../constants/colors';
+import Coffee from '../../../assets/ComponentsImage/coffeeImg.svg';
 
 import Calendar from '../../components/common/Calendar';
 import MenuItemRow from '../../components/common/DrinkList';
@@ -10,10 +11,9 @@ import AddRecordButton from '../../components/common/AddRecordButton';
 
 import { findDrinksByDate, getEventDates, type Drink } from '../../data/drinksData';
 
-// ✅ React Navigation 사용 시
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../../App'; // 경로는 너 프로젝트에 맞게!
+import type { RootStackParamList } from '../../../App';
 
 const todayString = () => {
   const d = new Date();
@@ -40,7 +40,10 @@ export default function CalendarScreen() {
   const baseDrinks = useMemo(() => findDrinksByDate(selectedDate), [selectedDate]);
 
   const isSkipped = !!skippedByDate[selectedDate];
-  const drinks: Drink[] = isSkipped ? [] : baseDrinks;
+  const drinks: Drink[] = baseDrinks;
+  const summaryDrinks: Drink[] = isSkipped
+  ? []
+  : drinks;
 
   const today = todayString();
   const isToday = selectedDate === today;
@@ -98,45 +101,53 @@ export default function CalendarScreen() {
       )}
 
       {status !== 'future' && (
-        <>
-          {/* ✅ 기록이 있을 땐 "안마셨어요" 버튼 숨김 */}
-          {!hasRecord && (
-            <SkipDrinkToggle value={isSkipped} onChange={onToggleSkip} disabled={false} />
-          )}
+  <>
+    {/* ✅ 카드: 기록이 있거나, '마시지 않았어요'를 눌렀을 때만 */}
+{(hasRecord || isSkipped) && (
+  <NutritionSummary drinks={summaryDrinks} />
+)}
 
-          {hasRecord ? (
-            <>
-              <NutritionSummary drinks={drinks} />
+    {/* ✅ 1. 기록 없고 + 안마셨어요도 안 눌렀을 때 안내 문구 (버튼 위) */}
+    {!hasRecord && !isSkipped && (
+      <View style={styles.centerBox}>
+        <Coffee style={{ marginBottom: 14, marginTop: -10 }} />
+        <Text style={styles.centerText}>마신 음료가 있다면 기록을 추가해보세요.</Text>
+      </View>
+    )}
 
-              <View style={styles.list}>
-                {drinks.map((d) => (
-                  <MenuItemRow
-                    key={d.id}
-                    brandName={d.brandName}
-                    menuName={d.menuName}
-                    optionText={d.optionText}
-                    pills={[
-                      { label: '카페인', value: d.caffeineMg, unit: 'mg' },
-                      { label: '당류', value: d.sugarG, unit: 'g' },
-                    ]}
-                  />
-                ))}
-              </View>
-            </>
-          ) : (
-            <View style={styles.centerBox}>
-              {/* ✅ “안마셨어요” 안 눌렀고 기록도 없을 때만 안내 문구 */}
-              <Text style={styles.centerText}>
-                {!isSkipped ? '마신 음료가 있다면 기록을 추가해보세요.' : '오늘 음료를 마시지 않았어요.'}
-              </Text>
+    {/* ✅ 2. 기록 없을 때만 "마시지 않았어요" 버튼 */}
+    {!hasRecord && (
+      <SkipDrinkToggle value={isSkipped} onChange={onToggleSkip} disabled={false} />
+    )}
 
-              <Text style={styles.subText}>
-                {!isSkipped ? '음료만 선택하면 라스트컵이 계산해줄게요!' : '필요하면 나중에 다시 기록할 수 있어요.'}
-              </Text>
-            </View>
-          )}
-        </>
+    {/* ✅ 3. 리스트 영역: 기록 있으면 리스트 / 안마셨어요면 안내 */}
+    <View style={styles.list}>
+      {/* 기록 있을 때만 리스트 */}
+      {hasRecord &&
+        !isSkipped &&
+        drinks.map((d) => (
+          <MenuItemRow
+            key={d.id}
+            brandName={d.brandName}
+            menuName={d.menuName}
+            optionText={d.optionText}
+            pills={[
+              { label: '카페인', value: d.caffeineMg, unit: 'mg' },
+              { label: '당류', value: d.sugarG, unit: 'g' },
+            ]}
+          />
+        ))}
+
+      {/* 안마셨어요 상태 안내 (기록 없을 때 주로) */}
+      {!hasRecord && isSkipped && (
+        <View style={styles.centerBox}>
+          <Text style={styles.subText}>오늘은 음료를 마시지 않았어요.</Text>
+        </View>
       )}
+    </View>
+  </>
+)}
+
     </View>
   );
 }

@@ -5,6 +5,7 @@ export type Drink = {
   optionText: string;
   caffeineMg: number;
   sugarG: number;
+  count?: number;
 };
 
 export type DayDrinkData = {

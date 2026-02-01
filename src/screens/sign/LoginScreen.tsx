@@ -17,12 +17,12 @@ const LoginScreen: React.FC = () => {
   const [userNameError, setUserNameError] = useState<string | undefined>();
   const [passwordError, setPasswordError] = useState<string | undefined>();
 
-  // ✅ store에서 꺼내기
+  // store에서 꺼내기
   const login = useAuthStore((s) => s.login);
   const isLoading = useAuthStore((s) => s.isLoading);
   const errorMessage = useAuthStore((s) => s.errorMessage);
 
-  // ✅ async로
+  // async로
   const handleLogin = async () => {
     let valid = true;
 

@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       const result = await authApiLayer.login({ loginId, password });
-      const { user, tokens } = result.data;
+      const { user, tokens } = result.data.data;
 
       if (autoLogin) {
         await Promise.all([
@@ -80,7 +80,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       const result = await authApiLayer.signup({ loginId, password, nickname });
-      const { user, tokens } = result.data;
+      const { user, tokens } = result.data.data;
 
       if (autoLogin) {
         await Promise.all([

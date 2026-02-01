@@ -1,9 +1,8 @@
-// src/lib/api/client.ts
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { storage } from '../../utils/storage';
 import { storageKeys } from '../../constants/storageKeys';
 
-const BASE_URL = 'https://YOUR_DOMAIN.com/api/v1';
+const BASE_URL = 'https://lastcup.site/api/v1';
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -11,6 +10,7 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// accessToken 자동으로 안 붙는 인스턴스(공개/인증/리프레시 용)
 export const authApi = axios.create({
   baseURL: BASE_URL,
   timeout: 15000,
@@ -39,9 +39,8 @@ api.interceptors.response.use(
     const original = error.config as any;
     const status = error.response?.status;
 
-    if (status !== 401 || original?._retry) {
-      return Promise.reject(error);
-    }
+    // 401 아니거나, 이미 재시도한 요청이면 그대로 throw
+    if (status !== 401 || original?._retry) return Promise.reject(error);
 
     original._retry = true;
 
@@ -65,14 +64,16 @@ api.interceptors.response.use(
         headers: { Authorization: `Bearer ${refreshToken}` },
       });
 
-      const newAccess = refreshRes.data?.data?.accessToken;
-      const newRefresh = refreshRes.data?.data?.refreshToken;
+      const newAccess = refreshRes.data?.data?.accessToken as string | undefined;
+      const newRefresh = refreshRes.data?.data?.refreshToken as string | undefined;
 
-      if (!newAccess || !newRefresh) throw new Error('Invalid refresh response');
+      if (!newAccess) throw new Error('Invalid refresh response: accessToken missing');
+
+      const finalRefresh = newRefresh ?? refreshToken;
 
       await Promise.all([
         storage.set(storageKeys.accessToken, newAccess),
-        storage.set(storageKeys.refreshToken, newRefresh),
+        storage.set(storageKeys.refreshToken, finalRefresh),
       ]);
 
       runQueue(newAccess);
