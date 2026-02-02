@@ -10,7 +10,19 @@ import { colors } from '../constants/colors';
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const TAB_BAR_CONFIG = {
-  headerShown: false,
+  headerShown: true,
+  headerTitle: '로고',
+  headerStyle: {
+    backgroundColor: "#0B0B0B",
+    borderBottomColor: colors.grayscale[800],
+    borderBottomWidth: 1,
+  },
+  headerTintColor: colors.grayscale[100],
+  headerTitleStyle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  headerTitleAlign: 'left',
   tabBarActiveTintColor: colors.grayscale[100],
   tabBarInactiveTintColor: colors.grayscale[600],
   tabBarStyle: {
@@ -20,7 +32,6 @@ const TAB_BAR_CONFIG = {
   tabBarLabelStyle: {
     fontSize: 12,
     fontWeight: '600',
-    marginTop: 8,
   },
 } as const;
 
@@ -46,6 +57,7 @@ export default function AppNavigator() {
             component={component}
             options={{
               title: '',
+              headerShown: false, 
               tabBarButton: () => (
                 <Pressable
                   onPress={() => navigation.navigate('Record')}
