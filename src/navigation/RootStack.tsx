@@ -3,9 +3,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AppNavigator from './AppNavigator';
 import RecordScreen from '../screens/main/record/ReocrdScreen';
 import RecordDetailScreen from '../screens/main/record/RecordDetail';
+import RecordDrinkDetail from '../screens/main/record/RecordDrinkDetail';
+import RecordingDetail from '../screens/main/record/RecordingDetail';
+import SendScreen from '../screens/main/record/SendScreen';
 import HeaderDetail from '../components/common/HeaderDetail';
 import { RootStackParamList } from '../types/navigation';
-import RecordDrinkDetail from '../screens/main/record/RecordDrinkDetail';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -38,6 +40,7 @@ export default function RootNavigator() {
           ),
         })}
       />
+
       <Stack.Screen
         name="RecordDetail"
         component={RecordDetailScreen}
@@ -54,20 +57,47 @@ export default function RootNavigator() {
           ),
         })}
       />
+
       <Stack.Screen
         name="RecordDrinkDetail"
         component={RecordDrinkDetail}
-        options={({ navigation, route }) => ({
+        options={({ navigation }) => ({
           headerShown: true,
           header: () => (
             <SafeAreaView edges={['top']} style={{ backgroundColor: '#0B0B0B' }}>
               <HeaderDetail
                 title="음료 기록하기"
                 onBack={() => navigation.goBack()}
+                initialRightType="none"
               />
             </SafeAreaView>
           ),
         })}
+      />
+
+      <Stack.Screen
+        name="RecordingDetail"
+        component={RecordingDetail}
+        options={({ navigation }) => ({
+          headerShown: true,
+          header: () => (
+            <SafeAreaView edges={['top']} style={{ backgroundColor: '#0B0B0B' }}>
+              <HeaderDetail
+                title="음료 기록하기"
+                onBack={() => navigation.goBack()}
+                initialRightType="none"
+              />
+            </SafeAreaView>
+          ),
+        })}
+      />
+
+      <Stack.Screen
+        name="Send"
+        component={SendScreen}
+        options={{
+          headerShown: false,
+        }}
       />
     </Stack.Navigator>
   );

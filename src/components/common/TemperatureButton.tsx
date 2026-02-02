@@ -1,75 +1,91 @@
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import PropTypes from "prop-types";
-import { colors } from "../../constants/colors";
+import React from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { colors } from '../../constants/colors';
 
 type TemperatureButtonProps = {
     value: 'hot' | 'ice';
     onChange: (next: 'hot' | 'ice') => void;
 };
 
-const TemperatureButton = ({ value, onChange}: TemperatureButtonProps) => {
+const TemperatureButton = ({ value, onChange }: TemperatureButtonProps) => {
     const isHot = value === 'hot';
     const isIce = value === 'ice';
 
+    const handlePress = (selected: 'hot' | 'ice') => {
+        if (value === selected) return;
+        onChange(selected);
+    };
+
     return (
-  <View style={styles.wrap}>
-    <Pressable
-      onPress={() => onChange('hot')}
-      style={[styles.item, isHot ? styles.active : styles.inactive]}
-    >
-      <Text style={[styles.text, isHot ? styles.textActive : styles.textInactive]}>Hot</Text>
-    </Pressable>
+        <View style={styles.wrap}>
+            <Pressable
+                onPress={() => handlePress('hot')}
+                style={[
+                    styles.item,
+                    styles.leftItem,
+                    isHot ? styles.active : styles.inactive,
+                ]}
+            >
+                <Text style={[styles.text, isHot ? styles.textActive : styles.textInactive]}>
+                    Hot
+                </Text>
+            </Pressable>
 
-    <View style={styles.separator} />
+            <View style={styles.separator} />
 
-    
-
-    <Pressable
-      onPress={() => onChange('ice')}
-      style={[styles.item, isIce ? styles.active : styles.inactive]}
-    >
-      <Text style={[styles.text, isIce ? styles.textActive : styles.textInactive]}>Ice</Text>
-    </Pressable>
-  </View>
-);
+            <Pressable
+                onPress={() => handlePress('ice')}
+                style={[
+                    styles.item,
+                    styles.rightItem,
+                    isIce ? styles.active : styles.inactive,
+                ]}
+            >
+                <Text style={[styles.text, isIce ? styles.textActive : styles.textInactive]}>
+                    Ice
+                </Text>
+            </Pressable>
+        </View>
+    );
 };
-
-TemperatureButton.propTypes = {
-    value: PropTypes.oneOf(['hot', 'ice']).isRequired,
-    onChange: PropTypes.func.isRequired,
-};
-
-TemperatureButton.defaultProps = {};
 
 const styles = StyleSheet.create({
-  wrap: {
-  flexDirection: 'row',
-  borderWidth: 0.5,
-  borderColor: colors.grayscale[700],
-  borderRadius: 8,
-  overflow: 'hidden',
-  backgroundColor: colors.grayscale[1000],
-  height: 42,
-},
+    wrap: {
+        flexDirection: 'row',
+        borderWidth: 1,
+        borderColor: colors.grayscale[700],
+        borderRadius: 8,
+        overflow: 'hidden',
+        backgroundColor: colors.grayscale[1000],
+        height: 42,
+    },
 
-item: {
-  flex: 1,
-  height: 41,
-  alignItems: 'center',
-  justifyContent: 'center',
-},
+    item: {
+        flex: 1,
+        height: 41,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
 
-separator: {
-  width: 1,
-  backgroundColor: colors.grayscale[700],
-},
+    leftItem: {
+        borderTopLeftRadius: 8,
+        borderBottomLeftRadius: 8,
+    },
+
+    rightItem: {
+        borderTopRightRadius: 8,
+        borderBottomRightRadius: 8,
+    },
+
+    separator: {
+        width: 1,
+        backgroundColor: colors.grayscale[700],
+    },
 
     active: {
         backgroundColor: colors.primary[1000],
         borderWidth: 1,
         borderColor: colors.primary[500],
-        borderRadius: 8,
     },
 
     inactive: {

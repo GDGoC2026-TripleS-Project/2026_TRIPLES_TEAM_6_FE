@@ -1,9 +1,7 @@
-import { View, StyleSheet, Text} from "react-native";
-import { Calendar as RNCalendar, LocaleConfig } from 'react-native-calendars';
-import { useState } from "react";
+import { View, StyleSheet, Text,  ViewStyle } from "react-native";
+import { Calendar as RNCalendar, LocaleConfig, DateData } from 'react-native-calendars';
 import { colors } from "../../constants/colors";
 
-// 한국어 설정
 LocaleConfig.locales['ko'] = {
     monthNames: [
         '1월', '2월', '3월', '4월', '5월', '6월',
@@ -20,11 +18,13 @@ LocaleConfig.locales['ko'] = {
 LocaleConfig.defaultLocale = 'ko';
 
 type CalendarProps = {
-    events?: string[]; 
+    events?: string[];
+    selected?: string;
+    onDayPress?: (dateString: string) => void;
+    style?: ViewStyle
 };
 
-const Calendar = ({ events = [] }: CalendarProps) => {
-    const [selected, setSelected] = useState('');
+const Calendar = ({ events = [], selected, onDayPress, style }: CalendarProps) => {
     
     const getMarkedDates = () => {
         const marked: any = {};
@@ -47,12 +47,16 @@ const Calendar = ({ events = [] }: CalendarProps) => {
         return marked;
     };
 
+    const handleDayPress = (day: DateData) => {
+        if (onDayPress) {
+            onDayPress(day.dateString);
+        }
+    };
+
     return (
         <View style={styles.container}>
             <RNCalendar
-                onDayPress={(day) => {
-                    setSelected(day.dateString);
-                }}
+                onDayPress={handleDayPress}
                 markedDates={getMarkedDates()}
                 markingType="dot"
                 renderHeader={(date) => {
@@ -65,12 +69,12 @@ const Calendar = ({ events = [] }: CalendarProps) => {
                     );
                 }}
                 theme={{
-                    backgroundColor: '#0B0B0B',
-                    calendarBackground: '#0B0B0B',
+                    backgroundColor: 'transparent',
+                    calendarBackground: 'transparent',
                     textSectionTitleColor: colors.grayscale[300],
                     selectedDayBackgroundColor: colors.grayscale[600],
                     selectedDayTextColor: colors.grayscale[100],
-                    todayTextColor:'#0B0B0B',
+                    todayTextColor: '#0B0B0B',
                     todayBackgroundColor: colors.primary[500],
                     dayTextColor: colors.grayscale[100],
                     textDisabledColor: colors.grayscale[600],
@@ -112,6 +116,7 @@ const Calendar = ({ events = [] }: CalendarProps) => {
                             borderBottomWidth: 1,
                             borderBottomColor: colors.grayscale[800],
                             paddingBottom: 7,
+                            ...(style ?? {}), 
                         },
                     },
                     'stylesheet.calendar.main': {
@@ -132,13 +137,15 @@ const Calendar = ({ events = [] }: CalendarProps) => {
 
 const styles = StyleSheet.create({
     container: {
-        width: 370,
+        width: '100%',
+        backgroundColor: 'transparent',
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         paddingVertical: 10,
+        backgroundColor: 'transparent',
     },
     headerText: {
         fontSize: 16,

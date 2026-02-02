@@ -60,10 +60,12 @@ export default MenuItemRow;
 const styles = StyleSheet.create({
     row: {
         width: '100%',
-        paddingVertical: 18,
+        paddingVertical: 12,
         paddingHorizontal: 16,
         flexDirection: 'row',
         alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: colors.grayscale[900]
     },
 
     left: {
@@ -72,21 +74,22 @@ const styles = StyleSheet.create({
 
     brandLabel: {
         color: colors.grayscale[600],
-        fontSize: 13,
+        fontSize: 12,
         fontFamily: 'Pretendard-Regular',
         marginBottom: 7,
     },
 
     menuName: {
         color: colors.grayscale[100],
-        fontSize: 18,
-        fontFamily: 'Pretendard-Medium',
+        fontSize: 16,
+        fontFamily: 'Pretendard',
+        fontWeight: 600,
         marginBottom: 7,
     },
 
     optionText: {
         color: colors.grayscale[600],
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: 'Pretendard-Regular',
         marginBottom: 15,
     },
@@ -105,7 +108,7 @@ const styles = StyleSheet.create({
 
     rightText: {
         color: colors.primary[500],
-        fontSize: 18,
+        fontSize: 14,
         fontFamily: 'Pretendard-Medium',
     },
 
