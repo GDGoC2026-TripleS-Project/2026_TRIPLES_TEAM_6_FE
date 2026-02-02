@@ -47,6 +47,13 @@ const Button = ({ title, disabled = false, onPress, variant = 'primary' }: Butto
 };
 
 const styles = StyleSheet.create({
+  container: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: 56,
+  },
   button: {
     width: '100%',
     height: 48,

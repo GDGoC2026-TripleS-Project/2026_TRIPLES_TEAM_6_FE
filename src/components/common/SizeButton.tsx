@@ -1,6 +1,5 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import PropTypes from 'prop-types';
 import { colors } from '../../constants/colors';
 
 type SizeButtonProps = {
@@ -10,17 +9,35 @@ type SizeButtonProps = {
   onPress?: (() => void) | null;
 };
 
-const SizeButton = ({ title, volume, selected = false, onPress = null }: SizeButtonProps) => {
+const SizeButton = ({
+  title,
+  volume,
+  selected = false,
+  onPress = null,
+}: SizeButtonProps) => {
   return (
     <Pressable
       onPress={onPress ?? undefined}
-      style={[styles.wrap, selected ? styles.active : styles.inactive]}
+      style={[
+        styles.wrap,
+        selected ? styles.active : styles.inactive,
+      ]}
     >
       <View style={styles.textGroup}>
-        <Text style={[styles.title, selected ? styles.titleActive : styles.titleInactive]}>
+        <Text
+          style={[
+            styles.title,
+            selected ? styles.textActive : styles.textInactive,
+          ]}
+        >
           {title}
         </Text>
-        <Text style={[styles.volume, selected ? styles.volumeActive : styles.volumeInactive]}>
+        <Text
+          style={[
+            styles.volume,
+            selected ? styles.textActive : styles.textInactiveSecondary,
+          ]}
+        >
           {volume}
         </Text>
       </View>
@@ -28,23 +45,12 @@ const SizeButton = ({ title, volume, selected = false, onPress = null }: SizeBut
   );
 };
 
-SizeButton.propTypes = {
-  title: PropTypes.string.isRequired,
-  volume: PropTypes.string.isRequired,
-  selected: PropTypes.bool,
-  onPress: PropTypes.func,
-};
-
-SizeButton.defaultProps = {
-  selected: false,
-  onPress: null,
-};
-
 const styles = StyleSheet.create({
   wrap: {
-    width: 126,
-    height: 64,
-    borderRadius: 7,
+    flex: 1,
+    paddingVertical: 6,
+    minWidth: 118,
+    borderRadius: 8, 
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -56,9 +62,9 @@ const styles = StyleSheet.create({
   },
 
   active: {
-    backgroundColor: colors.primary[900],
-    borderWidth: 1.2,
-    borderColor: colors.primary[600],
+    backgroundColor: colors.primary[1000],
+    borderWidth: 1,
+    borderColor: colors.primary[500],
   },
 
   textGroup: {
@@ -67,34 +73,28 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 19,
+    fontSize: 16,
+    fontFamily: 'Pretendard-SemiBold',
   },
 
   volume: {
     marginTop: 6,
-    fontSize: 15,
-  },
-
-  titleInactive: {
-    color: colors.grayscale[100],
-    fontFamily: 'Pretendard-Bold',
-  },
-
-  volumeInactive: {
-    color: colors.grayscale[100],
-    opacity: 0.8,
+    fontSize: 12,
     fontFamily: 'Pretendard-Regular',
   },
 
-  titleActive: {
+  textActive: {
     color: colors.grayscale[100],
-    fontFamily: 'Pretendard-SemiBold',
   },
 
-  volumeActive: {
+  textInactive: {
     color: colors.grayscale[100],
-    opacity: 0.85,
-    fontFamily: 'Pretendard-Regular',
+    opacity: 0.9,
+  },
+
+  textInactiveSecondary: {
+    color: colors.grayscale[100],
+    opacity: 0.7,
   },
 });
 

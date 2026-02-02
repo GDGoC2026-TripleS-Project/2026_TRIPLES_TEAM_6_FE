@@ -6,68 +6,112 @@ import {
   Pressable,
   Animated,
   Easing,
+  useWindowDimensions,
+  View,
 } from 'react-native';
 import { colors } from '../../constants/colors';
 import SearchIcon from '../../../assets/search.svg';
 
-interface SearchFieldProps extends TextInputProps {}
+interface SearchFieldProps extends TextInputProps {
+  variant?: 'animated' | 'default';
+  onChangeText?: (text: string) => void;
+  value?: string;
+}
 
 const COLLAPSED_WIDTH = 40;
-const EXPANDED_WIDTH = 370;
+const EXPANDED_PADDING = 16;
+const COLLAPSED_PADDING = 10;
+const HORIZONTAL_MARGIN = 32;
 
-const SearchField = ({ ...props }: SearchFieldProps) => {
+const SearchField = ({ variant = 'default', onChangeText, value, ...props }: SearchFieldProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
+  const { width: screenWidth } = useWindowDimensions();
+  
+  const EXPANDED_WIDTH = screenWidth - HORIZONTAL_MARGIN;
 
-  const widthAnim = useRef(new Animated.Value(COLLAPSED_WIDTH)).current;
+  const widthAnim = useRef(
+    new Animated.Value(variant === 'animated' ? COLLAPSED_WIDTH : EXPANDED_WIDTH)
+  ).current;
+
+  const paddingAnim = useRef(
+    new Animated.Value(variant === 'animated' ? COLLAPSED_PADDING : EXPANDED_PADDING)
+  ).current;
 
   const handlePress = () => {
-    if (!isFocused) {
+    if (variant === 'animated' && !isFocused) {
       setIsFocused(true);
-      Animated.timing(widthAnim, {
-        toValue: EXPANDED_WIDTH,
-        duration: 220,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: false,
-      }).start(() => {
+      Animated.parallel([
+        Animated.timing(widthAnim, {
+          toValue: EXPANDED_WIDTH,
+          duration: 220,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: false,
+        }),
+        Animated.timing(paddingAnim, {
+          toValue: EXPANDED_PADDING,
+          duration: 220,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: false,
+        }),
+      ]).start(() => {
         inputRef.current?.focus();
       });
+    } else if (variant === 'default') {
+      inputRef.current?.focus();
     }
   };
 
   const handleBlur = () => {
-    setIsFocused(false);
-    Animated.timing(widthAnim, {
-      toValue: COLLAPSED_WIDTH,
-      duration: 200,
-      easing: Easing.in(Easing.ease),
-      useNativeDriver: false,
-    }).start();
+    if (variant === 'animated') {
+      setIsFocused(false);
+      Animated.parallel([
+        Animated.timing(widthAnim, {
+          toValue: COLLAPSED_WIDTH,
+          duration: 200,
+          easing: Easing.in(Easing.ease),
+          useNativeDriver: false,
+        }),
+        Animated.timing(paddingAnim, {
+          toValue: COLLAPSED_PADDING,
+          duration: 200,
+          easing: Easing.in(Easing.ease),
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
   };
 
+  const isAnimatedVariant = variant === 'animated';
+  const iconSize = 24;
+
   return (
-    <Pressable onPress={handlePress} style={{ zIndex: 1 }}>
+    <Pressable onPress={handlePress} style={styles.wrapper}>
       <Animated.View
         style={[
           styles.container,
           {
-            width: widthAnim,
-            paddingHorizontal: isFocused ? 16 : 10,
+            width: isAnimatedVariant ? widthAnim : EXPANDED_WIDTH,
+            paddingHorizontal: isAnimatedVariant ? paddingAnim : EXPANDED_PADDING,
           },
         ]}
       >
-        <SearchIcon width={20} height={20} />
+        <View style={styles.iconContainer}>
+          <SearchIcon width={iconSize} height={iconSize} />
+        </View>
 
         <TextInput
           ref={inputRef}
           style={[
             styles.input,
-            !isFocused && styles.hiddenInput,
+            isAnimatedVariant && !isFocused && styles.hiddenInput,
           ]}
           placeholderTextColor={colors.grayscale[600]}
-          onBlur={handleBlur}
-          editable={isFocused}
-          pointerEvents={isFocused ? 'auto' : 'none'}
+          onBlur={isAnimatedVariant ? handleBlur : undefined}
+          editable={isAnimatedVariant ? isFocused : true}
+          pointerEvents={isAnimatedVariant && !isFocused ? 'none' : 'auto'}
+          value={value}
+          onChangeText={onChangeText}
           {...props}
         />
       </Animated.View>
@@ -76,21 +120,34 @@ const SearchField = ({ ...props }: SearchFieldProps) => {
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    zIndex: 1,
+  },
   container: {
     height: 40,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.grayscale[900],
-    borderRadius: 40,
+    borderRadius: 20,
     gap: 6,
     overflow: 'hidden',
+  },
+  iconContainer: {
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   input: {
     flex: 1,
     fontSize: 16,
     fontWeight: '400',
+    fontFamily: 'Pretendard-Regular',
     color: colors.grayscale[100],
     padding: 0,
+    margin: 0,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   hiddenInput: {
     width: 0,

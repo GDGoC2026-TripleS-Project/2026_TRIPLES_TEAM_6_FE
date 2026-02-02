@@ -34,21 +34,21 @@ const styles = StyleSheet.create({
   base: {
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 18,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
   },
   outlined: {
     backgroundColor: 'transparent',
-    borderColor: colors.grayscale[300],
+    borderColor: colors.grayscale[600],
   },
   filled: {
     backgroundColor: colors.primary[500],
     borderColor: colors.primary[500],
   },
   text: {
-    fontSize: 14,
+    fontSize: 16,
   },
   textOutlined: {
     color: colors.grayscale[300],

@@ -1,3 +1,27 @@
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { CompositeNavigationProp, NavigatorScreenParams } from '@react-navigation/native';
+
+export type RootStackParamList = {
+  MainTabs: NavigatorScreenParams<MainTabParamList>;
+  Record: undefined;
+  RecordDetail: { brandName: string; brandId: string };
+  RecordDrinkDetail: { drinkName: string; drinkId: string };
+  RecordingDetail: {
+    drinkName: string;
+    drinkId: string;
+    brandName: string;
+    temperature: 'hot' | 'ice';
+    size: string;
+    options: {
+      coffee?: Record<string, number>;
+      syrup?: Record<string, number>;
+      milk?: string[];
+    };
+  };
+  Send: undefined;
+};
+
 export type MainTabParamList = {
   Home: undefined;
   Calendar: undefined;
@@ -6,9 +30,16 @@ export type MainTabParamList = {
   Profile: undefined;
 };
 
+<<<<<<< HEAD
 export type RootStackParamList = {
   MyPage: undefined;
   EditCriteria: undefined;
   ChangePassword: undefined;
   NotificationSetting: undefined;
 };
+=======
+export type MainTabNavigationProp<T extends keyof MainTabParamList> = CompositeNavigationProp<
+  BottomTabNavigationProp<MainTabParamList, T>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+>>>>>>> origin/develop

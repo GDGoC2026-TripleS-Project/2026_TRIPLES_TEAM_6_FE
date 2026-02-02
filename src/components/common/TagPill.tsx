@@ -15,7 +15,7 @@ function TagPill({ label, value, unit, style }: TagProps) {
       <Text style={styles.label}>{label}</Text>
       <Text style={styles.value}>
         {value}
-        {!!unit && <Text style={styles.unit}> {unit}</Text>}
+        {!!unit && <Text style={styles.unit}>{unit}</Text>}
       </Text>
     </View>
   );
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.grayscale[700],
+    borderColor: colors.grayscale[600],
     backgroundColor: colors.grayscale[1000],
     gap: 6,
   },
@@ -43,13 +43,13 @@ const styles = StyleSheet.create({
   },
 
   value: {
-    color: colors.primary[600],
+    color: colors.primary[500],
     fontSize: 14,
-    fontFamily: "Pretendard-Regular",
+    fontFamily: "Pretendard-SemiBold",
   },
 
   unit: {
-    color: colors.primary[600],
-    fontFamily: "Pretendard-Regular",
+    color: colors.primary[500],
+    fontFamily: "Pretendard-SemiBold",
   },
 });

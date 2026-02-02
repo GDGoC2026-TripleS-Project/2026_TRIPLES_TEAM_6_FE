@@ -51,50 +51,61 @@ export default function DrinkList({
 }
 
 const styles = StyleSheet.create({
-  row: {
-    width: "100%",
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  left: {
-    flex: 1,
-  },
-  brandLabel: {
-    color: colors.grayscale[600],
-    fontSize: 13,
-    fontFamily: "Pretendard-Regular",
-    marginBottom: 4,
-  },
-  menuName: {
-    color: colors.grayscale[100],
-    fontSize: 18,
-    fontFamily: "Pretendard-Medium",
-    marginBottom: 4,
-  },
-  optionText: {
-    color: colors.grayscale[500],
-    fontSize: 14,
-    fontFamily: "Pretendard-Regular",
-    marginBottom: 10,
-  },
-  pillRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  right: {
-    alignItems: "flex-end",
-    justifyContent: "center",
-    gap: 10,
-    marginLeft: 12,
-  },
-  rightText: {
-    color: colors.primary[400],
-    fontSize: 18,
-    fontFamily: "Pretendard-Medium",
-  },
-  rightIconWrap: {
-    opacity: 0.9,
-  },
+    row: {
+        width: '100%',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: colors.grayscale[900]
+    },
+
+    left: {
+        flex: 1,
+    },
+
+    brandLabel: {
+        color: colors.grayscale[600],
+        fontSize: 12,
+        fontFamily: 'Pretendard-Regular',
+        marginBottom: 7,
+    },
+
+    menuName: {
+        color: colors.grayscale[100],
+        fontSize: 16,
+        fontFamily: 'Pretendard',
+        fontWeight: 600,
+        marginBottom: 7,
+    },
+
+    optionText: {
+        color: colors.grayscale[600],
+        fontSize: 14,
+        fontFamily: 'Pretendard-Regular',
+        marginBottom: 15,
+    },
+
+    pillRow: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    
+    right: {
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        gap: 10,
+        marginLeft: 12,
+    },
+
+    rightText: {
+        color: colors.primary[500],
+        fontSize: 14,
+        fontFamily: 'Pretendard-Medium',
+    },
+
+    rightIconWrap: {
+        opacity: 0.9,
+    },
 });

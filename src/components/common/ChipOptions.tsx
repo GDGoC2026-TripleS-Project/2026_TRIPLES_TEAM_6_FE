@@ -40,12 +40,13 @@ const styles = StyleSheet.create({
     color: colors.grayscale[500],
     fontSize: 12,
     fontFamily: 'Pretendard-Regular',
-    marginBottom: 12,
+    marginBottom: 20,
   },
   chipContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    marginBottom: 8
   },
 });
 
