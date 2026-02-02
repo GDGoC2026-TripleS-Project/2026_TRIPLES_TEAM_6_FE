@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../constants/colors';
+import { colors } from '../../../constants/colors';
 
 import GoogleLogin from '../../../assets/ComponentsImage/GoogleLogin.svg';
 import KakaoLogin from '../../../assets/ComponentsImage/KakaoLogin.svg';

@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { colors } from '../../constants/colors';
+import { colors } from '../../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 
-import TextField from '../../components/common/TextField';
-import Button from '../../components/common/Button';
+import TextField from '../../../components/common/TextField';
+import Button from '../../../components/common/Button';
 
 import PreProfileImg from '../../../assets/ComponentsImage/preProfile.svg';
 

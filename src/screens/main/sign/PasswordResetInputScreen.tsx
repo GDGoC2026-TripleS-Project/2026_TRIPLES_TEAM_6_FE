@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { colors } from "../../constants/colors";
-import TextField from "../../components/common/TextField";
-import Button from "../../components/common/Button";
+import { colors } from "../../../constants/colors";
+import TextField from "../../../components/common/TextField";
+import Button from "../../../components/common/Button";
 
 const PasswordResetInputScreen: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");

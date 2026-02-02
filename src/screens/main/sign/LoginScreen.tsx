@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
-import { colors } from "../../constants/colors";
-import TextField from "../../components/common/TextField";
-import Button from "../../components/common/Button";
-import GoogleLogin from "../../../assets/ComponentsImage/GoogleLogin.svg";
-import KakaoLogin from "../../../assets/ComponentsImage/KakaoLogin.svg";
-import AppleLogin from "../../../assets/ComponentsImage/AppleLogin.svg";
+import { colors } from "../../../constants/colors";
+import TextField from "../../../components/common/TextField";
+import Button from "../../../components/common/Button";
+import GoogleLogin from "../../../../assets/ComponentsImage/GoogleLogin.svg";
+import KakaoLogin from "../../../../assets/ComponentsImage/KakaoLogin.svg";
+import AppleLogin from "../../../../assets/ComponentsImage/AppleLogin.svg";
 
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 
-import { useAuthStore } from "../../app/features/auth/auth.store";
+import { useAuthStore } from "../../../app/features/auth/auth.store";
 
 WebBrowser.maybeCompleteAuthSession();
 

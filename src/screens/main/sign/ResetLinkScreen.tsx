@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { colors } from "../../constants/colors";
-import Button from "../../components/common/Button";
+import { colors } from "../../../constants/colors";
+import Button from "../../../components/common/Button";
 import Check from "../../../assets/ComponentsImage/check.svg";
 
 const ResetLinkScreen: React.FC = () => {

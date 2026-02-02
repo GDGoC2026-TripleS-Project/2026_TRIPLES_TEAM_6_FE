@@ -1,30 +1,32 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { colors } from "../../constants/colors";
-import Button from "../../components/common/Button";
+import { colors } from "../../../constants/colors";
+import Button from "../../../components/common/Button";
 import Check from "../../../assets/ComponentsImage/check.svg";
 
-const PasswordResetScreen: React.FC = () => {
-  const Complete = () => {
-    console.log("로그인 화면으로 이동");
-  };
+const SignUpCompleteScreen: React.FC = () => {
+    const Complete = () => {
+        console.log('로그인 화면으로 이동');
+    };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.center}>
-        <View style={styles.iconWrap}>
-          <Check width={44} height={44} />
+    return (
+        <View style={styles.container}>
+            <View style={styles.center}>
+            <View style={styles.iconWrap}>
+            <Check width={44} height={44} />
+            </View>
+
+            <Text style={styles.title}>회원가입 완료</Text>
+            <Text style={styles.desc}>
+                오늘 마신 음료를 기록하고,{"\n"}나만의 기준으로 카페인과 당류를 관리해 보세요.
+            </Text>
+            </View>
+
+            <View style={styles.bottom}>
+            <Button title="로그인 화면으로 이동" onPress={Complete} />
+            </View>
         </View>
-
-        <Text style={styles.title}>비밀번호 재설정 완료</Text>
-        <Text style={styles.desc}>새로운 비밀번호로 로그인해 주세요.</Text>
-      </View>
-
-      <View style={styles.bottom}>
-        <Button title="로그인 화면으로 이동" onPress={Complete} />
-      </View>
-    </View>
-  );
+    );
 };
 
 const styles = StyleSheet.create({
@@ -58,7 +60,7 @@ const styles = StyleSheet.create({
     fontFamily: "Pretendard-SemiBold",
     fontSize: 24,
     marginTop: 24,
-    marginBottom: 16,
+    marginBottom: 20,
     textAlign: "center",
   },
 
@@ -76,4 +78,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PasswordResetScreen;
+export default SignUpCompleteScreen;

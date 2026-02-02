@@ -1,17 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-<<<<<<< HEAD
 
-import ProfileSettingScreen from './src/screens/mypage/ProfileSettingScreen';
-=======
-import { NavigationContainer } from '@react-navigation/native';
-import AppNavigator from './src/navigation/AppNavigator';
-import RootNavigator from './src/navigation/RootStack';
-import { StatusBar } from 'expo-status-bar';
->>>>>>> origin/develop
+import OnboardingScreen from './src/screens/main/onBoarding/OnBoardingScreen';
 
 export default function App() {
+
   const [loaded] = useFonts({
     'Pretendard-Regular': require('./assets/fonts/Pretendard-Regular.otf'),
     'Pretendard-Medium': require('./assets/fonts/Pretendard-Medium.otf'),
@@ -22,15 +17,18 @@ export default function App() {
   if (!loaded) return null;
 
   return (
-<<<<<<< HEAD
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-      <ProfileSettingScreen />
+    <SafeAreaView style={styles.container}>
+      <View style={{ flex: 1, width: '100%' }}>
+        <OnboardingScreen />
+      </View>
     </SafeAreaView>
-=======
-      <NavigationContainer>
-        <StatusBar style='light'/>
-        <RootNavigator />
-      </NavigationContainer>
->>>>>>> origin/develop
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0B0B0B',
+    paddingTop: 20,
+  },
+});
