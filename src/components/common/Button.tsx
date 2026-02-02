@@ -7,12 +7,27 @@ interface ButtonProps {
   disabled?: boolean;
   onPress?: () => void;
   variant?: 'primary' | 'dark';
+  backgroundColor?: string;
+  pressedBackgroundColor?: string;
+  disabledBackgroundColor?: string;
 }
 
-const Button = ({ title, disabled = false, onPress, variant = 'primary' }: ButtonProps) => {
+const Button = ({
+  title,
+  disabled = false,
+  onPress,
+  variant = 'primary',
+  backgroundColor,
+  pressedBackgroundColor,
+  disabledBackgroundColor,
+}: ButtonProps) => {
   const getBackgroundColor = (pressed: boolean) => {
     if (disabled) {
-      return colors.grayscale[700];
+      return disabledBackgroundColor ?? colors.grayscale[700];
+    }
+
+    if (backgroundColor) {
+      return pressed ? pressedBackgroundColor ?? backgroundColor : backgroundColor;
     }
 
     if (variant === 'dark') {

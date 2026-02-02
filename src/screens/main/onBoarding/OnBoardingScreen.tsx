@@ -3,6 +3,7 @@ import { View, Animated, Dimensions, StyleSheet } from 'react-native';
 import SlideItem from '../../../components/common/SlideItem';
 import Button from '../../../components/common/Button';
 import { colors } from '../../../constants/colors';
+import { useGoalStore } from '../../../store/goalStore';
 
 import Beverage1 from '../../../../assets/ComponentsImage/beverage1.svg';
 import Beverage2 from '../../../../assets/ComponentsImage/beverage2.svg';
@@ -22,7 +23,6 @@ const slides = [
       '*표시된 카페인 및 당류 함량은 브랜드 공식 데이터를 기반으로 한 참고치이며,\n실제 제조 방식에 따라 차이가 있을 수 있습니다.',
     mainIllust: Beverage1,
   },
-
   {
     id: '2',
     type: 'text',
@@ -30,7 +30,6 @@ const slides = [
     description: '복잡한 수치 대신 그래프 라인으로\n오늘 나의 섭취량을 한눈에 확인해 보세요.',
     criteria: [Criteria1, Criteria2],
   },
-
   {
     id: '3',
     type: 'text',
@@ -38,7 +37,6 @@ const slides = [
     description: '라스트컵과 정한 기준이 꼭 정답은 아니에요.\n나에게 맞는 건강한 밸런스를 찾아봐요.',
     chart: Chart,
   },
-
   {
     id: '4',
     type: 'caffeine',
@@ -51,7 +49,6 @@ const slides = [
     unit: 'mg',
     defaultValue: 400,
   },
-
   {
     id: '5',
     type: 'sugar',
@@ -64,7 +61,6 @@ const slides = [
     unit: 'g',
     defaultValue: 25,
   },
-
   {
     id: '6',
     type: 'done',
@@ -77,22 +73,36 @@ const slides = [
 
 const INDICATOR_COUNT = 5;
 
-function OnboardingScreen({ navigation }: { navigation?: any }) {
+function OnboardingScreen({ navigation }: { navigation: any }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<any>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
+
+  // ✅ 온보딩에서 설정하는 값(부모가 들고 있어야 저장 가능)
+  const [caffeineValue, setCaffeineValue] = useState(400);
+  const [sugarValue, setSugarValue] = useState(25);
+
+  // ✅ 훅은 컴포넌트 안에서 호출
+  const setGoals = useGoalStore((s) => s.setGoals);
+
+  const goTo = (index: number) => flatListRef.current?.scrollToIndex?.({ index, animated: true });
 
   const handleScroll = (event: any) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / width);
     setCurrentIndex(index);
   };
 
-  const goTo = (index: number) =>
-    flatListRef.current?.scrollToIndex?.({ index, animated: true });
-
   const handleNext = () => {
     if (currentIndex < slides.length - 1) goTo(currentIndex + 1);
-    else navigation?.replace?.('Sign In');
+    else {
+      // ✅ 마지막(done)에서 "시작하기" 눌렀을 때 저장
+      setGoals({
+        caffeine: caffeineValue,
+        sugar: sugarValue,
+      });
+
+      navigation.replace('Main');
+    }
   };
 
   const handlePrev = () => {
@@ -101,12 +111,15 @@ function OnboardingScreen({ navigation }: { navigation?: any }) {
 
   const isFirstSlide = currentIndex === 0;
   const isLastSlide = currentIndex === slides.length - 1;
-
   const isDoneSlide = slides[currentIndex]?.type === 'done';
 
-  // ✅ done은 인디케이터 숨김
-  // ✅ 나머지는 점 5개 고정 + active는 currentIndex 기준(0~4)
   const activeIndicatorIndex = Math.min(currentIndex, INDICATOR_COUNT - 1);
+
+  // ✅ SlideItem이 슬라이더 값 바뀔 때 부모에게 알려주게
+  const onChangeGoal = (type: 'caffeine' | 'sugar', v: number) => {
+    if (type === 'caffeine') setCaffeineValue(v);
+    if (type === 'sugar') setSugarValue(v);
+  };
 
   return (
     <View style={styles.container}>
@@ -114,7 +127,13 @@ function OnboardingScreen({ navigation }: { navigation?: any }) {
         ref={flatListRef}
         data={slides}
         renderItem={({ item, index }: { item: any; index: number }) => (
-          <SlideItem item={item} index={index} />
+          <SlideItem
+  item={item}
+  index={index}
+  caffeineValue={caffeineValue}
+  sugarValue={sugarValue}
+  onChangeGoal={onChangeGoal}
+/>
         )}
         keyExtractor={(item) => item.id}
         horizontal
@@ -127,13 +146,11 @@ function OnboardingScreen({ navigation }: { navigation?: any }) {
         })}
       />
 
+      {/* ✅ done에서는 숨김, 나머지는 점 5개 */}
       {!isDoneSlide && (
         <View style={styles.indicatorContainer}>
           {Array.from({ length: INDICATOR_COUNT }).map((_, i) => (
-            <View
-              key={i}
-              style={[styles.dot, activeIndicatorIndex === i && styles.dotActive]}
-            />
+            <View key={i} style={[styles.dot, activeIndicatorIndex === i && styles.dotActive]} />
           ))}
         </View>
       )}

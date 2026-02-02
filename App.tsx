@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 
-import OnboardingScreen from './src/screens/main/onBoarding/OnBoardingScreen';
+import GoalEditScreen from './src/screens/main/mypage/GoalEditScreen';
 
 export default function App() {
 
@@ -19,7 +19,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ flex: 1, width: '100%' }}>
-        <OnboardingScreen />
+        <GoalEditScreen />
       </View>
     </SafeAreaView>
   );

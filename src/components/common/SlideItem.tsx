@@ -33,9 +33,18 @@ type SlideItemData = SlideBase | SliderSlide;
 type SlideItemProps = {
   item: SlideItemData;
   index: number;
+  caffeineValue?: number;
+  sugarValue?: number;
+  onChangeGoal?: (type: 'caffeine' | 'sugar', value: number) => void;
 };
 
-export default function SlideItem({ item }: SlideItemProps) {
+export default function SlideItem({
+  item,
+  index,
+  caffeineValue,
+  sugarValue,
+  onChangeGoal,
+}: SlideItemProps) {
   const hasSlider = item.type === 'caffeine' || item.type === 'sugar';
 
   const [isSliding, setIsSliding] = useState(false);
@@ -44,9 +53,21 @@ export default function SlideItem({ item }: SlideItemProps) {
     hasSlider ? (item as SliderSlide).defaultValue : 0
   );
 
+  // ✅ 부모에서 내려준 값을 우선 반영 + 무한루프 방지(값이 달라질 때만 setValue)
   useEffect(() => {
-    if (hasSlider) setValue((item as SliderSlide).defaultValue);
-  }, [item, hasSlider]);
+    if (!hasSlider) return;
+
+    const sliderItem = item as SliderSlide;
+
+    const next =
+      item.type === 'caffeine'
+        ? (caffeineValue ?? sliderItem.defaultValue)
+        : item.type === 'sugar'
+        ? (sugarValue ?? sliderItem.defaultValue)
+        : sliderItem.defaultValue;
+
+    setValue((prev) => (prev === next ? prev : next));
+  }, [hasSlider, item.type, caffeineValue, sugarValue, item]);
 
   const valueLabel = useMemo(() => {
     if (!hasSlider) return '';
@@ -83,9 +104,7 @@ export default function SlideItem({ item }: SlideItemProps) {
             <Text style={[styles.title, styles.doneTitleSize, { color: titleColor }]}>
               {item.title}
             </Text>
-            <Text style={[styles.desc, styles.doneDescSize]}>
-              {item.description}
-            </Text>
+            <Text style={[styles.desc, styles.doneDescSize]}>{item.description}</Text>
           </>
         ) : (
           <>
@@ -150,7 +169,15 @@ export default function SlideItem({ item }: SlideItemProps) {
               minimumValue={(item as SliderSlide).min}
               maximumValue={(item as SliderSlide).max}
               value={value}
-              onValueChange={setValue}
+              onValueChange={(v) => {
+                const next = Math.round(v);
+                setValue(next);
+
+                // ✅ 부모로도 값 전달
+                if (item.type === 'caffeine' || item.type === 'sugar') {
+                  onChangeGoal?.(item.type, next);
+                }
+              }}
               onSlidingStart={() => setIsSliding(true)}
               onSlidingComplete={() => setIsSliding(false)}
               minimumTrackTintColor={colors.primary[500]}
@@ -193,6 +220,7 @@ const styles = StyleSheet.create({
 
   doneTitleSize: {
     fontSize: 24,
+    marginTop: 5,
   },
 
   desc: {
