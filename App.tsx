@@ -2,7 +2,7 @@ import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 
-import LoginScreen from './src/screens/sign/LoginScreen';
+import ProfileSettingScreen from './src/screens/mypage/ProfileSettingScreen';
 
 export default function App() {
   const [loaded] = useFonts({
@@ -15,8 +15,8 @@ export default function App() {
   if (!loaded) return null;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }}>
-      <LoginScreen />
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
+      <ProfileSettingScreen />
     </SafeAreaView>
   );
 }

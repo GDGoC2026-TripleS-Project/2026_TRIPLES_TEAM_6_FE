@@ -70,7 +70,7 @@ export default function CalendarScreen() {
   };
 
   const onGoPeriodSearch = () => {
-    navigation.navigate('PeriodSearch');
+    navigation.navigate('PeriodSearchScreen');
   };
 
   return (

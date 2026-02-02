@@ -6,15 +6,17 @@ interface TextFieldProps extends Omit<TextInputProps, 'value' | 'onChangeText'> 
   value: string;
   onChangeText: (text: string) => void;
   error?: string;
+  isValid?: boolean;
   style?: object;
 }
 
-const TextField = ({ value, onChangeText, error, style, ...props }: TextFieldProps) => {
+const TextField = ({ value, onChangeText, error, isValid, style, ...props }: TextFieldProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
   const getBorderColor = () => {
     if (error) return '#FF0000';
-    if (isFocused) return colors.primary[500];
+    if (isValid) return colors.primary[500];
+    if (isFocused) return colors.primary[500]; 
     if (value) return 'transparent';
     return 'transparent';
   };
