@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import HeaderDetail from './src/components/common/HeaderDetail';
+import { NavigationContainer } from '@react-navigation/native';
+import AppNavigator from './src/navigation/AppNavigator';
+import RootNavigator from './src/navigation/RootStack';
+import { StatusBar } from 'expo-status-bar';
 
 export default function App() {
   const [loaded] = useFonts({
@@ -15,12 +18,10 @@ export default function App() {
   if (!loaded) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <HeaderDetail
-      title='뭐쓰지'
-      onBack={() => console.log('back')}
-      />
-    </SafeAreaView>
+      <NavigationContainer>
+        <StatusBar style='light'/>
+        <RootNavigator />
+      </NavigationContainer>
   );
 }
 

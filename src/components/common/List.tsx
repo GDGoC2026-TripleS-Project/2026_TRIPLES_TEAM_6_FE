@@ -2,7 +2,9 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 import React, { useState } from "react";
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from "../../constants/colors";
-
+import ToggleButton from "./ToggleButton";
+import HeartOff from '../../../assets/Property 1=false.svg'
+import HeartOn from '../../../assets/Property 1=true.svg'
 type ListProps = {
     title: string;
     defaultLiked?: boolean;
@@ -16,17 +18,7 @@ function List({ title, defaultLiked = false, onPress }: ListProps) {
         <Pressable onPress={onPress} style={styles.container}>
             <View style={styles.row}>
                 <Text style={styles.title}>{title}</Text>
-
-                <Pressable
-                hitSlop={8}
-                onPress={() => setLiked(prev => !prev)}
-                >
-                    <Ionicons
-                    name={liked ? 'heart' : 'heart'}
-                    size={22}
-                    color={liked ? 'skyblue' : 'white'}
-                    />
-                </Pressable>
+                <ToggleButton image1={HeartOff} image2={HeartOn}/>
             </View>
 
             <View style={styles.divider} />
@@ -38,16 +30,15 @@ export default List;
 
 const styles = StyleSheet.create({
     container: {
-        paddingHorizontal: 16,
-        paddingTop: 18,
-        width: '95%',
+        paddingTop: 24,
+        width: '100%',
     },
-
     row: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        width: '95%',
+        width: '100%',
+        paddingHorizontal: 16,
     },
 
     title: {
@@ -57,8 +48,8 @@ const styles = StyleSheet.create({
     },
 
     divider: {
-        marginTop: 22,
+        marginTop: 24,
         height: 1,
-        backgroundColor: colors.grayscale[700],
+        backgroundColor: colors.grayscale[900],
     },
 });

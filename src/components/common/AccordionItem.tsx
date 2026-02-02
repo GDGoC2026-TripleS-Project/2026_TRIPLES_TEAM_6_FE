@@ -68,6 +68,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.grayscale[900],
   },
   titleWrap: {
     flexDirection: 'row',
@@ -91,9 +93,8 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    marginBottom: 8,
-    borderTopWidth: 1,
-    borderTopColor: colors.grayscale[700],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.grayscale[900],
   },
 });
 

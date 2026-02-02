@@ -1,5 +1,7 @@
 import React from 'react';
+import { Pressable } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 
 import { tabs } from './config/tabs';
 import { MainTabParamList } from '../types/navigation';
@@ -32,21 +34,44 @@ const createTabIcon =
     );
 
 export default function AppNavigator() {
+  const navigation = useNavigation<any>(); 
+
   return (
     <Tab.Navigator screenOptions={TAB_BAR_CONFIG}>
-      {tabs.map(({ name, component, title, icon, isPlus }) => (
-        <Tab.Screen
-          key={name}
-          name={name}
-          component={component}
-          options={{
-            title,
-            tabBarIcon: isPlus
-              ? () => React.createElement(icon)
-              : createTabIcon(icon),
-          }}
-        />
-      ))}
+      {tabs.map(({ name, component, title, icon, isPlus }) =>
+        isPlus ? (
+          <Tab.Screen
+            key={name}
+            name={name}
+            component={component}
+            options={{
+              title: '',
+              tabBarButton: () => (
+                <Pressable
+                  onPress={() => navigation.navigate('Record')}
+                  style={{
+                    flex: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {React.createElement(icon)}
+                </Pressable>
+              ),
+            }}
+          />
+        ) : (
+          <Tab.Screen
+            key={name}
+            name={name}
+            component={component}
+            options={{
+              title,
+              tabBarIcon: createTabIcon(icon),
+            }}
+          />
+        )
+      )}
     </Tab.Navigator>
   );
 }

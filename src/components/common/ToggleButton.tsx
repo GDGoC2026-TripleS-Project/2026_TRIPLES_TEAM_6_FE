@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { View, Image, StyleSheet, ImageSourcePropType, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
+import { SvgProps } from 'react-native-svg';
 
 interface ToggleButtonProps {
-  image1: ImageSourcePropType;
-  image2: ImageSourcePropType;
+  image1: React.FC<SvgProps>;
+  image2: React.FC<SvgProps>;
   initialImage?: 1 | 2;
   onToggle?: (isImage2: boolean) => void;
   onPress?: () => void;
 }
 
 const ToggleButton = ({
-  image1,
-  image2,
+  image1: Image1,
+  image2: Image2,
   initialImage = 1,
   onToggle,
   onPress,
@@ -26,12 +27,12 @@ const ToggleButton = ({
     });
   };
 
-  const currentImage = isImage2 ? image2 : image1;
+  const CurrentImage = isImage2 ? Image2 : Image1;
 
   return (
     <View style={styles.container}>
       <Pressable onPress={toggleImage} onPressIn={onPress}>
-        <Image source={currentImage} style={styles.image} />
+        <CurrentImage width={24} height={24} />
       </Pressable>
     </View>
   );
@@ -42,12 +43,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  image: {
-    width: 24,
-    height: 24,
-    resizeMode: 'contain',
-  },
 });
 
 export default ToggleButton;
-
