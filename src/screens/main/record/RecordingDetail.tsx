@@ -5,7 +5,7 @@ import { RootStackParamList } from '../../../types/navigation';
 import { colors } from '../../../constants/colors';
 import Button from '../../../components/common/Button';
 import { useState } from 'react';
-import MenuItemRow from "../../../components/common/DrinkList";
+import MenuItemRow from "../../../components/common/MenuItem";
 import DatePickerField from "../../../components/common/DatePickerField";
 
 type RecordingDetailRouteProp = RouteProp<RootStackParamList, 'RecordingDetail'>;
