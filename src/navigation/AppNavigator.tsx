@@ -37,7 +37,7 @@ export default function AppNavigator() {
   const navigation = useNavigation<any>(); 
 
   return (
-    <Tab.Navigator screenOptions={TAB_BAR_CONFIG}>
+    <Tab.Navigator screenOptions={TAB_BAR_CONFIG} initialRouteName="Home">
       {tabs.map(({ name, component, title, icon, isPlus }) =>
         isPlus ? (
           <Tab.Screen

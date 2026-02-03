@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
@@ -6,12 +6,18 @@ import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import CalendarScreen from './src/screens/main/CalendarScreen';
-import PeriodSearchScreen from './src/screens/main/PeriodSearchScreen';
+import RootNavigator from './src/navigation/RootStack';
+import LoginScreen from './src/screens/main/sign/LoginScreen';
+import OnBoardingScreen from './src/screens/main/onBoarding/OnBoardingScreen';
+import { useAuthStore } from './src/app/features/auth/auth.store';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  const [isHydrating, setIsHydrating] = useState(true);
+  const hydrate = useAuthStore((s) => s.hydrate);
+  const accessToken = useAuthStore((s) => s.accessToken);
+
   const [loaded] = useFonts({
     'Pretendard-Regular': require('./assets/fonts/Pretendard-Regular.otf'),
     'Pretendard-Medium': require('./assets/fonts/Pretendard-Medium.otf'),
@@ -19,14 +25,33 @@ export default function App() {
     'Pretendard-Bold': require('./assets/fonts/Pretendard-Bold.otf'),
   });
 
-  if (!loaded) return null;
+  useEffect(() => {
+    let isMounted = true;
+    hydrate().finally(() => {
+      if (isMounted) setIsHydrating(false);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [hydrate]);
+
+  if (!loaded || isHydrating) return null;
 
   return (
     <SafeAreaView style={styles.container}>
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Calendar" component={CalendarScreen} />
-          <Stack.Screen name="PeriodSearchScreen" component={PeriodSearchScreen} />
+        <Stack.Navigator
+          key={accessToken ? 'app' : 'auth'}
+          screenOptions={{ headerShown: false }}
+        >
+          {accessToken ? (
+            <>
+              <Stack.Screen name="Onboarding" component={OnBoardingScreen} />
+              <Stack.Screen name="Main" component={RootNavigator} />
+            </>
+          ) : (
+            <Stack.Screen name="Login" component={LoginScreen} />
+          )}
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaView>
