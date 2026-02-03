@@ -8,7 +8,6 @@ import Button from '../../../components/common/Button';
 
 import PreProfileImg from '../../../assets/ComponentsImage/preProfile.svg';
 
-// 네비게이션
 // import { useNavigation } from '@react-navigation/native';
 
 export default function ProfileSettingScreen() {

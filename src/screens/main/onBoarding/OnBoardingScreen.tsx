@@ -78,11 +78,9 @@ function OnboardingScreen({ navigation }: { navigation: any }) {
   const flatListRef = useRef<any>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
 
-  // ✅ 온보딩에서 설정하는 값(부모가 들고 있어야 저장 가능)
   const [caffeineValue, setCaffeineValue] = useState(400);
   const [sugarValue, setSugarValue] = useState(25);
 
-  // ✅ 훅은 컴포넌트 안에서 호출
   const setGoals = useGoalStore((s) => s.setGoals);
 
   const goTo = (index: number) => flatListRef.current?.scrollToIndex?.({ index, animated: true });
@@ -95,7 +93,6 @@ function OnboardingScreen({ navigation }: { navigation: any }) {
   const handleNext = () => {
     if (currentIndex < slides.length - 1) goTo(currentIndex + 1);
     else {
-      // ✅ 마지막(done)에서 "시작하기" 눌렀을 때 저장
       setGoals({
         caffeine: caffeineValue,
         sugar: sugarValue,
@@ -115,7 +112,6 @@ function OnboardingScreen({ navigation }: { navigation: any }) {
 
   const activeIndicatorIndex = Math.min(currentIndex, INDICATOR_COUNT - 1);
 
-  // ✅ SlideItem이 슬라이더 값 바뀔 때 부모에게 알려주게
   const onChangeGoal = (type: 'caffeine' | 'sugar', v: number) => {
     if (type === 'caffeine') setCaffeineValue(v);
     if (type === 'sugar') setSugarValue(v);
@@ -146,7 +142,6 @@ function OnboardingScreen({ navigation }: { navigation: any }) {
         })}
       />
 
-      {/* ✅ done에서는 숨김, 나머지는 점 5개 */}
       {!isDoneSlide && (
         <View style={styles.indicatorContainer}>
           {Array.from({ length: INDICATOR_COUNT }).map((_, i) => (

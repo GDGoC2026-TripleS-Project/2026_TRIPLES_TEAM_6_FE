@@ -1,4 +1,5 @@
-import { View, StyleSheet, Text,  ViewStyle } from "react-native";
+import React, { useMemo } from 'react';
+import { View, StyleSheet, Text, ViewStyle, Pressable } from "react-native";
 import { Calendar as RNCalendar, LocaleConfig, DateData } from 'react-native-calendars';
 import { colors } from "../../constants/colors";
 
@@ -19,32 +20,21 @@ LocaleConfig.defaultLocale = 'ko';
 
 type CalendarProps = {
     events?: string[];
-    selected?: string;
+    startDate?: string;
+    endDate?: string;
+    selecting?: 'start' | 'end';
+    showToday?: boolean;
     onDayPress?: (dateString: string) => void;
-    style?: ViewStyle
+    style?: ViewStyle;
 };
 
-const Calendar = ({ events = [], selected, onDayPress, style }: CalendarProps) => {
-    
-    const getMarkedDates = () => {
-        const marked: any = {};
-        
-        events.forEach(date => {
-            marked[date] = {
-                marked: true,
-                dotColor: colors.primary[500],
-            };
-        });
-        
-        if (selected) {
-            marked[selected] = {
-                ...marked[selected],
-                selected: true,
-                selectedColor: colors.grayscale[600],
-            };
-        }
-        
-        return marked;
+const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPress, style }: CalendarProps) => {
+    const eventSet = useMemo(() => new Set(events), [events]);
+
+    const isSame = (a?: string, b?: string) => !!a && !!b && a === b;
+    const isBetween = (d: string, start?: string, end?: string) => {
+        if (!start || !end) return false;
+        return start < d && d < end;
     };
 
     const handleDayPress = (day: DateData) => {
@@ -57,8 +47,58 @@ const Calendar = ({ events = [], selected, onDayPress, style }: CalendarProps) =
         <View style={styles.container}>
             <RNCalendar
                 onDayPress={handleDayPress}
-                markedDates={getMarkedDates()}
-                markingType="dot"
+                dayComponent={({ date, state }) => {
+                    if (!date) return null;
+
+                    const dateString = date.dateString;
+                    const isStart = isSame(dateString, startDate);
+                    const isEnd = isSame(dateString, endDate);
+                    const hasRange = !!startDate && !!endDate;
+                    const isSingleDay = hasRange && startDate === endDate;
+                    const isInRange = hasRange && (isBetween(dateString, startDate, endDate) || isStart || isEnd);
+                    const isDisabled = state === 'disabled';
+                    const isToday = showToday && state === 'today';
+
+                    return (
+                        <Pressable
+                            style={styles.dayCell}
+                            onPress={() => handleDayPress(date)}
+                            disabled={isDisabled}
+                        >
+                            {isInRange && (
+                                <View
+                                    style={[
+                                        styles.rangeBar,
+                                        isStart && styles.rangeBarStart,
+                                        isEnd && styles.rangeBarEnd,
+                                        isSingleDay && styles.rangeBarSingle,
+                                    ]}
+                                />
+                            )}
+
+                            <View
+                                style={[
+                                    styles.dayCircle,
+                                    (isStart || isEnd) && styles.dayCircleActive,
+                                    isToday && !(isStart || isEnd) && styles.dayCircleToday,
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        styles.dayText,
+                                        isDisabled && styles.dayTextDisabled,
+                                        (isStart || isEnd) && styles.dayTextActive,
+                                        isToday && !(isStart || isEnd) && styles.dayTextToday,
+                                    ]}
+                                >
+                                    {date.day}
+                                </Text>
+                            </View>
+
+                            {eventSet.has(dateString) && <View style={styles.dot} />}
+                        </Pressable>
+                    );
+                }}
                 renderHeader={(date) => {
                     const year = date.getFullYear();
                     const month = date.getMonth() + 1;
@@ -105,24 +145,24 @@ const Calendar = ({ events = [], selected, onDayPress, style }: CalendarProps) =
                             width: 4,
                             height: 4,
                             borderRadius: 2,
-                            marginTop: 10, 
+                            marginTop: 10,
                         },
                     },
                     'stylesheet.calendar.header': {
                         week: {
                             marginTop: 7,
                             flexDirection: 'row',
-                            justifyContent: 'space-around',
+                            justifyContent: 'space-between',
                             borderBottomWidth: 1,
                             borderBottomColor: colors.grayscale[800],
                             paddingBottom: 7,
-                            ...(style ?? {}), 
+                            ...(style ?? {}),
                         },
                     },
                     'stylesheet.calendar.main': {
                         week: {
                             flexDirection: 'row',
-                            justifyContent: 'space-around',
+                            justifyContent: 'space-between',
                             borderBottomWidth: 1,
                             borderBottomColor: colors.grayscale[800],
                             paddingTop: 5,
@@ -151,6 +191,69 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontFamily: 'Pretendard-Bold',
         color: colors.grayscale[100],
+    },
+    dayCell: {
+        width: 44,
+        height: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    rangeBar: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        height: 36,
+        borderRadius: 0,
+        backgroundColor: 'rgba(64, 224, 208, 0.22)',
+    },
+    rangeBarStart: {
+        left: '50%',
+        borderTopLeftRadius: 18,
+        borderBottomLeftRadius: 18,
+    },
+    rangeBarEnd: {
+        right: '50%',
+        borderTopRightRadius: 18,
+        borderBottomRightRadius: 18,
+    },
+    rangeBarSingle: {
+        left: 0,
+        right: 0,
+        borderRadius: 18,
+    },
+    dayCircle: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    dayCircleActive: {
+        backgroundColor: colors.primary[500],
+    },
+    dayCircleToday: {
+        backgroundColor: colors.primary[500],
+    },
+    dayText: {
+        color: colors.grayscale[200],
+        fontFamily: 'Pretendard-Medium',
+        fontSize: 13,
+    },
+    dayTextActive: {
+        color: colors.grayscale[1000],
+    },
+    dayTextToday: {
+        color: colors.grayscale[1000],
+    },
+    dayTextDisabled: {
+        color: colors.grayscale[600],
+    },
+    dot: {
+        width: 4,
+        height: 4,
+        borderRadius: 2,
+        marginTop: 6,
+        backgroundColor: colors.primary[500],
     },
 });
 

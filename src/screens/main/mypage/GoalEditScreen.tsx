@@ -48,7 +48,6 @@ function GoalSection({
   const openEdit = () => {
     setText(String(Math.round(value)));
     setEditing(true);
-    // 다음 프레임에 focus
     requestAnimationFrame(() => inputRef.current?.focus());
   };
 
@@ -60,7 +59,6 @@ function GoalSection({
     if (Number.isFinite(parsed)) {
       onChange(clamp(parsed, min, max));
     } else {
-      // 이상한 값이면 원래 값으로 복구
       setText(String(Math.round(value)));
     }
   };
@@ -72,7 +70,6 @@ function GoalSection({
         <Text style={styles.sectionSubtitle}>{subtitle}</Text>
       </View>
 
-      {/* 값 박스 (탭하면 직접 입력) */}
       <Pressable
         onPress={openEdit}
         style={({ pressed }) => [
@@ -98,7 +95,6 @@ function GoalSection({
         )}
       </Pressable>
 
-      {/* ✅ min/max를 슬라이더 “위”로 */}
       <View style={styles.minMaxTopRow}>
         <Text style={styles.minMaxText}>
           {min}
@@ -125,7 +121,6 @@ function GoalSection({
 }
 
 export default function GoalEditScreen({ navigation }: { navigation?: any }) {
-  // 캡처 느낌: caffeine 0~600mg, sugar 0~50g (원하면 바꿔도 됨)
   const initialCaffeine = useGoalStore((s) => s.caffeine);
   const initialSugar = useGoalStore((s) => s.sugar);
 
@@ -142,7 +137,6 @@ export default function GoalEditScreen({ navigation }: { navigation?: any }) {
 
   const onSave = () => {
     // TODO: 저장 로직 연결 (zustand / api)
-    // 예: goalStore.setGoals({ caffeine, sugar })
     navigation?.goBack?.();
   };
 
@@ -179,7 +173,6 @@ export default function GoalEditScreen({ navigation }: { navigation?: any }) {
         </Text>
       </View>
 
-      {/* 하단 버튼 */}
       <View style={styles.bottom}>
         <Button
           title="저장하기"

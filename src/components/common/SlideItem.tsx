@@ -53,7 +53,6 @@ export default function SlideItem({
     hasSlider ? (item as SliderSlide).defaultValue : 0
   );
 
-  // ✅ 부모에서 내려준 값을 우선 반영 + 무한루프 방지(값이 달라질 때만 setValue)
   useEffect(() => {
     if (!hasSlider) return;
 
@@ -173,7 +172,6 @@ export default function SlideItem({
                 const next = Math.round(v);
                 setValue(next);
 
-                // ✅ 부모로도 값 전달
                 if (item.type === 'caffeine' || item.type === 'sugar') {
                   onChangeGoal?.(item.type, next);
                 }

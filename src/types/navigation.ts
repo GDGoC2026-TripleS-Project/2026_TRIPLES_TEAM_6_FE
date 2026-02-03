@@ -20,6 +20,12 @@ export type RootStackParamList = {
     };
   };
   Send: undefined;
+  MyPage: undefined;
+  EditCriteria: undefined;
+  ChangePassword: undefined;
+  NotificationSetting: undefined;
+  DropCompleteScreen: undefined;
+  PeriodSearchScreen: { startDate: string; endDate: string };
 };
 
 export type MainTabParamList = {
@@ -30,16 +36,8 @@ export type MainTabParamList = {
   Profile: undefined;
 };
 
-<<<<<<< HEAD
-export type RootStackParamList = {
-  MyPage: undefined;
-  EditCriteria: undefined;
-  ChangePassword: undefined;
-  NotificationSetting: undefined;
-};
-=======
-export type MainTabNavigationProp<T extends keyof MainTabParamList> = CompositeNavigationProp<
-  BottomTabNavigationProp<MainTabParamList, T>,
-  NativeStackNavigationProp<RootStackParamList>
->;
->>>>>>> origin/develop
+export type MainTabNavigationProp<T extends keyof MainTabParamList> =
+  CompositeNavigationProp<
+    BottomTabNavigationProp<MainTabParamList, T>,
+    NativeStackNavigationProp<RootStackParamList>
+  >;

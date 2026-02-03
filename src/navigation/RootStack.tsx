@@ -8,6 +8,8 @@ import RecordingDetail from '../screens/main/record/RecordingDetail';
 import SendScreen from '../screens/main/record/SendScreen';
 import HeaderDetail from '../components/common/HeaderDetail';
 import { RootStackParamList } from '../types/navigation';
+import DropCompleteScreen from '../screens/main/mypage/DropCompleteScreen';
+import PeriodSearchScreen from '../screens/main/PeriodSearchScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -95,6 +97,22 @@ export default function RootNavigator() {
       <Stack.Screen
         name="Send"
         component={SendScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="DropCompleteScreen"
+        component={DropCompleteScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="PeriodSearchScreen"
+        component={PeriodSearchScreen}
         options={{
           headerShown: false,
         }}

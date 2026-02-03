@@ -49,9 +49,9 @@ const styles = StyleSheet.create({
   },
 
   text: {
-    fontSize: 13,     
+    fontSize: 14,     
     fontFamily: 'Pretendard-SemiBold',
-    color: colors.primary[300],
+    color: colors.primary[500],
   },
 
   disabledText: {
