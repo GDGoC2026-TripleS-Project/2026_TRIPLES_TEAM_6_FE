@@ -16,7 +16,7 @@ function Tab({ tabs, value, onChange }: TabProps) {
     <View style={styles.container}>
       {tabs.map((t) => {
         const active = t.key === value;
-
+        
         return (
           <Pressable
             key={t.key}
@@ -50,10 +50,8 @@ Tab.defaultProps = {};
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: colors.grayscale[1000],
     borderBottomWidth: 1,
-    borderBottomColor: colors.grayscale[800],
-    marginHorizontal: 10,
+    borderBottomColor: colors.grayscale[900],
   },
 
   item: {
