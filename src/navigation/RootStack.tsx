@@ -10,6 +10,11 @@ import HeaderDetail from '../components/common/HeaderDetail';
 import { RootStackParamList } from '../types/navigation';
 import DropCompleteScreen from '../screens/main/mypage/DropCompleteScreen';
 import PeriodSearchScreen from '../screens/main/PeriodSearchScreen';
+import GoalEditScreen from '../screens/main/mypage/GoalEditScreen';
+import PasswordResetScreen from '../screens/main/sign/PasswordResetScreen';
+import PasswordResetInputScreen from '../screens/main/sign/PasswordResetInputScreen';
+import ProfileSettingScreen from '../screens/main/mypage/ProfileSettingScreen';
+import AlarmSettingScreen from '../screens/main/mypage/AlarmSettingScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -116,6 +121,36 @@ export default function RootNavigator() {
         options={{
           headerShown: false,
         }}
+      />
+
+      <Stack.Screen
+        name="GoalEditScreen"
+        component={GoalEditScreen}
+        options={{ headerShown: true, title: '' }}
+      />
+
+      <Stack.Screen
+        name="PasswordResetScreen"
+        component={PasswordResetScreen}
+        options={{ headerShown: true, title: '' }}
+      />
+
+      <Stack.Screen
+        name="PasswordResetInputScreen"
+        component={PasswordResetInputScreen}
+        options={{ headerShown: true, title: '' }}
+      />
+
+      <Stack.Screen
+        name="ProfileSettingScreen"
+        component={ProfileSettingScreen}
+        options={{ headerShown: true, title: '' }}
+      />
+
+      <Stack.Screen
+        name="AlarmSettingScreen"
+        component={AlarmSettingScreen}
+        options={{ headerShown: true, title: '' }}
       />
     </Stack.Navigator>
   );

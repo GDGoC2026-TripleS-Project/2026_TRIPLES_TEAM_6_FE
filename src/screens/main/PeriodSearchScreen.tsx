@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../constants/colors';
 
 import PeriodSelectBottomSheet from '../../components/common/PeriodSelectBottomSheet';
-import DrinkList from '../../components/common/DrinkList';
+import DrinkList from '../../components/common/MenuItem';
 
 import { findDrinksByRange, type Drink, MOCK_DAY_DRINKS } from '../../data/drinksData';
 

@@ -98,7 +98,10 @@ function OnboardingScreen({ navigation }: { navigation: any }) {
         sugar: sugarValue,
       });
 
-      navigation.replace('Main');
+      navigation.replace('Main', {
+        screen: 'MainTabs',
+        params: { screen: 'Home' },
+      });
     }
   };
 

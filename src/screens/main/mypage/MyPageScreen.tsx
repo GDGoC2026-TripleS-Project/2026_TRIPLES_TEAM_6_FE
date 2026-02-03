@@ -1,16 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../../constants/colors';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { MainTabNavigationProp, RootStackParamList } from '../../../types/navigation';
 
-import GoogleLogin from '../../../assets/ComponentsImage/GoogleLogin.svg';
-import KakaoLogin from '../../../assets/ComponentsImage/KakaoLogin.svg';
-import AppleLogin from '../../../assets/ComponentsImage/AppleLogin.svg';
-
-// (선택) 네비게이션 쓸 거면 주석 해제
-// import { useNavigation } from '@react-navigation/native';
-// import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-// import type { RootStackParamList } from '../../types/navigation';
+import GoogleLogin from '../../../../assets/ComponentsImage/GoogleLogin.svg';
+import KakaoLogin from '../../../../assets/ComponentsImage/KakaoLogin.svg';
+import AppleLogin from '../../../../assets/ComponentsImage/AppleLogin.svg';
 
 type LoginProvider = 'google' | 'kakao' | 'apple';
 
@@ -48,11 +46,40 @@ function SettingRow({ label, subLabel, onPress, danger, hideIcon }: RowItem) {
 }
 
 export default function MyPageScreen() {
+  const navigation = useNavigation<MainTabNavigationProp<'Profile'>>();
+  const rootNavigation =
+    navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+
+  type RootNoParam = {
+    [K in keyof RootStackParamList]: RootStackParamList[K] extends undefined ? K : never;
+  }[keyof RootStackParamList];
+
+  const goRoot = (name: RootNoParam) => {
+    if (rootNavigation) {
+      rootNavigation.navigate(name);
+    } else {
+      navigation.navigate(name as never);
+    }
+  };
+
+  const handleLogout = () => {
+    setLogoutModalVisible(false);
+    // 로그아웃 로직 추가
+    console.log('로그아웃 완료');
+  };
+
+  const handleDelete = () => {
+    setDeleteModalVisible(false);
+    goRoot('DropCompleteScreen');
+  };
 
   const user = {
     name: '라스트컵',
     provider: 'kakao' as LoginProvider, 
-    criteriaText: '카페인 400mg, 당류 25g', // 하드코딩 나중에 수정할게요
+    criteriaText: '카페인 400mg, 당류 25g',
   };
 
   const ProviderIcon = ProviderIconMap[user.provider];
@@ -61,24 +88,24 @@ export default function MyPageScreen() {
     {
       label: '기준 수정',
       subLabel: user.criteriaText,
-      onPress: () => console.log('기준 수정 이동'),
+      onPress: () => goRoot('GoalEditScreen'),
     },
     {
       label: '비밀번호 변경',
-      onPress: () => console.log('비밀번호 변경 이동'),
+      onPress: () => goRoot('PasswordResetInputScreen'),
     },
     {
       label: '알림 설정',
-      onPress: () => console.log('알림 설정 이동'),
+      onPress: () => goRoot('AlarmSettingScreen'),
     },
     {
       label: '로그아웃',
-      onPress: () => console.log('로그아웃'),
+      onPress: () => setLogoutModalVisible(true),
       hideIcon: true, 
     },
     {
       label: '회원 탈퇴',
-      onPress: () => console.log('회원 탈퇴'),
+      onPress: () => setDeleteModalVisible(true),
       danger: true,
       hideIcon: true, 
     },
@@ -86,12 +113,10 @@ export default function MyPageScreen() {
 
   return (
     <View style={styles.container}>
-
-      <View style={styles.topBar}>
-        <Text style={styles.topBarTitle}>로고</Text>
-      </View>
-
-      <Pressable style={styles.profileRow} onPress={() => console.log('프로필')}>
+      <Pressable
+        style={styles.profileRow}
+        onPress={() => goRoot('ProfileSettingScreen')}
+      >
         <View style={styles.avatar} />
 
         <View style={styles.nameRow}>
@@ -112,6 +137,96 @@ export default function MyPageScreen() {
           </View>
         ))}
       </View>
+
+      {/* 로그아웃 모달 */}
+      <Modal
+        transparent
+        visible={logoutModalVisible}
+        animationType="fade"
+        onRequestClose={() => setLogoutModalVisible(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay}
+          onPress={() => setLogoutModalVisible(false)}
+        >
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>로그아웃 하시겠습니까?</Text>
+            </View>
+            <View style={styles.modalButtonContainer}>
+              <View style={styles.modalButtonDivider} />
+              <Pressable 
+                style={({ pressed }) => [
+                  styles.modalHalfButton,
+                  styles.modalConfirmButton,
+                  pressed && styles.modalConfirmButtonPressed
+                ]}
+                onPress={handleLogout}
+              >
+                <Text style={styles.modalConfirmButtonText}>로그아웃</Text>
+              </Pressable>
+              <Pressable 
+                style={({ pressed }) => [
+                  styles.modalHalfButton,
+                  styles.modalCancelButton,
+                  pressed && styles.modalCancelButtonPressed
+                ]}
+                onPress={() => setLogoutModalVisible(false)}
+              >
+                <Text style={styles.modalCancelButtonText}>취소</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* 회원 탈퇴 모달 */}
+      <Modal
+        transparent
+        visible={deleteModalVisible}
+        animationType="fade"
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay}
+          onPress={() => setDeleteModalVisible(false)}
+        >
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>탈퇴하시겠습니까?</Text>
+              <Text style={styles.modalSubtitle}>
+                탈퇴 시 기록은 복구할 수 없어요.
+              </Text>
+            </View>
+            <View style={styles.modalButtonContainer}>
+              <Pressable 
+                style={({ pressed }) => [
+                  styles.modalHalfButton,
+                  styles.modalConfirmButton,
+                  pressed && styles.modalConfirmButtonPressed
+                ]}
+                onPress={handleDelete}
+              >
+                <Text style={styles.modalConfirmButtonText}>탈퇴하기</Text>
+              </Pressable>
+
+              <View style={styles.modalButtonDivider} />
+
+              <Pressable 
+                style={({ pressed }) => [
+                  styles.modalHalfButton,
+                  styles.modalCancelButton,
+                  pressed && styles.modalCancelButtonPressed
+                ]}
+                onPress={() => setDeleteModalVisible(false)}
+              >
+                <Text style={styles.modalCancelButtonText}>취소</Text>
+              </Pressable>
+              
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -193,5 +308,82 @@ const styles = StyleSheet.create({
   },
   dangerText: {
     color: colors.grayscale[100], 
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  modalContent: {
+    backgroundColor: colors.grayscale[900],
+    borderRadius: 15,
+    width: '100%',
+    maxWidth: 400,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    alignItems: 'center',
+    paddingTop: 32,
+    paddingBottom: 28,
+    paddingHorizontal: 24,
+  },
+  modalTitle: {
+    color: colors.grayscale[100],
+    fontSize: 18,
+    fontFamily: 'Pretendard-SemiBold',
+    marginBottom: 5,
+  },
+  modalSubtitle: {
+    color: colors.grayscale[400],
+    fontSize: 14,
+    fontFamily: 'Pretendard-Regular',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    height: 56,
+  },
+  modalHalfButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCancelButton: {
+    backgroundColor: colors.grayscale[800],
+    marginBottom: 13,
+    marginLeft: 3,
+    marginRight: 10,
+    borderRadius: 7,
+  },
+  modalCancelButtonPressed: {
+    backgroundColor: colors.grayscale[700],
+  },
+  modalConfirmButton: {
+    backgroundColor: colors.primary[500],
+    marginBottom: 13,
+    marginLeft: 10,
+    marginRight: 3,
+    borderRadius: 7,
+  },
+  modalConfirmButtonPressed: {
+    backgroundColor: colors.primary[600],
+  },
+  modalButtonDivider: {
+    width: 1,
+    backgroundColor: colors.grayscale[900],
+  },
+  modalCancelButtonText: {
+    color: colors.grayscale[100],
+    fontSize: 16,
+    fontFamily: 'Pretendard-SemiBold',
+  },
+  modalConfirmButtonText: {
+    color: colors.grayscale[1000],
+    fontSize: 16,
+    fontFamily: 'Pretendard-SemiBold',
   },
 });

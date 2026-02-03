@@ -1,12 +1,12 @@
 ﻿// src/screens/main/CalendarScreen.tsx
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { colors } from '../../constants/colors';
 import Coffee from '../../../assets/ComponentsImage/coffeeImg.svg';
 
 import PeriodSelectBottomSheet from '../../components/common/PeriodSelectBottomSheet';
 import Calendar from '../../components/common/Calendar';
-import DrinkList from '../../components/common/DrinkList';
+import DrinkList from '../../components/common/MenuItem';
 import NutritionSummary from '../../components/calendar/NutritionSummary';
 import SkipDrinkCheckbox from '../../components/calendar/SkipDrinkCheckbox';
 import AddRecordButton from '../../components/common/AddRecordButton';
@@ -106,7 +106,7 @@ export default function CalendarScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Calendar
         events={events}
         startDate={selectedDate}
@@ -197,7 +197,7 @@ export default function CalendarScreen() {
       onClose={() => setPeriodSheetOpen(false)}
       onConfirm={handlePeriodConfirm}
       />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.grayscale[1000],
     paddingHorizontal: 16,
-    paddingTop: 30,
+    paddingTop: 4,
   },
 
   headerRow: {
@@ -231,6 +231,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.grayscale[1000],
     borderColor: colors.grayscale[800],
     overflow: 'hidden',
+    marginBottom: 30,
   },
 
   centerBox: {

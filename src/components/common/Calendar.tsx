@@ -65,13 +65,12 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                             onPress={() => handleDayPress(date)}
                             disabled={isDisabled}
                         >
-                            {isInRange && (
+                            {isInRange && !isSingleDay && (
                                 <View
                                     style={[
                                         styles.rangeBar,
                                         isStart && styles.rangeBarStart,
                                         isEnd && styles.rangeBarEnd,
-                                        isSingleDay && styles.rangeBarSingle,
                                     ]}
                                 />
                             )}
@@ -222,8 +221,8 @@ const styles = StyleSheet.create({
         borderRadius: 18,
     },
     dayCircle: {
-        width: 32,
-        height: 32,
+        width: 28,
+        height: 28,
         borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
@@ -249,10 +248,11 @@ const styles = StyleSheet.create({
         color: colors.grayscale[600],
     },
     dot: {
+        position: 'absolute',
+        bottom: 1,
         width: 4,
         height: 4,
         borderRadius: 2,
-        marginTop: 6,
         backgroundColor: colors.primary[500],
     },
 });

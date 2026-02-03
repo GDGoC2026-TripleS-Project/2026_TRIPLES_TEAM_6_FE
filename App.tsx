@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 import { useFonts } from 'expo-font';
 
 import { NavigationContainer } from '@react-navigation/native';
@@ -38,23 +38,28 @@ export default function App() {
   if (!loaded || isHydrating) return null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <NavigationContainer>
         <Stack.Navigator
           key={accessToken ? 'app' : 'auth'}
+          initialRouteName="OnBoardingScreen"
           screenOptions={{ headerShown: false }}
         >
           {accessToken ? (
             <>
-              <Stack.Screen name="Onboarding" component={OnBoardingScreen} />
+              <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
               <Stack.Screen name="Main" component={RootNavigator} />
             </>
           ) : (
-            <Stack.Screen name="Login" component={LoginScreen} />
+            <>
+              <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
+              <Stack.Screen name="Main" component={RootNavigator} />
+              <Stack.Screen name="Login" component={LoginScreen} />
+            </>
           )}
         </Stack.Navigator>
       </NavigationContainer>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -62,6 +67,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0B0B0B',
-    paddingTop: 0,
+    paddingTop: 8,
   },
 });

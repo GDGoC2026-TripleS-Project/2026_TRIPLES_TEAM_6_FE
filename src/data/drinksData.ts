@@ -40,6 +40,32 @@ export const MOCK_DAY_DRINKS: DayDrinkData[] = [
       },
     ],
   },
+  {
+    date: '2026-01-17',
+    drinks: [
+      {
+        id: 'd3',
+        brandName: '메가커피',
+        menuName: '딸기요거트스무디',
+        optionText: 'Ice | Large',
+        caffeineMg: 366,
+        sugarG: 62,
+      },
+    ],
+  },
+  {
+    date: '2026-01-20',
+    drinks: [
+      {
+        id: 'd4',
+        brandName: '투썸플레이스',
+        menuName: '밀크티라떼',
+        optionText: 'Ice | Large',
+        caffeineMg: 158,
+        sugarG: 19,
+      },
+    ],
+  },
 ];
 
 export function findDrinksByDate(date: string): Drink[] {

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
-import { MainTabParamList } from '../../navigation/AppNavigator';
+import { MainTabParamList } from '../../types/navigation';
 
 export default function HomeScreen() {
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList, 'Home'>>();

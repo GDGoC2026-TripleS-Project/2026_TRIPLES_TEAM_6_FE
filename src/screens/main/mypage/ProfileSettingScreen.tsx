@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import TextField from '../../../components/common/TextField';
 import Button from '../../../components/common/Button';
 
-import PreProfileImg from '../../../assets/ComponentsImage/preProfile.svg';
+import PreProfileImg from '../../../../assets/ComponentsImage/preProfile.svg';
 
 // import { useNavigation } from '@react-navigation/native';
 
@@ -79,7 +79,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.grayscale[1000],
     paddingHorizontal: 16,
-    paddingTop: 16,
   },
 
   backBtn: {
