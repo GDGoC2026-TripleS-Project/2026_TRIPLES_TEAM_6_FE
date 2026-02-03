@@ -119,11 +119,16 @@ const TermsScreen: React.FC = () => {
     []
   );
 
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openIds, setOpenIds] = useState<Set<string>>(new Set());
 
   const toggle = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setOpenId((prev) => (prev === id ? null : id));
+    setOpenIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   return (
@@ -140,7 +145,7 @@ const TermsScreen: React.FC = () => {
 
         <View style={styles.list}>
           {sections.map((s) => {
-            const opened = openId === s.id;
+            const opened = openIds.has(s.id);
 
             return (
               <View key={s.id} style={styles.item}>
@@ -169,6 +174,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.grayscale[1000],
+    paddingTop: -50
   },
 
   content: {

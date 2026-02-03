@@ -9,6 +9,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import RootNavigator from './src/navigation/RootStack';
 import LoginScreen from './src/screens/main/sign/LoginScreen';
 import OnBoardingScreen from './src/screens/main/onBoarding/OnBoardingScreen';
+import SignUpScreen from './src/screens/main/sign/SignUpScreen';
+import FindPasswordScreen from './src/screens/main/sign/FindPasswordScreen';
+import TermsScreen from './src/screens/main/sign/TermsScreen';
 import { useAuthStore } from './src/app/features/auth/auth.store';
 
 const Stack = createNativeStackNavigator();
@@ -42,7 +45,7 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator
           key={accessToken ? 'app' : 'auth'}
-          initialRouteName="OnBoardingScreen"
+          initialRouteName={accessToken ? 'Main' : 'Login'}
           screenOptions={{ headerShown: false }}
         >
           {accessToken ? (
@@ -52,9 +55,58 @@ export default function App() {
             </>
           ) : (
             <>
-              <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
-              <Stack.Screen name="Main" component={RootNavigator} />
               <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen
+                name="SignUpScreen"
+                component={SignUpScreen}
+                options={{
+                  headerShown: true,
+                  title: '회원가입',
+                  headerTitleAlign: 'center',
+                  headerStyle: { backgroundColor: '#0B0B0B' },
+                  headerShadowVisible: false,
+                  headerTintColor: '#FFFFFF',
+                  headerTitleStyle: {
+                    fontSize: 16,
+                    fontFamily: 'Pretendard-SemiBold',
+                  },
+                  headerBackButtonDisplayMode: 'minimal',
+                }}
+              />
+              <Stack.Screen
+                name="PasswordResetInputScreen"
+                component={FindPasswordScreen}
+                options={{
+                  headerShown: true,
+                  title: '비밀번호 찾기',
+                  headerTitleAlign: 'center',
+                  headerStyle: { backgroundColor: '#0B0B0B' },
+                  headerShadowVisible: false,
+                  headerTintColor: '#FFFFFF',
+                  headerTitleStyle: {
+                    fontSize: 16,
+                    fontFamily: 'Pretendard-SemiBold',
+                  },
+                  headerBackButtonDisplayMode: 'minimal',
+                }}
+              />
+              <Stack.Screen
+                name="TermsScreen"
+                component={TermsScreen}
+                options={{
+                  headerShown: true,
+                  title: '개인정보 수집 및 이용 동의',
+                  headerTitleAlign: 'center',
+                  headerStyle: { backgroundColor: '#0B0B0B' },
+                  headerShadowVisible: false,
+                  headerTintColor: '#FFFFFF',
+                  headerTitleStyle: {
+                    fontSize: 16,
+                    fontFamily: 'Pretendard-SemiBold',
+                  },
+                  headerBackButtonDisplayMode: 'minimal',
+                }}
+              />
             </>
           )}
         </Stack.Navigator>

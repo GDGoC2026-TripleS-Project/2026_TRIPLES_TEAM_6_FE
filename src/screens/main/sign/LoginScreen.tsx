@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
 import { colors } from "../../../constants/colors";
+import { useNavigation } from "@react-navigation/native";
 import TextField from "../../../components/common/TextField";
 import Button from "../../../components/common/Button";
 import GoogleLogin from "../../../../assets/ComponentsImage/GoogleLogin.svg";
@@ -15,6 +16,7 @@ import { useAuthStore } from "../../../app/features/auth/auth.store";
 WebBrowser.maybeCompleteAuthSession();
 
 const LoginScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
   const [userName, setUserName] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [autoLogin, setAutoLogin] = useState<boolean>(false);
@@ -144,11 +146,14 @@ const LoginScreen: React.FC = () => {
         </Pressable>
 
         <View style={styles.linkRow}>
-          <Pressable hitSlop={8} onPress={() => {}}>
+          <Pressable hitSlop={8} onPress={() => navigation.navigate("SignUpScreen")}>
             <Text style={styles.linkText}>회원가입</Text>
           </Pressable>
           <Text style={styles.linkDivider}>|</Text>
-          <Pressable hitSlop={8} onPress={() => {}}>
+          <Pressable
+            hitSlop={8}
+            onPress={() => navigation.navigate("PasswordResetInputScreen")}
+          >
             <Text style={styles.linkText}>비밀번호 찾기</Text>
           </Pressable>
         </View>

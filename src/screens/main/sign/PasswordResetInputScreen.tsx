@@ -71,7 +71,13 @@ const PasswordResetInputScreen: React.FC = () => {
           value={newPassword}
           onChangeText={(t) => {
             setNewPassword(t);
-            if (newPasswordError) setNewPasswordError(undefined);
+            if (!t) {
+              setNewPasswordError("아이디 형식이 올바르지 않습니다.");
+            } else if (!isValidPassword(t)) {
+              setNewPasswordError("아이디 형식이 올바르지 않습니다.");
+            } else {
+              setNewPasswordError(undefined);
+            }
           }}
           secureTextEntry
           error={newPasswordError}
@@ -83,7 +89,13 @@ const PasswordResetInputScreen: React.FC = () => {
           value={newPasswordCheck}
           onChangeText={(t) => {
             setNewPasswordCheck(t);
-            if (newPasswordCheckError) setNewPasswordCheckError(undefined);
+            if (!t) {
+              setNewPasswordCheckError("비밀번호가 일치하지 않습니다.");
+            } else if (newPassword !== t) {
+              setNewPasswordCheckError("비밀번호가 일치하지 않습니다.");
+            } else {
+              setNewPasswordCheckError(undefined);
+            }
           }}
           secureTextEntry
           error={newPasswordCheckError}

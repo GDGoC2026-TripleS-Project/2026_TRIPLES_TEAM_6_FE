@@ -1,69 +1,76 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native'; 
+import * as ImagePicker from 'expo-image-picker'; 
 import { colors } from '../../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 
 import TextField from '../../../components/common/TextField';
 import Button from '../../../components/common/Button';
-
 import PreProfileImg from '../../../../assets/ComponentsImage/preProfile.svg';
 
-// import { useNavigation } from '@react-navigation/native';
-
 export default function ProfileSettingScreen() {
-  // const navigation = useNavigation();
-
-  const [nickname, setNickname] = useState('');
+  const [nickname, setNickname] = useState('라스트컵');
+  const [profileImage, setProfileImage] = useState<string | null>(null); 
   const [touched, setTouched] = useState(false);
 
-const trimmed = nickname.trim();
+  const isNicknameValid = nickname.length >= 2 && nickname.length <= 10;
+  const nicknameError = touched && !isNicknameValid ? '2~10자 이내로 입력해 주세요.' : undefined;
 
-  const isNicknameValid = 
-  nickname.length >= 2 && nickname.length <= 10;
+  const onPickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      alert('갤러리 접근 권한이 필요합니다.');
+      return;
+    }
 
-  const nicknameError =
-  touched && trimmed.length > 0 && !isNicknameValid
-    ? '2~10자 이내로 입력해 주세요.'
-    : undefined;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],  
+      quality: 1,
+    });
 
-  const canSave = !nicknameError;
-
-  const onPickImage = () => {
-    console.log('프로필 이미지 변경');
-    // TODO: 이미지 피커 연결 (expo-image-picker 등)
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri); 
+    }
   };
 
   const onSave = () => {
-    console.log('저장하기', { nickname });
-    // TODO: 저장 API 호출 or store 업데이트
-    // navigation.goBack();
+    console.log('저장하기', { nickname, profileImage });
   };
 
   return (
     <View style={styles.container}>
-
       <View style={styles.divider} />
 
       <View style={styles.profileArea}>
         <Pressable onPress={onPickImage} style={styles.profilePress}>
-          <PreProfileImg width={120} height={120} />
+ 
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={styles.profileImg} />
+          ) : (
+            <PreProfileImg width={120} height={120} />
+          )}
+          
+          <View style={styles.plusBadge}>
+            <Ionicons name="add" size={20} color="white" />
+          </View>
         </Pressable>
       </View>
 
       <View style={styles.form}>
         <Text style={styles.label}>닉네임</Text>
-
         <TextField
-  value={nickname}
-  onChangeText={(text) => {
-    setNickname(text);
-    if (!touched) setTouched(true); 
-  }}
-  onBlur={() => setTouched(true)}
-  isValid={trimmed.length > 0 && isNicknameValid} 
-  error={nicknameError}
-/>
-
+          value={nickname}
+          onChangeText={(text) => {
+            setNickname(text);
+            if (!touched) setTouched(true);
+          }}
+          onBlur={() => setTouched(true)}
+          isValid={isNicknameValid}
+          error={nicknameError}
+        />
         <Text style={styles.helperText}>2~10자 이내로 언제든지 변경할 수 있습니다.</Text>
       </View>
 
@@ -111,15 +118,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 
-  profileArea: {
-    alignItems: 'center',
-    marginTop: 34,
-  },
-
-  profilePress: {
-    borderRadius: 999,
-  },
-
   form: {
     marginTop: 32,
   },
@@ -146,5 +144,31 @@ const styles = StyleSheet.create({
   bottom: {
     marginTop: 'auto',
     paddingBottom: 60,
+  },
+
+  profileArea: {
+    alignItems: 'center',
+    marginTop: 34,
+  },
+  profilePress: {
+    position: 'relative',
+  },
+  profileImg: {
+    width: 120,
+    height: 120,
+    borderRadius: 60, 
+  },
+  plusBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: colors.primary[500],
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.grayscale[1000],
   },
 });

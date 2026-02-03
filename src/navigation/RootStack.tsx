@@ -8,6 +8,7 @@ import RecordingDetail from '../screens/main/record/RecordingDetail';
 import SendScreen from '../screens/main/record/SendScreen';
 import HeaderDetail from '../components/common/HeaderDetail';
 import { RootStackParamList } from '../types/navigation';
+import { colors } from '../constants/colors';
 import DropCompleteScreen from '../screens/main/mypage/DropCompleteScreen';
 import PeriodSearchScreen from '../screens/main/PeriodSearchScreen';
 import GoalEditScreen from '../screens/main/mypage/GoalEditScreen';
@@ -126,7 +127,19 @@ export default function RootNavigator() {
       <Stack.Screen
         name="GoalEditScreen"
         component={GoalEditScreen}
-        options={{ headerShown: true, title: '' }}
+        options={{
+          headerShown: true,
+          title: '기준 수정',
+          headerTitleAlign: 'center',
+          headerStyle: { backgroundColor: '#0B0B0B' },
+          headerShadowVisible: false,
+          headerTintColor: colors.grayscale[100],
+          headerTitleStyle: {
+            fontSize: 14,
+            fontFamily: 'Pretendard-SemiBold',
+          },
+          headerBackButtonDisplayMode: 'minimal',
+        }}
       />
 
       <Stack.Screen
@@ -138,19 +151,55 @@ export default function RootNavigator() {
       <Stack.Screen
         name="PasswordResetInputScreen"
         component={PasswordResetInputScreen}
-        options={{ headerShown: true, title: '' }}
+        options={{
+          headerShown: true,
+          title: '비밀번호 변경',
+          headerTitleAlign: 'center',
+          headerStyle: { backgroundColor: '#0B0B0B' },
+          headerShadowVisible: false,
+          headerTintColor: colors.grayscale[100],
+          headerTitleStyle: {
+            fontSize: 14,
+            fontFamily: 'Pretendard-SemiBold',
+          },
+          headerBackButtonDisplayMode: 'minimal',
+        }}
       />
 
       <Stack.Screen
         name="ProfileSettingScreen"
         component={ProfileSettingScreen}
-        options={{ headerShown: true, title: '' }}
+        options={{
+          headerShown: true,
+          title: '프로필 설정',
+          headerTitleAlign: 'center',
+          headerStyle: { backgroundColor: '#0B0B0B' },
+          headerShadowVisible: false,
+          headerTintColor: colors.grayscale[100],
+          headerTitleStyle: {
+            fontSize: 14,
+            fontFamily: 'Pretendard-SemiBold',
+          },
+          headerBackButtonDisplayMode: 'minimal',
+        }}
       />
 
       <Stack.Screen
         name="AlarmSettingScreen"
         component={AlarmSettingScreen}
-        options={{ headerShown: true, title: '' }}
+        options={{
+          headerShown: true,
+          title: '알림 설정',
+          headerTitleAlign: 'center',
+          headerStyle: { backgroundColor: '#0B0B0B' },
+          headerShadowVisible: false,
+          headerTintColor: colors.grayscale[100],
+          headerTitleStyle: {
+            fontSize: 14,
+            fontFamily: 'Pretendard-SemiBold',
+          },
+          headerBackButtonDisplayMode: 'minimal',
+        }}
       />
     </Stack.Navigator>
   );

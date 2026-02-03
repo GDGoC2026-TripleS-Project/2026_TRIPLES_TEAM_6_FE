@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Alert, ScrollView } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { colors } from "../../../constants/colors";
 import TextField from "../../../components/common/TextField";
 import Button from "../../../components/common/Button";
 import { useAuthStore } from "../../../app/features/auth/auth.store";
 
 const SignUpScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
   const [touched, setTouched] = useState({
     userName: false,
     password: false,
@@ -244,7 +246,7 @@ const SignUpScreen: React.FC = () => {
             <Text style={styles.agreeText}>개인정보 수집 및 이용 동의 (필수)</Text>
           </Pressable>
 
-          <Pressable hitSlop={10} onPress={() => {}}>
+          <Pressable hitSlop={10} onPress={() => navigation.navigate("TermsScreen")}>
             <Text style={styles.detailText}>자세히 보기</Text>
           </Pressable>
         </View>
@@ -266,7 +268,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.grayscale[1000],
-    paddingTop: 52,
+    paddingTop: 14,
     paddingHorizontal: 16,
   },
 
