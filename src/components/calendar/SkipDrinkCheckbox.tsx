@@ -29,7 +29,7 @@ export default function SkipDrinkCheckbox({
         <Ionicons
           name="checkmark"
           size={14}
-          color={value ? colors.grayscale[100] : colors.grayscale[400]}
+          color={value ? colors.grayscale[100] : colors.grayscale[500]}
         />
       </View>
       <Text style={[styles.label, value && styles.labelActive]}>
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   label: {
     color: colors.grayscale[200],
     fontSize: 14,
-    fontFamily: 'Pretendard-Medium',
+    fontFamily: 'Pretendard-Semibold',
   },
   labelActive: {
     color: colors.grayscale[100],

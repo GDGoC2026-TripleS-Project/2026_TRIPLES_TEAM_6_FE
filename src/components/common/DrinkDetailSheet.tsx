@@ -136,8 +136,8 @@ export default function DrinkDetailSheet({
             <Button
               title="수정"
               onPress={() => onEdit?.(drink)}
-              backgroundColor={colors.primary[300]}
-              pressedBackgroundColor={colors.primary[500]}
+              backgroundColor={colors.primary[500]}
+              pressedBackgroundColor={colors.primary[600]}
             />
           </View>
           <View style={{ width: 12 }} />
@@ -243,5 +243,6 @@ const styles = StyleSheet.create({
   bottomBtns: {
     flexDirection: 'row',
     marginBottom: 30,
+    marginTop: 12,
   },
 });

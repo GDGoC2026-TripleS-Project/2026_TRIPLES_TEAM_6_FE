@@ -12,7 +12,7 @@ type NutritionPillProps = {
 type DrinkListProps = {
   brandName: string;
   menuName: string;
-  optionText: string;
+  optionText: string | React.ReactNode;
   pills: [NutritionPillProps, NutritionPillProps];
   rightText?: string;
   RightIcon?: React.ReactNode;
@@ -33,7 +33,11 @@ export default function DrinkList({
       <View style={styles.left}>
         <Text style={styles.brandLabel}>{brandName}</Text>
         <Text style={styles.menuName}>{menuName}</Text>
-        <Text style={styles.optionText}>{optionText}</Text>
+        {typeof optionText === 'string' ? (
+          <Text style={styles.optionText}>{optionText}</Text>
+        ) : (
+          optionText
+        )}
 
         <View style={styles.pillRow}>
           {pills.map((p) => (
@@ -90,6 +94,7 @@ const styles = StyleSheet.create({
     pillRow: {
         flexDirection: 'row',
         gap: 12,
+        marginTop: 10
     },
     
     right: {
