@@ -5,6 +5,8 @@ import { colors } from "../../../constants/colors";
 import TextField from "../../../components/common/TextField";
 import Button from "../../../components/common/Button";
 import { useAuthStore } from "../../../app/features/auth/auth.store";
+import CheckboxOut from "../../../../assets/ComponentsImage/checkboxOut.svg";
+import CheckboxIn from "../../../../assets/ComponentsImage/checkboxIn.svg";
 
 const SignUpScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -225,6 +227,7 @@ const SignUpScreen: React.FC = () => {
         <TextField
           placeholder="영문, 숫자 조합"
           value={userName}
+          hideBorder
           onChangeText={(t) => {
             setUserName(t);
             setLoginIdChecked(false);
@@ -236,7 +239,6 @@ const SignUpScreen: React.FC = () => {
           }}
           autoCapitalize="none"
           error={touched.userName ? userNameError : undefined}
-          isValid={Boolean(touched.userName && userName.trim() && !validateUsername(userName) && loginIdChecked)}
           returnKeyType="next"
         />
 
@@ -244,6 +246,7 @@ const SignUpScreen: React.FC = () => {
         <TextField
           placeholder="영문, 숫자 포함 8자 이상"
           value={password}
+          hideBorder
           onChangeText={(t) => {
             setPassword(t);
             if (passwordError) setPasswordError(undefined);
@@ -254,7 +257,6 @@ const SignUpScreen: React.FC = () => {
           }}
           secureTextEntry
           error={touched.password ? passwordError : undefined}
-          isValid={Boolean(touched.password && password && !validatePassword(password))}
           returnKeyType="next"
         />
 
@@ -262,6 +264,7 @@ const SignUpScreen: React.FC = () => {
         <TextField
           placeholder="비밀번호 확인"
           value={passwordCheck}
+          hideBorder
           onChangeText={(t) => {
             setPasswordCheck(t);
             if (passwordCheckError) setPasswordCheckError(undefined);
@@ -272,7 +275,6 @@ const SignUpScreen: React.FC = () => {
           }}
           secureTextEntry
           error={touched.passwordCheck ? passwordCheckError : undefined}
-          isValid={Boolean(touched.passwordCheck && passwordCheck && !validatePasswordCheck(passwordCheck))}
           returnKeyType="next"
         />
 
@@ -280,6 +282,7 @@ const SignUpScreen: React.FC = () => {
         <TextField
           placeholder="2~10자 이내"
           value={nickname}
+          hideBorder
           onChangeText={(t) => {
             setNickname(t);
             setNicknameChecked(false);
@@ -290,7 +293,6 @@ const SignUpScreen: React.FC = () => {
             await validateNicknameDuplicate();
           }}
           error={touched.nickname ? nicknameError : undefined}
-          isValid={Boolean(touched.nickname && nickname.trim() && !validateNickname(nickname) && nicknameChecked)}
           returnKeyType="next"
         />
 
@@ -298,6 +300,7 @@ const SignUpScreen: React.FC = () => {
         <TextField
           placeholder="이메일 주소 입력"
           value={email}
+          hideBorder
           onChangeText={(t) => {
             setEmail(t);
             if (emailError) setEmailError(undefined);
@@ -309,15 +312,12 @@ const SignUpScreen: React.FC = () => {
           autoCapitalize="none"
           keyboardType="email-address"
           error={touched.email ? emailError : undefined}
-          isValid={Boolean(touched.email && email.trim() && !validateEmail(email))}
           returnKeyType="done"
         />
 
         <View style={styles.agreeRow}>
           <Pressable style={styles.agreeLeft} onPress={() => setAgree((p) => !p)} hitSlop={10}>
-            <View style={[styles.checkbox, agree && styles.checkboxChecked]}>
-              {agree && <View style={styles.checkboxDot} />}
-            </View>
+            {agree ? <CheckboxOut width={20} height={20} /> : <CheckboxIn width={20} height={20} /> }
             <Text style={styles.agreeText}>개인정보 수집 및 이용 동의 (필수)</Text>
           </Pressable>
 
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
   label: {
     marginTop: 10,
     color: colors.grayscale[200],
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: "Pretendard-Regular",
   },
 
@@ -384,27 +384,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-  },
-
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: colors.grayscale[600],
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  checkboxChecked: {
-    borderColor: colors.primary[500],
-  },
-
-  checkboxDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 3,
-    backgroundColor: colors.primary[500],
   },
 
   agreeText: {

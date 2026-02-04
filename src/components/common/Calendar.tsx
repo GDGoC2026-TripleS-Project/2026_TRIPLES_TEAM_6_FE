@@ -151,17 +151,18 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                         week: {
                             marginTop: 7,
                             flexDirection: 'row',
-                            justifyContent: 'space-between',
+                            justifyContent: 'space-around',
                             borderBottomWidth: 1,
                             borderBottomColor: colors.grayscale[800],
                             paddingBottom: 7,
+                            paddingHorizontal: 2,
                             ...(style ?? {}),
                         },
                     },
                     'stylesheet.calendar.main': {
                         week: {
                             flexDirection: 'row',
-                            justifyContent: 'space-between',
+                            justifyContent: 'space-around',
                             borderBottomWidth: 1,
                             borderBottomColor: colors.grayscale[800],
                             paddingTop: 5,
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
         color: colors.grayscale[100],
     },
     dayCell: {
-        width: 44,
+        width: '100%',
         height: 44,
         alignItems: 'center',
         justifyContent: 'center',

@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Modal, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../../constants/colors';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MainTabNavigationProp, RootStackParamList } from '../../../types/navigation';
 import { useAuthStore } from '../../../app/features/auth/auth.store';
+import { useUserStore } from '../../../app/features/user/user.store';
 
 import GoogleLogin from '../../../../assets/ComponentsImage/GoogleLogin.svg';
 import KakaoLogin from '../../../../assets/ComponentsImage/KakaoLogin.svg';
@@ -49,11 +50,21 @@ function SettingRow({ label, subLabel, onPress, danger, hideIcon }: RowItem) {
 export default function MyPageScreen() {
   const navigation = useNavigation<MainTabNavigationProp<'Profile'>>();
   const logout = useAuthStore((s) => s.logout);
+  const fetchMe = useUserStore((s) => s.fetchMe);
+  const deleteMe = useUserStore((s) => s.deleteMe);
+  const me = useUserStore((s) => s.me);
+  const userError = useUserStore((s) => s.errorMessage);
   const rootNavigation =
     navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
 
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchMe();
+    }, [fetchMe])
+  );
 
   type RootNoParam = {
     [K in keyof RootStackParamList]: RootStackParamList[K] extends undefined ? K : never;
@@ -72,18 +83,31 @@ export default function MyPageScreen() {
     await logout();
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     setDeleteModalVisible(false);
+    const ok = await deleteMe();
+    if (!ok) {
+      Alert.alert('회원 탈퇴 실패', userError ?? '다시 시도해 주세요.');
+      return;
+    }
     goRoot('DropCompleteScreen');
   };
 
+  const providerRaw =
+    me?.socialProvider ??
+    me?.loginProvider ??
+    me?.provider ??
+    'kakao';
+  const provider = providerRaw.toLowerCase() as LoginProvider;
+
   const user = {
-    name: '라스트컵',
-    provider: 'kakao' as LoginProvider, 
+    name: me?.nickname ?? '라스트컵',
+    provider,
+    profileImageUrl: me?.profileImageUrl,
     criteriaText: '카페인 400mg, 당류 25g',
   };
 
-  const ProviderIcon = ProviderIconMap[user.provider];
+  const ProviderIcon = ProviderIconMap[user.provider] ?? KakaoLogin;
 
   const rows: RowItem[] = [
     {
@@ -118,7 +142,11 @@ export default function MyPageScreen() {
         style={styles.profileRow}
         onPress={() => goRoot('ProfileSettingScreen')}
       >
-        <View style={styles.avatar} />
+        {user.profileImageUrl ? (
+          <Image source={{ uri: user.profileImageUrl }} style={styles.avatar} />
+        ) : (
+          <View style={styles.avatar} />
+        )}
 
         <View style={styles.nameRow}>
           <Text style={styles.profileName}>{user.name}</Text>

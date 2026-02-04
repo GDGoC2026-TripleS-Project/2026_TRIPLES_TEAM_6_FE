@@ -8,11 +8,14 @@ import GoogleLogin from "../../../../assets/ComponentsImage/GoogleLogin.svg";
 import KakaoLogin from "../../../../assets/ComponentsImage/KakaoLogin.svg";
 import AppleLogin from "../../../../assets/ComponentsImage/AppleLogin.svg";
 
+import CheckboxOut from '../../../../assets/ComponentsImage/checkboxOut.svg';
+import CheckboxIn from '../../../../assets/ComponentsImage/checkboxIn.svg';
+
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { login as kakaoSdkLogin } from "@react-native-seoul/kakao-login";
-
+     
 import { useAuthStore } from "../../../app/features/auth/auth.store";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -210,15 +213,13 @@ const LoginScreen: React.FC = () => {
 
       <View style={styles.rowBetween}>
         <Pressable
-          style={styles.autoRow}
-          onPress={() => setAutoLogin((prev) => !prev)}
-          hitSlop={8}
-        >
-          <View style={[styles.checkbox, autoLogin && styles.checkboxChecked]}>
-            {autoLogin && <View style={styles.checkboxDot} />}
-          </View>
-          <Text style={styles.autoText}>자동 로그인</Text>
-        </Pressable>
+  onPress={() => setAutoLogin((prev) => !prev)}
+  hitSlop={8}
+  style={styles.autoRow}
+>
+  {autoLogin ? <CheckboxIn width={20} height={20} /> : <CheckboxOut width={20} height={20} />}
+  <Text style={styles.autoText}>자동 로그인</Text>
+</Pressable>
 
         <View style={styles.linkRow}>
           <Pressable hitSlop={8} onPress={() => navigation.navigate("SignUpScreen")}>
@@ -236,7 +237,7 @@ const LoginScreen: React.FC = () => {
 
       <View style={styles.loginBtnWrap}>
         <Button 
-        title={isLoading ? '로그인 중...' : '로그인'} 
+        title={isLoading ? '로그인' : '로그인'} 
         onPress={handleLogin}
         disabled={isLoading} 
         />
@@ -321,33 +322,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: colors.grayscale[600],
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-    backgroundColor: "transparent",
-  },
-
-  checkboxChecked: {
-    borderColor: colors.primary[500],
-  },
-
-  checkboxDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 3,
-    backgroundColor: colors.primary[500],
-  },
-
   autoText: {
     color: colors.grayscale[300],
     fontSize: 14,
     fontFamily: "Pretendard-Regular",
+    paddingLeft: 7,
   },
 
   linkRow: {

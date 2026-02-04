@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { storage } from '../../../utils/storage';
 import { storageKeys } from '../../../constants/storageKeys';
 import { authApiLayer, SocialLoginPayload } from './auth.api';
+import { useUserStore } from '../user/user.store';
 
 const hasText = (value?: string) => Boolean(value?.trim());
 
@@ -186,6 +187,7 @@ console.log('[LOGIN TOKENS]', tokens);
 
     await storage.multiRemove([storageKeys.accessToken, storageKeys.refreshToken, storageKeys.autoLogin]);
     set({ user: null, accessToken: null, refreshToken: null });
+    useUserStore.getState().clear();
   },
   signup: async ({ loginId, password, nickname, autoLogin }) => {
     set({ isLoading: true, errorMessage: undefined });
