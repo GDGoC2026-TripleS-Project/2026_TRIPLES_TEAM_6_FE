@@ -86,7 +86,8 @@ const DatePickerField = ({ value, onChange, placeholder = '날짜 선택' }: Dat
 
             <View style={styles.calendarContainer}>
               <Calendar
-                selected={tempSelected || formatDate(value).replace(/\./g, '-')}
+                startDate={tempSelected || formatDate(value).replace(/\./g, '-')}
+                endDate={tempSelected || formatDate(value).replace(/\./g, '-')}
                 onDayPress={setTempSelected}
                 style={{marginTop: 25}}
               />

@@ -7,12 +7,27 @@ interface ButtonProps {
   disabled?: boolean;
   onPress?: () => void;
   variant?: 'primary' | 'dark';
+  backgroundColor?: string;
+  pressedBackgroundColor?: string;
+  disabledBackgroundColor?: string;
 }
 
-const Button = ({ title, disabled = false, onPress, variant = 'primary' }: ButtonProps) => {
+const Button = ({
+  title,
+  disabled = false,
+  onPress,
+  variant = 'primary',
+  backgroundColor,
+  pressedBackgroundColor,
+  disabledBackgroundColor,
+}: ButtonProps) => {
   const getBackgroundColor = (pressed: boolean) => {
     if (disabled) {
-      return colors.grayscale[700];
+      return disabledBackgroundColor ?? colors.grayscale[700];
+    }
+
+    if (backgroundColor) {
+      return pressed ? pressedBackgroundColor ?? backgroundColor : backgroundColor;
     }
 
     if (variant === 'dark') {
@@ -23,7 +38,7 @@ const Button = ({ title, disabled = false, onPress, variant = 'primary' }: Butto
   };
 
   return (
-    <View style={styles.container}>
+    <View>
       <Pressable
         onPress={onPress}
         disabled={disabled}
@@ -56,7 +71,7 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '100%',
-    height: '100%',
+    height: 48,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',

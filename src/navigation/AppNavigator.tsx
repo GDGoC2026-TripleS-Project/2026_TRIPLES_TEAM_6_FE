@@ -13,7 +13,7 @@ const TAB_BAR_CONFIG = {
   headerShown: true,
   headerTitle: '로고',
   headerStyle: {
-    backgroundColor: "#0B0B0B",
+    backgroundColor: colors.grayscale[1000],
     borderBottomColor: colors.grayscale[800],
     borderBottomWidth: 1,
   },
@@ -48,7 +48,7 @@ export default function AppNavigator() {
   const navigation = useNavigation<any>(); 
 
   return (
-    <Tab.Navigator screenOptions={TAB_BAR_CONFIG}>
+    <Tab.Navigator screenOptions={TAB_BAR_CONFIG} initialRouteName="Home">
       {tabs.map(({ name, component, title, icon, isPlus }) =>
         isPlus ? (
           <Tab.Screen
