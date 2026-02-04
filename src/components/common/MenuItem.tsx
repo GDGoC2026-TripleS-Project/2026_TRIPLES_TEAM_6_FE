@@ -4,58 +4,51 @@ import { colors } from "../../constants/colors";
 import TagPill from "./TagPill";
 
 type NutritionPillProps = {
-    label: string;
-    value: number;
-    unit: string;
+  label: string;
+  value: number;
+  unit: string;
 };
 
-type MenuItemProps = {
-    brandName: string;
-    menuName: string;
-    optionText: string;
-    pills: [NutritionPillProps, NutritionPillProps];
-    rightText?: string;
-    RightIcon?: React.ReactNode;
-    onPress?: () => void;
+type DrinkListProps = {
+  brandName: string;
+  menuName: string;
+  optionText: string;
+  pills: [NutritionPillProps, NutritionPillProps];
+  rightText?: string;
+  RightIcon?: React.ReactNode;
+  onPress?: () => void;
 };
 
-function MenuItemRow({
-    brandName,
-    menuName,
-    optionText,
-    pills,
-    rightText,
-    RightIcon,
-    onPress,
-}: MenuItemProps) {
-    return (
-        <Pressable style={styles.row} onPress={onPress}>
-            <View style={styles.left}>
-                <Text style={styles.brandLabel}>{brandName}</Text>
-                <Text style={styles.menuName}>{menuName}</Text>
-                <Text style={styles.optionText}>{optionText}</Text>
+export default function DrinkList({
+  brandName,
+  menuName,
+  optionText,
+  pills,
+  rightText,
+  RightIcon,
+  onPress,
+}: DrinkListProps) {
+  return (
+    <Pressable style={styles.row} onPress={onPress}>
+      <View style={styles.left}>
+        <Text style={styles.brandLabel}>{brandName}</Text>
+        <Text style={styles.menuName}>{menuName}</Text>
+        <Text style={styles.optionText}>{optionText}</Text>
 
-                <View style={styles.pillRow}>
-                    {pills.map((p) => (
-                        <TagPill
-                        key={p.label}
-                        label={p.label}
-                        value={p.value}
-                        unit={p.unit}
-                        />
-                    ))}
-                </View>
-            </View>
+        <View style={styles.pillRow}>
+          {pills.map((p) => (
+            <TagPill key={p.label} label={p.label} value={p.value} unit={p.unit} />
+          ))}
+        </View>
+      </View>
 
-            <View style={styles.right}>
-                {!!rightText && <Text style={styles.rightText}>{rightText}</Text>}
-                {!!RightIcon && <View style={styles.rightIconWrap}>{RightIcon}</View>}
-            </View>
-        </Pressable>
-    );
+      <View style={styles.right}>
+        {!!rightText && <Text style={styles.rightText}>{rightText}</Text>}
+        {!!RightIcon && <View style={styles.rightIconWrap}>{RightIcon}</View>}
+      </View>
+    </Pressable>
+  );
 }
-
-export default MenuItemRow;
 
 const styles = StyleSheet.create({
     row: {
