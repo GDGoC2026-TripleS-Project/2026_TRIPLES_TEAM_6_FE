@@ -97,7 +97,7 @@ export default function SlideItem({
 
   return (
     <View style={[styles.page, { width }]}>
-      <View style={styles.textTop}>
+      <View style={[styles.textTop, isDone && styles.doneTextTop]}>
         {isDone ? (
           <>
             <Text style={[styles.title, styles.doneTitleSize, { color: titleColor }]}>
@@ -206,6 +206,10 @@ const styles = StyleSheet.create({
     marginTop: height * 0.11,
     alignItems: 'center',
     paddingHorizontal: 18,
+  },
+
+  doneTextTop: {
+    marginTop: height * 0.19,
   },
 
   title: {

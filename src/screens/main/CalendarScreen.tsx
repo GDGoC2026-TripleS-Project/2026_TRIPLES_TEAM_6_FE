@@ -1,5 +1,4 @@
-﻿// src/screens/main/CalendarScreen.tsx
-import React, { useMemo, useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { colors } from '../../constants/colors';
 import Coffee from '../../../assets/ComponentsImage/coffeeImg.svg';

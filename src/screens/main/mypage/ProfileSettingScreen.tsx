@@ -9,12 +9,17 @@ import Button from '../../../components/common/Button';
 import PreProfileImg from '../../../../assets/ComponentsImage/preProfile.svg';
 
 export default function ProfileSettingScreen() {
-  const [nickname, setNickname] = useState('라스트컵');
+  const initialNickname = '라스트컵';
+  const [nickname, setNickname] = useState(initialNickname);
   const [profileImage, setProfileImage] = useState<string | null>(null); 
   const [touched, setTouched] = useState(false);
 
+  const hasNicknameChanged = nickname.trim() !== initialNickname.trim();
   const isNicknameValid = nickname.length >= 2 && nickname.length <= 10;
-  const nicknameError = touched && !isNicknameValid ? '2~10자 이내로 입력해 주세요.' : undefined;
+  const nicknameError =
+    touched && hasNicknameChanged && !isNicknameValid
+      ? '2~10자 이내로 입력해 주세요.'
+      : undefined;
 
   const onPickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -68,7 +73,7 @@ export default function ProfileSettingScreen() {
             if (!touched) setTouched(true);
           }}
           onBlur={() => setTouched(true)}
-          isValid={isNicknameValid}
+          isValid={hasNicknameChanged && isNicknameValid}
           error={nicknameError}
         />
         <Text style={styles.helperText}>2~10자 이내로 언제든지 변경할 수 있습니다.</Text>

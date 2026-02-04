@@ -3,10 +3,13 @@ import { View, Text, StyleSheet } from "react-native";
 import { colors } from "../../../constants/colors";
 import Button from "../../../components/common/Button";
 import Check from "../../../../assets/ComponentsImage/check.svg";
+import { useAuthStore } from "../../../app/features/auth/auth.store";
 
 const DropCompleteScreen: React.FC = () => {
-    const Complete = () => {
-        console.log('로그인 화면으로 이동');
+    const logout = useAuthStore((s) => s.logout);
+
+    const Complete = async () => {
+        await logout();
     };
 
     return (

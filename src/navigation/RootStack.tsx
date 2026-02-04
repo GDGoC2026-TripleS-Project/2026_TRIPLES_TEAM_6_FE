@@ -23,7 +23,7 @@ export default function RootNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        contentStyle: { backgroundColor: '#0B0B0B' },
+        contentStyle: { backgroundColor: colors.grayscale[1000] },
       }}
     >
       <Stack.Screen
@@ -38,7 +38,7 @@ export default function RootNavigator() {
         options={({ navigation }) => ({
           headerShown: true,
           header: () => (
-            <SafeAreaView edges={['top']} style={{ backgroundColor: '#0B0B0B' }}>
+            <SafeAreaView edges={['top']} style={{ backgroundColor: colors.grayscale[1000] }}>
               <HeaderDetail
                 title="음료 기록하기"
                 onBack={() => navigation.goBack()}
@@ -55,7 +55,7 @@ export default function RootNavigator() {
         options={({ navigation, route }) => ({
           headerShown: true,
           header: () => (
-            <SafeAreaView edges={['top']} style={{ backgroundColor: '#0B0B0B' }}>
+            <SafeAreaView edges={['top']} style={{ backgroundColor: colors.grayscale[1000] }}>
               <HeaderDetail
                 title={route.params.brandName}
                 onBack={() => navigation.goBack()}
@@ -72,7 +72,7 @@ export default function RootNavigator() {
         options={({ navigation }) => ({
           headerShown: true,
           header: () => (
-            <SafeAreaView edges={['top']} style={{ backgroundColor: '#0B0B0B' }}>
+            <SafeAreaView edges={['top']} style={{ backgroundColor: colors.grayscale[1000] }}>
               <HeaderDetail
                 title="음료 기록하기"
                 onBack={() => navigation.goBack()}
@@ -89,7 +89,7 @@ export default function RootNavigator() {
         options={({ navigation }) => ({
           headerShown: true,
           header: () => (
-            <SafeAreaView edges={['top']} style={{ backgroundColor: '#0B0B0B' }}>
+            <SafeAreaView edges={['top']} style={{ backgroundColor: colors.grayscale[1000] }}>
               <HeaderDetail
                 title="음료 기록하기"
                 onBack={() => navigation.goBack()}
@@ -131,7 +131,7 @@ export default function RootNavigator() {
           headerShown: true,
           title: '기준 수정',
           headerTitleAlign: 'center',
-          headerStyle: { backgroundColor: '#0B0B0B' },
+          headerStyle: { backgroundColor: colors.grayscale[1000] },
           headerShadowVisible: false,
           headerTintColor: colors.grayscale[100],
           headerTitleStyle: {
@@ -155,7 +155,7 @@ export default function RootNavigator() {
           headerShown: true,
           title: '비밀번호 변경',
           headerTitleAlign: 'center',
-          headerStyle: { backgroundColor: '#0B0B0B' },
+          headerStyle: { backgroundColor: colors.grayscale[1000] },
           headerShadowVisible: false,
           headerTintColor: colors.grayscale[100],
           headerTitleStyle: {
@@ -173,7 +173,7 @@ export default function RootNavigator() {
           headerShown: true,
           title: '프로필 설정',
           headerTitleAlign: 'center',
-          headerStyle: { backgroundColor: '#0B0B0B' },
+          headerStyle: { backgroundColor: colors.grayscale[1000] },
           headerShadowVisible: false,
           headerTintColor: colors.grayscale[100],
           headerTitleStyle: {
@@ -191,7 +191,7 @@ export default function RootNavigator() {
           headerShown: true,
           title: '알림 설정',
           headerTitleAlign: 'center',
-          headerStyle: { backgroundColor: '#0B0B0B' },
+          headerStyle: { backgroundColor: colors.grayscale[1000] },
           headerShadowVisible: false,
           headerTintColor: colors.grayscale[100],
           headerTitleStyle: {

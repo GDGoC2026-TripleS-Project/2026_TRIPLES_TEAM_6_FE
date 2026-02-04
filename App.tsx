@@ -15,8 +15,10 @@ import TermsScreen from './src/screens/main/sign/TermsScreen';
 import { useAuthStore } from './src/app/features/auth/auth.store';
 import { storage } from './src/utils/storage';
 import { storageKeys } from './src/constants/storageKeys';
+import { colors } from './src/constants/colors';
 
 const Stack = createNativeStackNavigator();
+const FORCE_ONBOARDING_PREVIEW = false; // 후에 false로 변경해야됨
 
 export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);
@@ -50,16 +52,21 @@ export default function App() {
   }, [hydrate]);
 
   if (!loaded || isHydrating) return null;
+  const shouldBypassAuth = FORCE_ONBOARDING_PREVIEW;
+  const showAppFlow = Boolean(accessToken) || shouldBypassAuth;
+  const initialRouteName = showAppFlow
+    ? (shouldBypassAuth ? 'OnBoardingScreen' : (onboardingDone ? 'Main' : 'OnBoardingScreen'))
+    : 'Login';
 
   return (
     <View style={styles.container}>
       <NavigationContainer>
         <Stack.Navigator
-          key={accessToken ? 'app' : 'auth'}
-          initialRouteName={accessToken ? (onboardingDone ? 'Main' : 'OnBoardingScreen') : 'Login'}
+          key={showAppFlow ? 'app' : 'auth'}
+          initialRouteName={initialRouteName}
           screenOptions={{ headerShown: false }}
         >
-          {accessToken ? (
+          {showAppFlow ? (
             <>
               <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
               <Stack.Screen name="Main" component={RootNavigator} />
@@ -74,7 +81,7 @@ export default function App() {
                   headerShown: true,
                   title: '회원가입',
                   headerTitleAlign: 'center',
-                  headerStyle: { backgroundColor: '#0B0B0B' },
+                  headerStyle: { backgroundColor: colors.grayscale[1000] },
                   headerShadowVisible: false,
                   headerTintColor: '#FFFFFF',
                   headerTitleStyle: {
@@ -91,7 +98,7 @@ export default function App() {
                   headerShown: true,
                   title: '비밀번호 찾기',
                   headerTitleAlign: 'center',
-                  headerStyle: { backgroundColor: '#0B0B0B' },
+                  headerStyle: { backgroundColor: colors.grayscale[1000] },
                   headerShadowVisible: false,
                   headerTintColor: '#FFFFFF',
                   headerTitleStyle: {
@@ -108,7 +115,7 @@ export default function App() {
                   headerShown: true,
                   title: '개인정보 수집 및 이용 동의',
                   headerTitleAlign: 'center',
-                  headerStyle: { backgroundColor: '#0B0B0B' },
+                  headerStyle: { backgroundColor: colors.grayscale[1000] },
                   headerShadowVisible: false,
                   headerTintColor: '#FFFFFF',
                   headerTitleStyle: {
@@ -129,7 +136,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B0B0B',
+    backgroundColor: colors.grayscale[1000],
     paddingTop: 8,
   },
 });

@@ -13,7 +13,7 @@ const TAB_BAR_CONFIG = {
   headerShown: true,
   headerTitle: '로고',
   headerStyle: {
-    backgroundColor: "#0B0B0B",
+    backgroundColor: colors.grayscale[1000],
     borderBottomColor: colors.grayscale[800],
     borderBottomWidth: 1,
   },

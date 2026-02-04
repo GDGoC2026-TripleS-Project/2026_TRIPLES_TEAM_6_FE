@@ -1,7 +1,17 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView, Platform, UIManager, LayoutAnimation } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Platform,
+  UIManager,
+  LayoutAnimation,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../../../constants/colors";
+import { Ionicons } from "@expo/vector-icons";
 
 if (Platform.OS === "android") {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
@@ -23,36 +33,36 @@ const TermsScreen: React.FC = () => {
 ※ 서비스는 주민등록번호, 금융정보, 위치 정보, 건강 정보 등 민감한 개인정보를 수집하지 않습니다.
 
 필수 항목
-- 이메일 주소
-- 비밀번호 (암호화하여 저장)
-- 닉네임
+• 이메일 주소
+• 비밀번호 (암호화하여 저장)
+• 닉네임
 
 선택 항목
-- 프로필 이미지
+• 프로필 이미지
 
 서비스 이용 과정에서 생성되는 정보
-- 카페 음료 기록 데이터
-- 카페인 및 당류 섭취 기록
-- 개인 기준 설정 정보
+• 카페 음료 기록 데이터
+• 카페인 및 당류 섭취 기록
+• 개인 기준 설정 정보
 
 자동 수집 항목
-- 서비스 이용 기록
-- 기기 정보(운영체제, 앱 버전 등)
-- 로그 데이터
+• 서비스 이용 기록
+• 기기 정보(운영체제, 앱 버전 등)
+• 로그 데이터
 
 (2) 개인정보 수집 방법
-- 회원가입 및 서비스 이용 과정에서 이용자가 직접 입력
-- 소셜 로그인 이용 시, 해당 소셜 플랫폼을 통해 제공받은 정보`,
+• 회원가입 및 서비스 이용 과정에서 이용자가 직접 입력
+• 소셜 로그인 이용 시, 해당 소셜 플랫폼을 통해 제공받은 정보`,
       },
       {
         id: "2",
         title: "2. 개인정보의 이용 목적",
         body: `수집한 개인정보는 다음의 목적을 위해 이용됩니다.
-- 회원 식별 및 로그인 관리
-- 카페 음료 기록 및 개인 기준 설정 기능 제공
-- 섭취 기록 조회 및 개인 통계 제공
-- 서비스 이용 기록 관리 및 서비스 개선
-- 비밀번호 재설정 안내`,
+• 회원 식별 및 로그인 관리
+• 카페 음료 기록 및 개인 기준 설정 기능 제공
+• 섭취 기록 조회 및 개인 통계 제공
+• 서비스 이용 기록 관리 및 서비스 개선
+• 비밀번호 재설정 안내`,
       },
       {
         id: "3",
@@ -78,16 +88,16 @@ const TermsScreen: React.FC = () => {
         body: `서비스는 원활한 서비스 제공을 위해 아래와 같은 업무를 위탁할 수 있습니다.
 위탁 시 관련 법령에 따라 개인정보가 안전하게 관리되도록 필요한 조치를 취합니다.
 
-- 클라우드 서버 및 데이터베이스 운영
-- 이메일 발송 서비스(비밀번호 재설정 안내 등)`,
+• 클라우드 서버 및 데이터베이스 운영
+• 이메일 발송 서비스(비밀번호 재설정 안내 등)`,
       },
       {
         id: "7",
         title: "7. 개인정보의 안전성 확보 조치",
         body: `서비스는 개인정보 보호를 위해 다음과 같은 조치를 취하고 있습니다.
-- 비밀번호 암호화 저장
-- 접근 권한 최소화
-- 개인정보 처리 시스템의 보안 관리`,
+• 비밀번호 암호화 저장
+• 접근 권한 최소화
+• 개인정보 처리 시스템의 보안 관리`,
       },
       {
         id: "8",
@@ -106,8 +116,8 @@ const TermsScreen: React.FC = () => {
         id: "10",
         title: "10. 개인정보 보호책임자",
         body: `개인정보 보호와 관련한 문의는 아래로 연락하실 수 있습니다.
-- 개인정보 보호책임자: 라스트컵
-- 문의 이메일: 2seo02seo0@naver.com`,
+• 개인정보 보호책임자: 라스트컵
+• 문의 이메일: 2seo02seo0@naver.com`,
       },
       {
         id: "11",
@@ -131,16 +141,93 @@ const TermsScreen: React.FC = () => {
     });
   };
 
+  const isGroupTitleLine = (line: string) => {
+    const t = line.trim();
+    return (
+      t === "필수 항목" ||
+      t === "선택 항목" ||
+      t === "서비스 이용 과정에서 생성되는 정보" ||
+      t === "자동 수집 항목"
+    );
+  };
+
+  const isSmallRegularLine = (sectionId: string, line: string) => {
+    const t = line.trim();
+
+    if (sectionId === "1" && t.startsWith("서비스는 회원가입 및 서비스 제공을 위해")) return true;
+
+    if (sectionId === "2" && t.startsWith("수집한 개인정보는 다음의 목적을 위해")) return true;
+
+    if (sectionId === "4" && t.startsWith("이용자는 언제든지 앱 내 마이페이지")) return true;
+
+    if (sectionId === "6" && t.startsWith("서비스는 원활한 서비스 제공을 위해")) return true;
+
+    if (sectionId === "7" && t.startsWith("서비스는 개인정보 보호를 위해")) return true;
+
+    if (sectionId === "10" && t.startsWith("개인정보 보호와 관련한 문의는")) return true;
+
+    if (["5", "8", "9", "11"].includes(sectionId)) {
+      if (t && !t.startsWith("•") && !t.startsWith("(1)") && !t.startsWith("(2)")) return true;
+    }
+
+    return false;
+  };
+
+  const isPrimaryEmphasisLine = (sectionId: string, line: string) => {
+    const t = line.trim();
+    return sectionId === "1" && t.startsWith("※ 서비스는 주민등록번호");
+  };
+
+  const renderBody = (sectionId: string, body: string) => {
+    const lines = body.split("\n");
+
+    return lines.map((raw, idx) => {
+      const line = raw.replace(/^\-\s+/g, "• ").trimEnd();
+      const trimmed = line.trim();
+
+      if (!trimmed) return <View key={`${sectionId}-sp-${idx}`} style={{ height: 10 }} />;
+
+      if (isGroupTitleLine(trimmed)) {
+        return (
+          <Text key={`${sectionId}-gt-${idx}`} style={styles.groupTitleText}>
+            {trimmed}
+          </Text>
+        );
+      }
+
+      if (isSmallRegularLine(sectionId, trimmed)) {
+        return (
+          <Text key={`${sectionId}-sm-${idx}`} style={styles.smallRegularText}>
+            {trimmed}
+          </Text>
+        );
+      }
+
+      if (isPrimaryEmphasisLine(sectionId, trimmed)) {
+        return (
+          <Text key={`${sectionId}-pe-${idx}`} style={styles.primaryEmphasisText}>
+            {trimmed}
+          </Text>
+        );
+      }
+
+      return (
+        <Text key={`${sectionId}-tx-${idx}`} style={styles.bodyText}>
+          {trimmed}
+        </Text>
+      );
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.bigTitle}>개인정보처리방침</Text>
+
         <Text style={styles.mainAccount}>
-            라스트컵(이하 “서비스”)은 「개인정보 보호법」 등 관련 법령을 준수하며,
-이용자의 개인정보를 보호하기 위해
-다음과 같은 개인정보처리방침을 수립·공개합니다.{"\n"}
-본 방침은 App Store Connect 메타데이터 및 앱 내에서
-언제든지 확인할 수 있습니다.
+          라스트컵(이하 “서비스”)은 「개인정보 보호법」 등 관련 법령을 준수하며,
+          이용자의 개인정보를 보호하기 위해 다음과 같은 개인정보처리방침을 수립·공개합니다.{"\n"}
+          본 방침은 App Store Connect 메타데이터 및 앱 내에서 언제든지 확인할 수 있습니다.
         </Text>
 
         <View style={styles.list}>
@@ -151,14 +238,14 @@ const TermsScreen: React.FC = () => {
               <View key={s.id} style={styles.item}>
                 <Pressable style={styles.itemHeader} onPress={() => toggle(s.id)} hitSlop={8}>
                   <Text style={styles.itemTitle}>{s.title}</Text>
-                  <Text style={styles.chev}>{opened ? "⌃" : "⌄"}</Text>
+                  <Ionicons
+                    name={opened ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color={colors.grayscale[500]}
+                  />
                 </Pressable>
 
-                {opened && (
-                  <View style={styles.bodyWrap}>
-                    <Text style={styles.bodyText}>{s.body}</Text>
-                  </View>
-                )}
+                {opened && <View style={styles.bodyWrap}>{renderBody(s.id, s.body)}</View>}
               </View>
             );
           })}
@@ -174,9 +261,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.grayscale[1000],
-    paddingTop: -50
+    paddingTop: -50,
   },
-
   content: {
     paddingTop: 22,
     paddingHorizontal: 20,
@@ -190,10 +276,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
+  mainAccount: {
+    marginTop: 8,
+    marginBottom: 28,
+    fontSize: 14,
+    color: colors.grayscale[400],
+    fontFamily: "Pretendard-Regular",
+    lineHeight: 20,
+  },
+
   list: {
     borderTopWidth: 1,
     borderTopColor: colors.grayscale[900],
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
   },
 
   item: {
@@ -203,7 +298,7 @@ const styles = StyleSheet.create({
   },
 
   itemHeader: {
-    width: '100%',
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -221,13 +316,6 @@ const styles = StyleSheet.create({
     paddingLeft: 0,
   },
 
-  chev: {
-    color: colors.grayscale[500],
-    fontSize: 20,
-    width: 24,
-    textAlign: "right",
-  },
-
   bodyWrap: {
     marginTop: 0,
     marginBottom: 20,
@@ -241,6 +329,40 @@ const styles = StyleSheet.create({
     fontFamily: "Pretendard-Regular",
   },
 
+  groupTitleText: {
+    marginTop: 10,
+    color: colors.grayscale[300],
+    fontSize: 16,
+    lineHeight: 22,
+    marginBottom: 4,
+    fontFamily: "Pretendard-SemiBold",
+  },
+
+  smallRegularText: {
+    marginTop: 4,
+    color: colors.grayscale[200],
+    marginBottom: 4,
+    fontSize: 12,
+    lineHeight: 18,
+    fontFamily: "Pretendard-Regular",
+  },
+
+  noticeText: {
+    marginTop: 6,
+    marginBottom: 0,
+    color: colors.primary[700],
+    fontSize: 12,
+    lineHeight: 18,
+    fontFamily: "Pretendard-Regular",
+  },
+
+  primaryEmphasisText: {
+    color: colors.primary[500],
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: "Pretendard-Regular",
+  },
+
   footerNote: {
     marginTop: 28,
     marginBottom: 50,
@@ -248,15 +370,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Pretendard-Regular",
     textAlign: "center",
-  },
-
-  mainAccount: {
-    marginTop: 8,
-    marginBottom: 28,
-    fontSize: 14,
-    color: colors.grayscale[400],
-    fontFamily: 'Pretendard-Regular',
-    lineHeight: 20,
   },
 });
 
