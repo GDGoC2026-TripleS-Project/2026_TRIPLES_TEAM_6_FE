@@ -1,7 +1,31 @@
 import { create } from 'zustand';
 import { storage } from '../../../utils/storage';
 import { storageKeys } from '../../../constants/storageKeys';
-import { authApiLayer } from './auth.api';
+import { authApiLayer, SocialLoginPayload } from './auth.api';
+
+const hasText = (value?: string) => Boolean(value?.trim());
+
+const validateSocialPayload = (payload: SocialLoginPayload) => {
+  switch (payload.provider) {
+    case 'GOOGLE':
+      if (!hasText(payload.providerAccessToken) && !hasText(payload.identityToken)) {
+        return 'Google login requires providerAccessToken or identityToken.';
+      }
+      return undefined;
+    case 'KAKAO':
+      if (!hasText(payload.providerAccessToken) && !hasText(payload.authorizationCode)) {
+        return 'Kakao login requires providerAccessToken or authorizationCode.';
+      }
+      return undefined;
+    case 'APPLE':
+      if (!hasText(payload.identityToken) && !hasText(payload.authorizationCode)) {
+        return 'Apple login requires identityToken or authorizationCode.';
+      }
+      return undefined;
+    default:
+      return 'Unsupported social provider.';
+  }
+};
 
 type AuthState = {
   user: { id: number; nickname: string } | null;
@@ -16,11 +40,7 @@ type AuthState = {
   signup: (args: { loginId: string; password: string; nickname: string; autoLogin: boolean }) => Promise<boolean>;
   checkLoginIdAvailable: (loginId: string) => Promise<{ ok: boolean; message?: string }>;
   checkNicknameAvailable: (nickname: string) => Promise<{ ok: boolean; message?: string }>;
-  socialLogin: (args: {
-  provider: 'KAKAO' | 'GOOGLE' | 'APPLE';
-  providerAccessToken: string;
-  autoLogin: boolean;
-}) => Promise<boolean>;
+  socialLogin: (args: SocialLoginPayload & { autoLogin: boolean }) => Promise<boolean>;
 
 };
 
@@ -231,11 +251,16 @@ console.log('[LOGIN TOKENS]', tokens);
     }
   },
 
-  socialLogin: async ({ provider, providerAccessToken, autoLogin }) => {
+  socialLogin: async ({ autoLogin, ...payload }) => {
   set({ isLoading: true, errorMessage: undefined });
 
   try {
-    const result = await authApiLayer.socialLogin({ provider, providerAccessToken });
+    const validationError = validateSocialPayload(payload);
+    if (validationError) {
+      throw new Error(validationError);
+    }
+
+    const result = await authApiLayer.socialLogin(payload);
     const { user, tokens } = result.data.data;
 
     await Promise.all([

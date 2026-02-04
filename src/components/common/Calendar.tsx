@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     dayText: {
         color: colors.grayscale[200],
         fontFamily: 'Pretendard-Medium',
-        fontSize: 13,
+        fontSize: 14,
     },
     dayTextActive: {
         color: colors.grayscale[1000],
