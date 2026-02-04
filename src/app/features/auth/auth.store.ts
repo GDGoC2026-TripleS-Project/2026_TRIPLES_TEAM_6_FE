@@ -136,7 +136,8 @@ console.log('[LOGIN TOKENS]', tokens);
   checkLoginIdAvailable: async (loginId: string) => {
     try {
       const res = await authApiLayer.checkLoginId(loginId);
-      const available = res.data?.data?.available;
+      const available = res.data?.data?.isAvailable ?? res.data?.data?.available;
+
       return { ok: typeof available === 'boolean' ? available : true };
     } catch (e: any) {
       return {
@@ -149,7 +150,8 @@ console.log('[LOGIN TOKENS]', tokens);
   checkNicknameAvailable: async (nickname: string) => {
     try {
       const res = await authApiLayer.checkNickname(nickname);
-      const available = res.data?.data?.available;
+      const available = res.data?.data?.isAvailable ?? res.data?.data?.available;
+
       return { ok: typeof available === 'boolean' ? available : true };
     } catch (e: any) {
       return {
