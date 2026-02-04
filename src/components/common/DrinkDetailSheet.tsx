@@ -141,7 +141,7 @@ export default function DrinkDetailSheet({
             />
           </View>
           <View style={{ width: 12 }} />
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, }}>
             <Button
               title="삭제"
               onPress={() => onDelete?.(drink)}
@@ -202,9 +202,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   table: {
-    flex: 1,
     gap: 14,
     paddingTop: 6,
+    marginBottom: 24
   },
   row: {
     flexDirection: 'row',
@@ -243,6 +243,5 @@ const styles = StyleSheet.create({
   bottomBtns: {
     flexDirection: 'row',
     marginBottom: 30,
-    marginTop: 12,
   },
 });

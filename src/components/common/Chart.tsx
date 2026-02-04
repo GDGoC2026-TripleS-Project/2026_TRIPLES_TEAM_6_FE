@@ -100,11 +100,11 @@ const styles = StyleSheet.create({
   line : {
     flex: 1,
     height: 1,
-    backgroundColor: colors.grayscale[600]
+    backgroundColor: colors.grayscale[800]
   },
   chartText: {
     fontSize: 8,
-    color: colors.grayscale[600]
+    color: colors.grayscale[700]
   },
   barsContainer: {
     position: 'absolute',
