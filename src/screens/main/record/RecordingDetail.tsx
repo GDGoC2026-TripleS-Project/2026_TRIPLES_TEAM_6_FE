@@ -7,6 +7,7 @@ import Button from '../../../components/common/Button';
 import { useState } from 'react';
 import MenuItemRow from "../../../components/common/MenuItem";
 import DatePickerField from "../../../components/common/DatePickerField";
+import { useOptionStore } from '../../../store/useOptionStore';
 
 type RecordingDetailRouteProp = RouteProp<RootStackParamList, 'RecordingDetail'>;
 type RecordingDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecordingDetail'>;
@@ -27,17 +28,73 @@ const RecordingDetail = () => {
     const navigation = useNavigation<RecordingDetailNavigationProp>();
     const { drinkName, brandName, temperature, size, options } = route.params;
     const [selectedDate, setSelectedDate] = useState(new Date());
+    
+    const setGroupInfo = useOptionStore(state => state.setGroupInfo);
 
     const optionText = `${temperature === 'hot' ? 'Hot' : 'Ice'} | ${size}`;
 
+    // 카페인과 당류 계산 (실제로는 메뉴 데이터에서 가져와야 함)
+    const baseCaffeine = 150; // 기본 카페인
+    const baseSugar = 3;      // 기본 당류
+
     const handleComplete = () => {
+        const groupId = `drink_${Date.now()}`;
+        
+        const chipSelected = new Set<string>();
+        const stepperCounts: Record<string, number> = {};
+
+        // 옵션별 추가 카페인/당류 계산
+        let totalCaffeine = baseCaffeine;
+        let totalSugar = baseSugar;
+
+        if (options.milk && options.milk.length > 0) {
+            options.milk.forEach(milkId => chipSelected.add(milkId));
+        }
+
+        if (options.coffee && Object.keys(options.coffee).length > 0) {
+            Object.entries(options.coffee).forEach(([key, count]) => {
+                if (count > 0) {
+                    stepperCounts[key] = count;
+                    // 샷 추가 시 카페인 증가 (샷당 75mg 가정)
+                    if (key === 'shot' || key === 'decafaine') {
+                        totalCaffeine += count * (key === 'decafaine' ? 5 : 75);
+                    }
+                }
+            });
+        }
+
+        if (options.syrup && Object.keys(options.syrup).length > 0) {
+            Object.entries(options.syrup).forEach(([key, count]) => {
+                if (count > 0) {
+                    stepperCounts[key] = count;
+                    // 시럽 추가 시 당류 증가 (펌프당 5g 가정)
+                    totalSugar += count * 5;
+                }
+            });
+        }
+
+        setGroupInfo(groupId, {
+            brandName,
+            menuName: drinkName,
+            temperature,
+            size,
+            date: selectedDate,
+            chipSelected,
+            stepperCounts,
+            caffeine: totalCaffeine,
+            sugar: totalSugar,
+        });
+
         console.log('Recording complete:', {
+            groupId,
             drinkName,
             brandName,
             temperature,
             size,
             options,
             date: selectedDate,
+            caffeine: totalCaffeine,
+            sugar: totalSugar,
         });
         
         navigation.navigate('Send');

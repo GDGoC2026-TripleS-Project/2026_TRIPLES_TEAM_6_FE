@@ -4,33 +4,50 @@ import { colors } from "../../constants/colors";
 interface ChartProps {
   currentIntake?: number;
   dailyLimit?: number;
-  title?: string; 
+  title?: string;
+  unit?: string;
 }
 
-const Chart = ({ currentIntake = 230, dailyLimit = 400, title = "카페인" }: ChartProps) => {
-  const maxValue = 600;
+const Chart = ({ 
+  currentIntake = 0, 
+  dailyLimit = 400, 
+  title = "카페인",
+  unit = "mg" 
+}: ChartProps) => {
+  // 타이틀에 따라 최대값 설정
+  const maxValue = title === "당류" ? 37.5 : 600;
+  const displayUnit = title === "당류" ? "g" : unit;
   
-  const intakePercent = Math.min(((currentIntake - 10)/ maxValue) * 100, 100);
+  const intakePercent = Math.min(((currentIntake - 10) / maxValue) * 100, 100);
   const limitPercent = Math.min(((dailyLimit - 10) / maxValue) * 100, 100);
+
+  const getScaleValues = () => {
+    if (title === "당류") {
+      return ['37.5g', '25g', '12.5g'];
+    }
+    return ['600mg', '400mg', '200mg'];
+  };
+
+  const scaleValues = getScaleValues();
 
   return(
     <View style={styles.container}>
       <View>
         <Text style={styles.title}>{title} 섭취량</Text>
-        <Text style={styles.subTitle}>{currentIntake}mg</Text>
+        <Text style={styles.subTitle}>{currentIntake}{displayUnit}</Text>
       </View>
       <View style={styles.chartWrapper}>
         <View style={styles.chartContainer}>
           <View style={{flexDirection: 'row', gap: 8, alignItems:'center'}}>
-            <Text style={styles.chartText}>600mg</Text>
+            <Text style={styles.chartText}>{scaleValues[0]}</Text>
             <View style={styles.line}/>
           </View>
           <View style={{flexDirection: 'row', gap: 8, alignItems:'center'}}>
-            <Text style={styles.chartText}>400mg</Text>
+            <Text style={styles.chartText}>{scaleValues[1]}</Text>
             <View style={styles.line}/>
           </View>
           <View style={{flexDirection: 'row', gap: 8, alignItems:'center'}}>
-            <Text style={styles.chartText}>200mg</Text>
+            <Text style={styles.chartText}>{scaleValues[2]}</Text>
             <View style={styles.line}/>
           </View>
           <View style={{flexDirection: 'row'}}>
