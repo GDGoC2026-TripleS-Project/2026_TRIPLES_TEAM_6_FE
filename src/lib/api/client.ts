@@ -34,6 +34,12 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   const token = await storage.get(storageKeys.accessToken);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    if (__DEV__) {
+      const masked = `${token.slice(0, 6)}...${token.slice(-4)}`;
+      console.log('[API REQ AUTH] token:', masked);
+    }
+  } else if (__DEV__) {
+    console.log('[API REQ AUTH] token: <none>');
   }
 
   return config;

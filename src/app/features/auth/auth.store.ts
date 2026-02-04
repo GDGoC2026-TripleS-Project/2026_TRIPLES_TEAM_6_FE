@@ -50,12 +50,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const result = await authApiLayer.login({ loginId, password });
       const { user, tokens } = result.data.data;
 
+      await Promise.all([
+        storage.set(storageKeys.accessToken, tokens.accessToken),
+        storage.set(storageKeys.refreshToken, tokens.refreshToken),
+      ]);
       if (autoLogin) {
-        await Promise.all([
-          storage.set(storageKeys.accessToken, tokens.accessToken),
-          storage.set(storageKeys.refreshToken, tokens.refreshToken),
-          storage.set(storageKeys.autoLogin, 'true'),
-        ]);
+        await storage.set(storageKeys.autoLogin, 'true');
       } else {
         await storage.remove(storageKeys.autoLogin);
       }
@@ -104,12 +104,12 @@ console.log('[LOGIN TOKENS]', tokens);
       const result = await authApiLayer.signup({ loginId, password, nickname });
       const { user, tokens } = result.data.data;
 
+      await Promise.all([
+        storage.set(storageKeys.accessToken, tokens.accessToken),
+        storage.set(storageKeys.refreshToken, tokens.refreshToken),
+      ]);
       if (autoLogin) {
-        await Promise.all([
-          storage.set(storageKeys.accessToken, tokens.accessToken),
-          storage.set(storageKeys.refreshToken, tokens.refreshToken),
-          storage.set(storageKeys.autoLogin, 'true'),
-        ]);
+        await storage.set(storageKeys.autoLogin, 'true');
       } else {
         await storage.remove(storageKeys.autoLogin);
       }
@@ -168,12 +168,12 @@ console.log('[LOGIN TOKENS]', tokens);
     const result = await authApiLayer.socialLogin({ provider, providerAccessToken });
     const { user, tokens } = result.data.data;
 
+    await Promise.all([
+      storage.set(storageKeys.accessToken, tokens.accessToken),
+      storage.set(storageKeys.refreshToken, tokens.refreshToken),
+    ]);
     if (autoLogin) {
-      await Promise.all([
-        storage.set(storageKeys.accessToken, tokens.accessToken),
-        storage.set(storageKeys.refreshToken, tokens.refreshToken),
-        storage.set(storageKeys.autoLogin, 'true'),
-      ]);
+      await storage.set(storageKeys.autoLogin, 'true');
     } else {
       await storage.remove(storageKeys.autoLogin);
     }

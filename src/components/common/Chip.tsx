@@ -3,18 +3,21 @@ import { colors } from '../../constants/colors';
 import { useOptionGroup } from '../../hooks/useOptionGroup';
 
 type ChipProps = {
-  groupId: string;
+  groupId?: string;
   id: string;
   label: string;
+  selected?: boolean;
+  onPress?: () => void;
 };
 
-const Chip = ({ groupId, id, label }: ChipProps) => {
-  const { chipSelected, toggleChip } = useOptionGroup(groupId);
-  const selected = chipSelected.has(id);
+const Chip = ({ groupId, id, label, selected: selectedProp, onPress }: ChipProps) => {
+  const group = groupId ? useOptionGroup(groupId) : null;
+  const selected = selectedProp ?? (group ? group.chipSelected.has(id) : false);
+  const handlePress = onPress ?? (group ? () => group.toggleChip(id) : undefined);
 
   return (
     <Pressable
-      onPress={() => toggleChip(id)}
+      onPress={handlePress}
       style={[styles.base, selected ? styles.filled : styles.outlined]}
     >
       <Text

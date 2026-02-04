@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View, Text, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import SearchField from '../../../components/common/SearchField';
 import List from '../../../components/common/List';
 import { colors } from '../../../constants/colors';
 import Chip from '../../../components/common/Chip';
 import { RootStackParamList } from '../../../types/navigation';
+import { fetchBrandMenus, type BrandMenuItem } from '../../../api/record/menu.api';
 
 type RecordDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecordDetail'>;
+type RecordDetailRouteProp = RouteProp<RootStackParamList, 'RecordDetail'>;
 
 const CATEGORIES = [
   { id: 'all', label: 'ALL' },
@@ -18,29 +20,64 @@ const CATEGORIES = [
   { id: 'tea', label: '티' },
 ];
 
-const DRINK_LIST = [
-  { id: '1', name: '에스프레소콘파냐', category: 'espresso' },
-  { id: '2', name: '아메리카노', category: 'espresso' },
-  { id: '3', name: '카페라떼', category: 'espresso' },
-  { id: '4', name: '카푸치노', category: 'espresso' },
-  { id: '5', name: '카라멜마끼아또', category: 'espresso' },
-  { id: '6', name: '바닐라라떼', category: 'espresso' },
-  { id: '7', name: '돌체라떼', category: 'espresso' },
-  { id: '8', name: '카페모카', category: 'espresso' },
-  { id: '9', name: '화이트모카', category: 'espresso' },
-];
+const CATEGORY_TO_API: Record<string, string> = {
+  espresso: 'COFFEE',
+  frappuccino: 'FRAPPUCCINO',
+  refresher: 'REFRESHER',
+  tea: 'TEA',
+};
 
 const RecordDetailScreen = () => {
   const navigation = useNavigation<RecordDetailNavigationProp>();
+  const route = useRoute<RecordDetailRouteProp>();
+  const { brandId } = route.params;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [menus, setMenus] = useState<BrandMenuItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const filteredCafeList = DRINK_LIST.filter((cafe) =>
-    cafe.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const apiCategory = useMemo(() => {
+    if (selectedCategory === 'all') return undefined;
+    return CATEGORY_TO_API[selectedCategory] ?? selectedCategory;
+  }, [selectedCategory]);
 
-  const handleDrinkPress = (drinkId: string, drinkName: string) => {
-    navigation.navigate('RecordDrinkDetail', { drinkId, drinkName });
+  useEffect(() => {
+    let isMounted = true;
+    const t = setTimeout(() => {
+      setIsLoading(true);
+      setLoadError(null);
+      fetchBrandMenus(brandId, {
+        category: apiCategory,
+        keyword: searchQuery.trim() || undefined,
+        page: 0,
+        size: 50,
+      })
+        .then((res) => {
+          if (!isMounted) return;
+          if (res.success && res.data) {
+            setMenus(res.data.content);
+          } else {
+            setLoadError(res.error?.message ?? '메뉴를 불러오지 못했어요.');
+          }
+        })
+        .catch(() => {
+          if (!isMounted) return;
+          setLoadError('메뉴를 불러오지 못했어요.');
+        })
+        .finally(() => {
+          if (isMounted) setIsLoading(false);
+        });
+    }, 250);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(t);
+    };
+  }, [brandId, apiCategory, searchQuery]);
+
+  const handleDrinkPress = (drinkId: number, drinkName: string) => {
+    navigation.navigate('RecordDrinkDetail', { drinkId: String(drinkId), drinkName });
   };
 
   return (
@@ -63,6 +100,8 @@ const RecordDetailScreen = () => {
               groupId="category"
               id={category.id}
               label={category.label}
+              selected={selectedCategory === category.id}
+              onPress={() => setSelectedCategory(category.id)}
             />
           ))}
         </ScrollView>
@@ -70,18 +109,24 @@ const RecordDetailScreen = () => {
 
       <View style={styles.listContainer}>
         <FlatList
-          data={filteredCafeList}
+          data={menus}
           renderItem={({ item }) => (
             <List 
               title={item.name}
               onPress={() => handleDrinkPress(item.id, item.name)}
             />
           )}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>검색 결과가 없습니다.</Text>
+              <Text style={styles.emptyText}>
+                {isLoading
+                  ? '불러오는 중...'
+                  : loadError
+                  ? loadError
+                  : '검색 결과가 없습니다.'}
+              </Text>
             </View>
           }
         />
