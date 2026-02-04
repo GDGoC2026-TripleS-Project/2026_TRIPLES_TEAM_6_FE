@@ -9,7 +9,7 @@ type LoginRes = ApiResponse<{ user: UserSummary; tokens: AuthTokens }>;
 type SignupRes = ApiResponse<{ user: UserSummary; tokens: AuthTokens }>;
 type RefreshRes = ApiResponse<{ accessToken: string; refreshToken: string }>;
 type LogoutRes = ApiResponse<{ loggedOut: boolean }>;
-type AvailabilityRes = ApiResponse<{ available: boolean }>;
+type AvailabilityRes = ApiResponse<{ isAvailable?: boolean; available?: boolean }>;
 
 export const authApiLayer = {
   login: (payload: { loginId: string; password: string }) =>

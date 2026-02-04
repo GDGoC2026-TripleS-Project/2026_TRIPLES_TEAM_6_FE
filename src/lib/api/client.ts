@@ -2,7 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { storage } from '../../utils/storage';
 import { storageKeys } from '../../constants/storageKeys';
 
-const BASE_URL = 'https://lastcup.site/api/v1';
+const BASE_URL = 'https://api.lastcup.site/api/v1';
 
 export const api = axios.create({
   baseURL: BASE_URL,
