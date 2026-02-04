@@ -13,11 +13,14 @@ import SignUpScreen from './src/screens/main/sign/SignUpScreen';
 import FindPasswordScreen from './src/screens/main/sign/FindPasswordScreen';
 import TermsScreen from './src/screens/main/sign/TermsScreen';
 import { useAuthStore } from './src/app/features/auth/auth.store';
+import { storage } from './src/utils/storage';
+import { storageKeys } from './src/constants/storageKeys';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);
+  const [onboardingDone, setOnboardingDone] = useState(false);
   const hydrate = useAuthStore((s) => s.hydrate);
   const accessToken = useAuthStore((s) => s.accessToken);
 
@@ -30,9 +33,17 @@ export default function App() {
 
   useEffect(() => {
     let isMounted = true;
-    hydrate().finally(() => {
-      if (isMounted) setIsHydrating(false);
-    });
+    (async () => {
+      try {
+        const [, done] = await Promise.all([
+          hydrate(),
+          storage.get(storageKeys.onboardingDone),
+        ]);
+        if (isMounted) setOnboardingDone(done === 'true');
+      } finally {
+        if (isMounted) setIsHydrating(false);
+      }
+    })();
     return () => {
       isMounted = false;
     };
@@ -45,7 +56,7 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator
           key={accessToken ? 'app' : 'auth'}
-          initialRouteName={accessToken ? 'Main' : 'Login'}
+          initialRouteName={accessToken ? (onboardingDone ? 'Main' : 'OnBoardingScreen') : 'Login'}
           screenOptions={{ headerShown: false }}
         >
           {accessToken ? (

@@ -174,7 +174,11 @@ const LoginScreen: React.FC = () => {
       </View>
 
       <View style={styles.socialRow}>
-        <Pressable style={styles.socialBtn} onPress={() => console.log('kakao')} hitSlop={10}>
+        <Pressable
+          style={styles.socialBtn}
+          onPress={() => Alert.alert('안내', '카카오 로그인은 SDK 토큰 연동 후 활성화됩니다.')}
+          hitSlop={10}
+        >
           <KakaoLogin width={44} height={44} />
         </Pressable>
 
@@ -186,7 +190,11 @@ const LoginScreen: React.FC = () => {
 
         <View style={styles.socialGap} />
 
-        <Pressable style={styles.socialBtn} onPress={() => console.log('apple')} hitSlop={10}>
+        <Pressable
+          style={styles.socialBtn}
+          onPress={() => Alert.alert('안내', 'Apple 로그인은 SDK 토큰 연동 후 활성화됩니다.')}
+          hitSlop={10}
+        >
           <AppleLogin width={44} height={44} />
         </Pressable>
       </View>

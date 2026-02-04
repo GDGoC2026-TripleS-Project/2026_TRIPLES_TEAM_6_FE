@@ -31,8 +31,14 @@ const SignUpScreen: React.FC = () => {
   const [agree, setAgree] = useState(false);
 
   const signup = useAuthStore((s) => s.signup);
+  const checkLoginIdAvailable = useAuthStore((s) => s.checkLoginIdAvailable);
+  const checkNicknameAvailable = useAuthStore((s) => s.checkNicknameAvailable);
   const isLoading = useAuthStore((s) => s.isLoading);
   const errorMessage = useAuthStore((s) => s.errorMessage);
+  const [loginIdChecked, setLoginIdChecked] = useState(false);
+  const [nicknameChecked, setNicknameChecked] = useState(false);
+  const [isCheckingLoginId, setIsCheckingLoginId] = useState(false);
+  const [isCheckingNickname, setIsCheckingNickname] = useState(false);
 
   const isValidUsername = (v: string) =>
     /^[a-zA-Z0-9]+$/.test(v) && /[a-zA-Z]/.test(v) && /[0-9]/.test(v);
@@ -106,8 +112,56 @@ const SignUpScreen: React.FC = () => {
     if (eErr) ok = false;
 
     if (!agree) ok = false;
+    if (!loginIdChecked) ok = false;
+    if (!nicknameChecked) ok = false;
 
     return ok;
+  };
+
+  const validateLoginIdDuplicate = async () => {
+    const value = userName.trim();
+    const err = validateUsername(value);
+    if (err) {
+      setUserNameError(err);
+      setLoginIdChecked(false);
+      return false;
+    }
+
+    setIsCheckingLoginId(true);
+    const result = await checkLoginIdAvailable(value);
+    setIsCheckingLoginId(false);
+
+    setLoginIdChecked(result.ok);
+    if (!result.ok) {
+      setUserNameError(result.message);
+      return false;
+    }
+
+    setUserNameError(undefined);
+    return true;
+  };
+
+  const validateNicknameDuplicate = async () => {
+    const value = nickname.trim();
+    const err = validateNickname(value);
+    if (err) {
+      setNicknameError(err);
+      setNicknameChecked(false);
+      return false;
+    }
+
+    setIsCheckingNickname(true);
+    const result = await checkNicknameAvailable(value);
+    setIsCheckingNickname(false);
+
+    setNicknameChecked(result.ok);
+    if (!result.ok) {
+      setNicknameError(result.message);
+      return false;
+    }
+
+    setNicknameError(undefined);
+    return true;
   };
 
   const canSubmit = useMemo(() => {
@@ -122,13 +176,32 @@ const SignUpScreen: React.FC = () => {
         password === passwordCheck &&
         isValidNickname(nickname.trim()) &&
         isValidEmail(email.trim()) &&
+        loginIdChecked &&
+        nicknameChecked &&
+        !isCheckingLoginId &&
+        !isCheckingNickname &&
         agree
     );
-  }, [userName, password, passwordCheck, nickname, email, agree]);
+  }, [
+    userName,
+    password,
+    passwordCheck,
+    nickname,
+    email,
+    loginIdChecked,
+    nicknameChecked,
+    isCheckingLoginId,
+    isCheckingNickname,
+    agree,
+  ]);
 
   const onSubmit = async () => {
     const ok = validateAll();
     if (!ok) return;
+    const loginIdOk = await validateLoginIdDuplicate();
+    if (!loginIdOk) return;
+    const nicknameOk = await validateNicknameDuplicate();
+    if (!nicknameOk) return;
 
     const success = await signup({
       loginId: userName.trim(),
@@ -154,15 +227,16 @@ const SignUpScreen: React.FC = () => {
           value={userName}
           onChangeText={(t) => {
             setUserName(t);
+            setLoginIdChecked(false);
             if (userNameError) setUserNameError(undefined);
           }}
-          onBlur={() => {
+          onBlur={async () => {
             setTouched((p) => ({ ...p, userName: true }));
-            setUserNameError(validateUsername(userName));
+            await validateLoginIdDuplicate();
           }}
           autoCapitalize="none"
           error={touched.userName ? userNameError : undefined}
-          isValid={Boolean(touched.userName && userName.trim() && !validateUsername(userName))}
+          isValid={Boolean(touched.userName && userName.trim() && !validateUsername(userName) && loginIdChecked)}
           returnKeyType="next"
         />
 
@@ -208,14 +282,15 @@ const SignUpScreen: React.FC = () => {
           value={nickname}
           onChangeText={(t) => {
             setNickname(t);
+            setNicknameChecked(false);
             if (nicknameError) setNicknameError(undefined);
           }}
-          onBlur={() => {
+          onBlur={async () => {
             setTouched((p) => ({ ...p, nickname: true }));
-            setNicknameError(validateNickname(nickname));
+            await validateNicknameDuplicate();
           }}
           error={touched.nickname ? nicknameError : undefined}
-          isValid={Boolean(touched.nickname && nickname.trim() && !validateNickname(nickname))}
+          isValid={Boolean(touched.nickname && nickname.trim() && !validateNickname(nickname) && nicknameChecked)}
           returnKeyType="next"
         />
 
@@ -254,7 +329,7 @@ const SignUpScreen: React.FC = () => {
         <View style={styles.submitWrap}>
           <Button
             title={isLoading ? "가입 중..." : "가입하기"}
-            disabled={!canSubmit || isLoading}
+            disabled={!canSubmit || isLoading || isCheckingLoginId || isCheckingNickname}
             onPress={onSubmit}
             variant="primary"
           />

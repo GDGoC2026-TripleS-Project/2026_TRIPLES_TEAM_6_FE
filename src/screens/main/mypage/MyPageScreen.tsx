@@ -5,6 +5,7 @@ import { colors } from '../../../constants/colors';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MainTabNavigationProp, RootStackParamList } from '../../../types/navigation';
+import { useAuthStore } from '../../../app/features/auth/auth.store';
 
 import GoogleLogin from '../../../../assets/ComponentsImage/GoogleLogin.svg';
 import KakaoLogin from '../../../../assets/ComponentsImage/KakaoLogin.svg';
@@ -47,6 +48,7 @@ function SettingRow({ label, subLabel, onPress, danger, hideIcon }: RowItem) {
 
 export default function MyPageScreen() {
   const navigation = useNavigation<MainTabNavigationProp<'Profile'>>();
+  const logout = useAuthStore((s) => s.logout);
   const rootNavigation =
     navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -65,10 +67,9 @@ export default function MyPageScreen() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setLogoutModalVisible(false);
-    // 로그아웃 로직 추가
-    console.log('로그아웃 완료');
+    await logout();
   };
 
   const handleDelete = () => {

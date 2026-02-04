@@ -4,6 +4,8 @@ import SlideItem from '../../../components/common/SlideItem';
 import Button from '../../../components/common/Button';
 import { colors } from '../../../constants/colors';
 import { useGoalStore } from '../../../store/goalStore';
+import { storage } from '../../../utils/storage';
+import { storageKeys } from '../../../constants/storageKeys';
 
 import Beverage1 from '../../../../assets/ComponentsImage/beverage1.svg';
 import Beverage2 from '../../../../assets/ComponentsImage/beverage2.svg';
@@ -90,13 +92,14 @@ function OnboardingScreen({ navigation }: { navigation: any }) {
     setCurrentIndex(index);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentIndex < slides.length - 1) goTo(currentIndex + 1);
     else {
       setGoals({
         caffeine: caffeineValue,
         sugar: sugarValue,
       });
+      await storage.set(storageKeys.onboardingDone, 'true');
 
       navigation.replace('Main', {
         screen: 'MainTabs',

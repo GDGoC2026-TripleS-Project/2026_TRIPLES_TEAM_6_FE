@@ -14,6 +14,8 @@ type AuthState = {
   logout: () => Promise<void>;
   hydrate: () => Promise<void>;
   signup: (args: { loginId: string; password: string; nickname: string; autoLogin: boolean }) => Promise<boolean>;
+  checkLoginIdAvailable: (loginId: string) => Promise<{ ok: boolean; message?: string }>;
+  checkNicknameAvailable: (nickname: string) => Promise<{ ok: boolean; message?: string }>;
   socialLogin: (args: {
   provider: 'KAKAO' | 'GOOGLE' | 'APPLE';
   providerAccessToken: string;
@@ -83,6 +85,15 @@ console.log('[LOGIN TOKENS]', tokens);
   },
 
   logout: async () => {
+    const refreshToken = get().refreshToken ?? (await storage.get(storageKeys.refreshToken));
+    try {
+      if (refreshToken) {
+        await authApiLayer.logout(refreshToken);
+      }
+    } catch (e) {
+      if (__DEV__) console.log('[LOGOUT API ERROR]', e);
+    }
+
     await storage.multiRemove([storageKeys.accessToken, storageKeys.refreshToken, storageKeys.autoLogin]);
     set({ user: null, accessToken: null, refreshToken: null });
   },
@@ -119,6 +130,32 @@ console.log('[LOGIN TOKENS]', tokens);
 
       set({ isLoading: false, errorMessage: msg });
       return false;
+    }
+  },
+
+  checkLoginIdAvailable: async (loginId: string) => {
+    try {
+      const res = await authApiLayer.checkLoginId(loginId);
+      const available = res.data?.data?.available;
+      return { ok: typeof available === 'boolean' ? available : true };
+    } catch (e: any) {
+      return {
+        ok: false,
+        message: e?.response?.data?.message ?? e?.message ?? '?꾩씠?붽? ?대? ?ъ슜 以묒엯?덈떎.',
+      };
+    }
+  },
+
+  checkNicknameAvailable: async (nickname: string) => {
+    try {
+      const res = await authApiLayer.checkNickname(nickname);
+      const available = res.data?.data?.available;
+      return { ok: typeof available === 'boolean' ? available : true };
+    } catch (e: any) {
+      return {
+        ok: false,
+        message: e?.response?.data?.message ?? e?.message ?? '?됰꽕?꾩씠 ?대? ?ъ슜 以묒엯?덈떎.',
+      };
     }
   },
 
