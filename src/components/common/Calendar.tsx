@@ -207,12 +207,12 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(64, 224, 208, 0.22)',
     },
     rangeBarStart: {
-        left: '0%',
+        left: '20%',
         borderTopLeftRadius: 18,
         borderBottomLeftRadius: 18,
     },
     rangeBarEnd: {
-        right: '0%',
+        right: '20%',
         borderTopRightRadius: 18,
         borderBottomRightRadius: 18,
     },

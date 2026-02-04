@@ -34,7 +34,7 @@ const TextField = ({ value, onChangeText, error, isValid, hideBorder, style, onF
             styles.textInput,
             style,
             {
-              borderWidth: hideBorder === false ? 1 : 0,
+              borderWidth: error ? 1 : hideBorder === false ? 1 : 0,
               borderColor: getBorderColor(),
               color: getTextColor(),
             },

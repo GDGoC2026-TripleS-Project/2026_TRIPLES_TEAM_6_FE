@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, Pressable, Alert, ScrollView } from "react-native";
+import { View, Text, StyleSheet, Pressable, Alert, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { colors } from "../../../constants/colors";
 import TextField from "../../../components/common/TextField";
@@ -221,103 +221,111 @@ const SignUpScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.label}>아이디</Text>
-        <TextField
-          placeholder="영문, 숫자 조합"
-          value={userName}
-          hideBorder
-          onChangeText={(t) => {
-            setUserName(t);
-            setLoginIdChecked(false);
-            if (userNameError) setUserNameError(undefined);
-          }}
-          onBlur={async () => {
-            setTouched((p) => ({ ...p, userName: true }));
-            await validateLoginIdDuplicate();
-          }}
-          autoCapitalize="none"
-          error={touched.userName ? userNameError : undefined}
-          returnKeyType="next"
-        />
+    <View 
+      style={styles.container}
+    >
+      <View 
+        style={styles.scrollView}
+      >
+        <View style={styles.form}>
+          <Text style={styles.label}>아이디</Text>
+          <TextField
+            placeholder="영문, 숫자 조합"
+            value={userName}
+            hideBorder
+            onChangeText={(t) => {
+              setUserName(t);
+              setLoginIdChecked(false);
+              if (userNameError) setUserNameError(undefined);
+            }}
+            onBlur={async () => {
+              setTouched((p) => ({ ...p, userName: true }));
+              await validateLoginIdDuplicate();
+            }}
+            autoCapitalize="none"
+            error={touched.userName ? userNameError : undefined}
+            returnKeyType="next"
+          />
 
-        <Text style={styles.label}>비밀번호</Text>
-        <TextField
-          placeholder="영문, 숫자 포함 8자 이상"
-          value={password}
-          hideBorder
-          onChangeText={(t) => {
-            setPassword(t);
-            if (passwordError) setPasswordError(undefined);
-          }}
-          onBlur={() => {
-            setTouched((p) => ({ ...p, password: true }));
-            setPasswordError(validatePassword(password));
-          }}
-          secureTextEntry
-          error={touched.password ? passwordError : undefined}
-          returnKeyType="next"
-        />
+          <Text style={styles.label}>비밀번호</Text>
+          <TextField
+            placeholder="영문, 숫자 포함 8자 이상"
+            value={password}
+            hideBorder
+            onChangeText={(t) => {
+              setPassword(t);
+              if (passwordError) setPasswordError(undefined);
+            }}
+            onBlur={() => {
+              setTouched((p) => ({ ...p, password: true }));
+              setPasswordError(validatePassword(password));
+            }}
+            secureTextEntry
+            error={touched.password ? passwordError : undefined}
+            returnKeyType="next"
+          />
 
-        <Text style={styles.label}>비밀번호 확인</Text>
-        <TextField
-          placeholder="비밀번호 확인"
-          value={passwordCheck}
-          hideBorder
-          onChangeText={(t) => {
-            setPasswordCheck(t);
-            if (passwordCheckError) setPasswordCheckError(undefined);
-          }}
-          onBlur={() => {
-            setTouched((p) => ({ ...p, passwordCheck: true }));
-            setPasswordCheckError(validatePasswordCheck(passwordCheck));
-          }}
-          secureTextEntry
-          error={touched.passwordCheck ? passwordCheckError : undefined}
-          returnKeyType="next"
-        />
+          <Text style={styles.label}>비밀번호 확인</Text>
+          <TextField
+            placeholder="비밀번호 확인"
+            value={passwordCheck}
+            hideBorder
+            onChangeText={(t) => {
+              setPasswordCheck(t);
+              if (passwordCheckError) setPasswordCheckError(undefined);
+            }}
+            onBlur={() => {
+              setTouched((p) => ({ ...p, passwordCheck: true }));
+              setPasswordCheckError(validatePasswordCheck(passwordCheck));
+            }}
+            secureTextEntry
+            error={touched.passwordCheck ? passwordCheckError : undefined}
+            returnKeyType="next"
+          />
 
-        <Text style={styles.label}>닉네임</Text>
-        <TextField
-          placeholder="2~10자 이내"
-          value={nickname}
-          hideBorder
-          onChangeText={(t) => {
-            setNickname(t);
-            setNicknameChecked(false);
-            if (nicknameError) setNicknameError(undefined);
-          }}
-          onBlur={async () => {
-            setTouched((p) => ({ ...p, nickname: true }));
-            await validateNicknameDuplicate();
-          }}
-          error={touched.nickname ? nicknameError : undefined}
-          returnKeyType="next"
-        />
+          <Text style={styles.label}>닉네임</Text>
+          <TextField
+            placeholder="2~10자 이내"
+            value={nickname}
+            hideBorder
+            onChangeText={(t) => {
+              setNickname(t);
+              setNicknameChecked(false);
+              if (nicknameError) setNicknameError(undefined);
+            }}
+            onBlur={async () => {
+              setTouched((p) => ({ ...p, nickname: true }));
+              await validateNicknameDuplicate();
+            }}
+            error={touched.nickname ? nicknameError : undefined}
+            returnKeyType="next"
+          />
 
-        <Text style={styles.label}>이메일</Text>
-        <TextField
-          placeholder="이메일 주소 입력"
-          value={email}
-          hideBorder
-          onChangeText={(t) => {
-            setEmail(t);
-            if (emailError) setEmailError(undefined);
-          }}
-          onBlur={() => {
-            setTouched((p) => ({ ...p, email: true }));
-            setEmailError(validateEmail(email));
-          }}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          error={touched.email ? emailError : undefined}
-          returnKeyType="done"
-        />
+          <Text style={styles.label}>이메일</Text>
+          <TextField
+            placeholder="이메일 주소 입력"
+            value={email}
+            hideBorder
+            onChangeText={(t) => {
+              setEmail(t);
+              if (emailError) setEmailError(undefined);
+            }}
+            onBlur={() => {
+              setTouched((p) => ({ ...p, email: true }));
+              setEmailError(validateEmail(email));
+            }}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            error={touched.email ? emailError : undefined}
+            returnKeyType="done"
+          />
+        </View>
+      </View>
 
+      <View style={styles.bottomSection}>
         <View style={styles.agreeRow}>
           <Pressable style={styles.agreeLeft} onPress={() => setAgree((p) => !p)} hitSlop={10}>
-            {agree ? <CheckboxOut width={20} height={20} /> : <CheckboxIn width={20} height={20} /> }
+            {agree ? <CheckboxIn width={20} height={20} /> : <CheckboxOut width={20} height={20} />}
             <Text style={styles.agreeText}>개인정보 수집 및 이용 동의 (필수)</Text>
           </Pressable>
 
@@ -328,14 +336,14 @@ const SignUpScreen: React.FC = () => {
 
         <View style={styles.submitWrap}>
           <Button
-            title={isLoading ? "가입 중..." : "가입하기"}
+            title={isLoading ? "가입하기" : "가입하기"}
             disabled={!canSubmit || isLoading || isCheckingLoginId || isCheckingNickname}
             onPress={onSubmit}
             variant="primary"
           />
         </View>
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
@@ -343,8 +351,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.grayscale[1000],
+  },
+
+  scrollView: {
+    flex: 1,
     paddingTop: 14,
     paddingHorizontal: 16,
+    paddingBottom: 20,
   },
 
   back: {
@@ -368,16 +381,23 @@ const styles = StyleSheet.create({
   label: {
     marginTop: 10,
     color: colors.grayscale[200],
-    fontSize: 13,
-    fontFamily: "Pretendard-Regular",
+    fontSize: 14,
+    fontFamily: "Pretendard-SemiBold",
+  },
+
+  bottomSection: {
+    backgroundColor: colors.grayscale[1000],
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 40,
   },
 
   agreeRow: {
     width: "100%",
-    marginTop: 150,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginBottom: 16,
   },
 
   agreeLeft: {
