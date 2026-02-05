@@ -1,6 +1,8 @@
 import { api } from '../../lib/api/client';
 import type { ApiResponse } from '../../lib/api/types';
 import { normalizeApiResponse } from '../../lib/api/response';
+import { storage } from '../../utils/storage';
+import { storageKeys } from '../../constants/storageKeys';
 
 export type MenuTemperature = 'HOT' | 'ICED';
 
@@ -74,14 +76,18 @@ export const fetchMenuDetail = async (menuId: number | string) => {
 };
 
 export const fetchMenuSizes = async (menuId: number | string, temperature: MenuTemperature) => {
+  const loginId = await storage.get(storageKeys.loginId);
   const res = await api.get<ApiResponse<MenuSize[]>>(`/menus/${menuId}/sizes`, {
-    params: { temperature },
+    params: loginId ? { temperature, loginId } : { temperature },
   });
   return normalizeApiResponse(res.data);
 };
 
 export const fetchMenuSizeDetail = async (menuSizeId: number | string) => {
-  const res = await api.get<ApiResponse<MenuSizeDetail>>(`/menus/sizes/${menuSizeId}`);
+  const loginId = await storage.get(storageKeys.loginId);
+  const res = await api.get<ApiResponse<MenuSizeDetail>>(`/menus/sizes/${menuSizeId}`, {
+    params: loginId ? { loginId } : undefined,
+  });
   return normalizeApiResponse(res.data);
 };
 

@@ -39,7 +39,8 @@ const Chart = ({
       </View>
       <View style={styles.chartWrapper}>
         <View style={styles.chartContainer}>
-          <View style={styles.barsContainer}>
+          <View>
+            <View style={styles.barsContainer}>
             <View style={{gap: 3,}}>
               <Text style={styles.barLabel}>{dailyLimit}{displayUnit}</Text>
               <View style={[styles.bar, styles.limitBar, { height: `${limitPercent}%` }]} />
@@ -48,6 +49,7 @@ const Chart = ({
           </View>
            <View style={{flexDirection: 'row'}}>
             <View style={styles.line}/>
+          </View>
           </View>
           <View style={styles.labelsContainer}>
             <Text style={styles.barLabel}>내 기준량</Text>
@@ -86,7 +88,8 @@ const styles = StyleSheet.create({
     height: 220,
     width: '100%',
     justifyContent: 'space-between',
-    position: 'relative'
+    position: 'relative',
+    gap: 4,
   },
   line : {
     flex: 1,

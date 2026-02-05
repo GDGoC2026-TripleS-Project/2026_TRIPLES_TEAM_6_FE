@@ -42,6 +42,7 @@ const RecordDrinkDetail = () => {
     const [optionsLoadError, setOptionsLoadError] = useState<string | null>(null);
 
     const getGroupData = useOptionStore(state => state.getGroupData);
+    const resetGroup = useOptionStore(state => state.resetGroup);
 
     const tempToApi = (t: 'hot' | 'ice'): MenuTemperature => (t === 'hot' ? 'HOT' : 'ICED');
     const apiToTemp = (t: MenuTemperature): 'hot' | 'ice' => (t === 'HOT' ? 'hot' : 'ice');
@@ -132,25 +133,63 @@ const RecordDrinkDetail = () => {
         };
     }, [menuDetail?.brandId]);
 
+    useEffect(() => {
+        resetGroup('extra1-option');
+        resetGroup('extra2-option');
+        resetGroup('extra3-option');
+    }, [drinkId, resetGroup]);
+
     const handleTemperatureChange = (next: 'hot' | 'ice') => {
         if (!allowedTemps.has(next)) return;
         setTemperature(next);
     };
 
+    const optionMaps = useMemo(() => {
+        const optionNames = brandOptions.reduce<Record<string, string>>((acc, option) => {
+            acc[String(option.id)] = option.name;
+            return acc;
+        }, {});
+        const optionNutrition = brandOptions.reduce<
+            Record<string, { caffeineMg?: number; sugarG?: number }>
+        >((acc, option) => {
+            acc[String(option.id)] = {
+                caffeineMg: option.caffeineMg,
+                sugarG: option.sugarG,
+            };
+            return acc;
+        }, {});
+        return { optionNames, optionNutrition };
+    }, [brandOptions]);
+
     const handleNext = () => {
         const coffeeGroup = getGroupData('extra1-option');
         const syrupGroup = getGroupData('extra2-option');
         const milkGroup = getGroupData('extra3-option');
+        const selectedSizeInfo = sizes.find((s) => s.sizeName === selectedSize);
+        const coffeeCounts = { ...(coffeeGroup?.stepperCounts ?? {}) };
+        const syrupCounts = { ...(syrupGroup?.stepperCounts ?? {}) };
+
+        coffeeGroup?.chipSelected?.forEach((id) => {
+            if (!coffeeCounts[id]) coffeeCounts[id] = 1;
+        });
+        syrupGroup?.chipSelected?.forEach((id) => {
+            if (!syrupCounts[id]) syrupCounts[id] = 1;
+        });
 
         navigation.navigate('RecordingDetail', {
             drinkName,
             drinkId,
             brandName: menuDetail?.brandName ?? '',
+            brandId: menuDetail?.brandId,
             temperature,
             size: selectedSize,
+            menuSizeId: selectedSizeInfo?.menuSizeId,
+            baseNutrition: selectedSizeInfo?.nutrition,
+            optionNames: optionMaps.optionNames,
+            optionNutrition: optionMaps.optionNutrition,
             options: {
-                coffee: coffeeGroup?.stepperCounts || {},
-                syrup: syrupGroup?.stepperCounts || {},
+                coffee: coffeeCounts,
+                syrup: syrupCounts,
                 milk: milkGroup ? Array.from(milkGroup.chipSelected) : [],
             },
         });

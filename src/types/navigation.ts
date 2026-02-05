@@ -11,8 +11,13 @@ export type RootStackParamList = {
     drinkName: string;
     drinkId: string;
     brandName: string;
+    brandId?: number;
     temperature: 'hot' | 'ice';
     size: string;
+    menuSizeId?: number;
+    baseNutrition?: { caffeineMg?: number; sugarG?: number };
+    optionNames?: Record<string, string>;
+    optionNutrition?: Record<string, { caffeineMg?: number; sugarG?: number }>;
     options: {
       coffee?: Record<string, number>;
       syrup?: Record<string, number>;

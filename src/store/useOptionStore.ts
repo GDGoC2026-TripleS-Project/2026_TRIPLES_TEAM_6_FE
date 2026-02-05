@@ -3,7 +3,9 @@ import { create } from 'zustand';
 interface OptionGroup {
   chipSelected: Set<string>;
   stepperCounts: Record<string, number>;
+  optionNames?: Record<string, string>;
   brandName: string;
+  brandId?: number;
   menuName: string;
   temperature?: string;
   size?: string;
