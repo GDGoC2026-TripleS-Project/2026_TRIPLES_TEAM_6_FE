@@ -32,10 +32,80 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   errorMessage: undefined,
 
   hydrate: async () => {
-    const [accessToken, refreshToken] = await Promise.all([
+    const [accessToken, refreshToken, autoLogin] = await Promise.all([
       storage.get(storageKeys.accessToken),
       storage.get(storageKeys.refreshToken),
+      storage.get(storageKeys.autoLogin),
     ]);
+
+    if (autoLogin !== 'true') {
+      await storage.multiRemove([
+        storageKeys.accessToken,
+        storageKeys.refreshToken,
+        storageKeys.autoLogin,
+      ]);
+      set({ accessToken: null, refreshToken: null, user: null });
+      return;
+    }
+
+    const decodeJwtPayload = (token: string): { exp?: number } | null => {
+      const parts = token.split('.');
+      if (parts.length < 2) return null;
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+      try {
+        if (typeof globalThis.atob === 'function') {
+          return JSON.parse(globalThis.atob(padded)) as { exp?: number };
+        }
+        if (typeof Buffer !== 'undefined') {
+          return JSON.parse(Buffer.from(padded, 'base64').toString('utf-8')) as { exp?: number };
+        }
+      } catch (e) {
+        if (__DEV__) console.log('[JWT DECODE ERROR]', e);
+      }
+      return null;
+    };
+
+    const isTokenExpired = (token: string, skewSeconds = 30): boolean => {
+      const payload = decodeJwtPayload(token);
+      if (!payload?.exp) return false;
+      const now = Math.floor(Date.now() / 1000);
+      return payload.exp <= now + skewSeconds;
+    };
+
+    const shouldRefresh =
+      Boolean(refreshToken) && (!accessToken || (accessToken && isTokenExpired(accessToken)));
+
+    if (shouldRefresh && refreshToken) {
+      try {
+        const res = await authApiLayer.refresh(refreshToken);
+        const newAccess = res.data?.data?.accessToken;
+        const newRefresh = res.data?.data?.refreshToken ?? refreshToken;
+
+        if (!newAccess) throw new Error('refresh response missing accessToken');
+
+        await Promise.all([
+          storage.set(storageKeys.accessToken, newAccess),
+          storage.set(storageKeys.refreshToken, newRefresh),
+        ]);
+
+        set({
+          accessToken: newAccess,
+          refreshToken: newRefresh,
+        });
+        return;
+      } catch (e) {
+        if (__DEV__) console.log('[HYDRATE REFRESH ERROR]', e);
+        await storage.multiRemove([
+          storageKeys.accessToken,
+          storageKeys.refreshToken,
+          storageKeys.autoLogin,
+        ]);
+        set({ accessToken: null, refreshToken: null, user: null });
+        return;
+      }
+    }
 
     set({
       accessToken: accessToken ?? null,

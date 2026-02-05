@@ -70,10 +70,24 @@ export const fetchBrands = async (): Promise<ApiResponse<Brand[]>> => {
     return res.data;
   } catch (err) {
     const status = (err as AxiosError)?.response?.status;
+    const axiosErr = err as AxiosError;
+    const cfg = axiosErr?.config;
     
     if (__DEV__) {
       console.log('[API ERR] /brands status:', status);
       console.log('[API ERR] /brands data:', (err as AxiosError)?.response?.data);
+      console.log('[API ERR] /brands message:', axiosErr?.message);
+      console.log('[API ERR] /brands code:', axiosErr?.code);
+      console.log('[API ERR] /brands request:', {
+        method: cfg?.method,
+        baseURL: cfg?.baseURL,
+        url: cfg?.url,
+        params: cfg?.params,
+        data: cfg?.data,
+        timeout: cfg?.timeout,
+        hasAuthHeader: Boolean(cfg?.headers && 'Authorization' in cfg.headers),
+      });
+      console.log('[API ERR] /brands response headers:', axiosErr?.response?.headers);
     }
     
     if (status === 401 || status === 403) {

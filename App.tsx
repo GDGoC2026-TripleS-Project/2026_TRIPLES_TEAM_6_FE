@@ -19,7 +19,7 @@ import { storageKeys } from './src/constants/storageKeys';
 import { colors } from './src/constants/colors';
 
 const Stack = createNativeStackNavigator();
-const FORCE_ONBOARDING_PREVIEW = false; // 후에 false로 변경해야됨
+const FORCE_ONBOARDING_PREVIEW = false; 
 
 export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);
