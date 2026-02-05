@@ -77,7 +77,7 @@ export default function CalendarScreen() {
   };
 
   const onAddRecord = () => {
-    console.log('기록 추가');
+    navigation.navigate('Record');
   };
 
   const onGoPeriodSearch = () => {

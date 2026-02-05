@@ -6,9 +6,22 @@ import List from '../../../components/common/List';
 import { RootStackParamList } from '../../../types/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { colors } from '../../../constants/colors';
-import { fetchBrands, type Brand } from '../../../api/record/brand.api';
+import {
+  addBrandFavorite,
+  fetchBrands,
+  removeBrandFavorite,
+  type Brand,
+} from '../../../api/record/brand.api';
 
 type RecordScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Record'>;
+
+const sortBrands = (items: Brand[]) =>
+  [...items].sort((a, b) => {
+    if (a.isFavorite !== b.isFavorite) {
+      return Number(b.isFavorite) - Number(a.isFavorite);
+    }
+    return a.name.localeCompare(b.name);
+  });
 
 const RecordScreen = () => {
   const navigation = useNavigation<RecordScreenNavigationProp>();
@@ -17,6 +30,7 @@ const RecordScreen = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [favoritePendingIds, setFavoritePendingIds] = useState<Record<number, boolean>>({});
   const didFetch = useRef(false);
 
   const handleBrandPress = (brandId: number, brandName: string) => {
@@ -33,7 +47,7 @@ const RecordScreen = () => {
       .then((res) => {
         if (!isMounted) return;
         if (res.success && res.data) {
-          setBrands(res.data);
+          setBrands(sortBrands(res.data));
         } else {
           setLoadError(res.error?.message ?? '브랜드를 불러오지 못했어요.');
         }
@@ -49,6 +63,35 @@ const RecordScreen = () => {
       isMounted = false;
     };
   }, []);
+
+  const handleToggleFavorite = async (brandId: number, nextLiked: boolean) => {
+    if (favoritePendingIds[brandId]) return;
+
+    setFavoritePendingIds((prev) => ({ ...prev, [brandId]: true }));
+    setBrands((prev) =>
+      sortBrands(prev.map((b) => (b.id === brandId ? { ...b, isFavorite: nextLiked } : b)))
+    );
+
+    try {
+      if (nextLiked) {
+        const res = await addBrandFavorite(brandId);
+        if (!res.success) throw new Error(res.error?.message);
+      } else {
+        const res = await removeBrandFavorite(brandId);
+        if (!res.success) throw new Error(res.error?.message);
+      }
+    } catch {
+      setBrands((prev) =>
+        sortBrands(prev.map((b) => (b.id === brandId ? { ...b, isFavorite: !nextLiked } : b)))
+      );
+    } finally {
+      setFavoritePendingIds((prev) => {
+        const next = { ...prev };
+        delete next[brandId];
+        return next;
+      });
+    }
+  };
 
   const filteredCafeList = brands.filter((cafe) =>
     cafe.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -69,6 +112,9 @@ const RecordScreen = () => {
           renderItem={({ item }) => (
             <List
               title={item.name}
+              liked={item.isFavorite}
+              onToggleLike={(next) => handleToggleFavorite(item.id, next)}
+              toggleDisabled={Boolean(favoritePendingIds[item.id])}
               onPress={() => handleBrandPress(item.id, item.name)}
             />
           )}

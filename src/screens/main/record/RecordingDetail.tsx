@@ -26,10 +26,11 @@ const OPTION_NAMES: Record<string, string> = {
 const RecordingDetail = () => {
     const route = useRoute<RecordingDetailRouteProp>();
     const navigation = useNavigation<RecordingDetailNavigationProp>();
-    const { drinkName, brandName, temperature, size, options } = route.params;
+    const { drinkName, brandName, temperature, size, options, optionLabelMap } = route.params;
     const [selectedDate, setSelectedDate] = useState(new Date());
     
     const setGroupInfo = useOptionStore(state => state.setGroupInfo);
+    const optionNames = { ...OPTION_NAMES, ...(optionLabelMap ?? {}) };
 
     const optionText = `${temperature === 'hot' ? 'Hot' : 'Ice'} | ${size}`;
 
@@ -106,7 +107,7 @@ const RecordingDetail = () => {
         if (options.coffee && Object.keys(options.coffee).length > 0) {
             Object.entries(options.coffee).forEach(([key, count]) => {
                 if (count > 0) {
-                    const optionName = OPTION_NAMES[key] || key;
+                    const optionName = optionNames[key] || key;
                     parts.push(`${optionName} ${count}`);
                 }
             });
@@ -115,14 +116,14 @@ const RecordingDetail = () => {
         if (options.syrup && Object.keys(options.syrup).length > 0) {
             Object.entries(options.syrup).forEach(([key, count]) => {
                 if (count > 0) {
-                    const optionName = OPTION_NAMES[key] || key;
+                    const optionName = optionNames[key] || key;
                     parts.push(`${optionName} ${count}`);
                 }
             });
         }
 
         if (options.milk && options.milk.length > 0) {
-            const milkNames = options.milk.map(id => OPTION_NAMES[id] || id);
+            const milkNames = options.milk.map(id => optionNames[id] || id);
             parts.push(...milkNames);
         }
 

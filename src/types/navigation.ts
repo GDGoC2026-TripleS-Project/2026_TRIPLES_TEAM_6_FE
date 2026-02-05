@@ -18,6 +18,7 @@ export type RootStackParamList = {
       syrup?: Record<string, number>;
       milk?: string[];
     };
+    optionLabelMap?: Record<string, string>;
   };
   Send: undefined;
   MyPage: undefined;

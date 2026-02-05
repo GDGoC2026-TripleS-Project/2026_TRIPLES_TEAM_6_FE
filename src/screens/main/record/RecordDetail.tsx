@@ -113,6 +113,7 @@ const RecordDetailScreen = () => {
           renderItem={({ item }) => (
             <List 
               title={item.name}
+              showToggle={false}
               onPress={() => handleDrinkPress(item.id, item.name)}
             />
           )}

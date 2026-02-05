@@ -1,28 +1,65 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import React, { useState } from "react";
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState } from "react";
 import { colors } from "../../constants/colors";
 import ToggleButton from "./ToggleButton";
 import HeartOff from '../../../assets/Property 1=false.svg'
 import HeartOn from '../../../assets/Property 1=true.svg'
+
 type ListProps = {
     title: string;
     defaultLiked?: boolean;
+    liked?: boolean;
+    showToggle?: boolean;
+    onToggleLike?: (next: boolean) => void;
+    toggleDisabled?: boolean;
     onPress?: () => void;
 };
 
-function List({ title, defaultLiked = false, onPress }: ListProps) {
-    const [liked, setLiked] = useState(defaultLiked);
+function List({
+    title,
+    defaultLiked = false,
+    liked: likedProp,
+    showToggle = true,
+    onToggleLike,
+    toggleDisabled = false,
+    onPress,
+}: ListProps) {
+    const [likedState, setLikedState] = useState(defaultLiked);
+    const isControlled = typeof likedProp !== 'undefined';
+    const isLiked = isControlled ? likedProp : likedState;
+
+    useEffect(() => {
+        if (typeof likedProp === 'undefined') return;
+        setLikedState(likedProp);
+    }, [likedProp]);
+
+    const handleToggleLike = (next: boolean) => {
+        if (toggleDisabled) return;
+        if (!isControlled) {
+            setLikedState(next);
+        }
+        onToggleLike?.(next);
+    };
 
     return (
-        <Pressable onPress={onPress} style={styles.container}>
+        <View style={styles.container}>
             <View style={styles.row}>
-                <Text style={styles.title}>{title}</Text>
-                <ToggleButton image1={HeartOff} image2={HeartOn}/>
+                <Pressable onPress={onPress} style={styles.titlePressArea}>
+                    <Text style={styles.title}>{title}</Text>
+                </Pressable>
+                {showToggle ? (
+                    <ToggleButton
+                        key={`like_${isLiked ? 'on' : 'off'}`}
+                        image1={HeartOff}
+                        image2={HeartOn}
+                        initialImage={isLiked ? 2 : 1}
+                        onToggle={handleToggleLike}
+                    />
+                ) : null}
             </View>
 
             <View style={styles.divider} />
-        </Pressable>
+        </View>
     );
 }
 
@@ -39,6 +76,9 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         width: '100%',
         paddingHorizontal: 16,
+    },
+    titlePressArea: {
+        flex: 1,
     },
 
     title: {

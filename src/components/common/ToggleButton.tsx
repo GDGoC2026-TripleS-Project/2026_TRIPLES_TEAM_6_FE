@@ -7,7 +7,6 @@ interface ToggleButtonProps {
   image2: React.FC<SvgProps>;
   initialImage?: 1 | 2;
   onToggle?: (isImage2: boolean) => void;
-  onPress?: () => void;
 }
 
 const ToggleButton = ({
@@ -15,7 +14,6 @@ const ToggleButton = ({
   image2: Image2,
   initialImage = 1,
   onToggle,
-  onPress,
 }: ToggleButtonProps) => {
   const [isImage2, setIsImage2] = useState(initialImage === 2);
 
@@ -31,7 +29,7 @@ const ToggleButton = ({
 
   return (
     <View style={styles.container}>
-      <Pressable onPress={toggleImage} onPressIn={onPress}>
+      <Pressable onPress={toggleImage}>
         <CurrentImage width={24} height={24} />
       </Pressable>
     </View>

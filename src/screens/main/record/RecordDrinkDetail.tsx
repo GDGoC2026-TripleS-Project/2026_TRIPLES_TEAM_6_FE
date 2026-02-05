@@ -20,6 +20,7 @@ import {
     type MenuSize,
     type MenuTemperature,
 } from '../../../api/record/menu.api';
+import { fetchBrandOptions, type BrandOption } from '../../../api/record/brand.api';
 
 type RecordDrinkDetailRouteProp = RouteProp<RootStackParamList, 'RecordDrinkDetail'>;
 type RecordDrinkDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecordDrinkDetail'>;
@@ -42,6 +43,19 @@ const MILK_OPTIONS = [
 
 const INFO_MESSAGE = '커피를 제외한 옵션은 기록용 메모이며, 영양정보 계산에는 포함되지 않아요.';
 
+type StepperOption = { id: string; title: string };
+type ChipOption = { id: string; label: string };
+
+const normalizeOptionType = (value: string) => {
+    const normalized = value.trim().toUpperCase();
+
+    if (normalized.includes('MILK')) return 'milk';
+    if (normalized.includes('SYRUP')) return 'syrup';
+    if (normalized.includes('COFFEE') || normalized.includes('SHOT')) return 'coffee';
+
+    return 'coffee';
+};
+
 const RecordDrinkDetail = () => {
     const route = useRoute<RecordDrinkDetailRouteProp>();
     const navigation = useNavigation<RecordDrinkDetailNavigationProp>();
@@ -51,8 +65,10 @@ const RecordDrinkDetail = () => {
     const [selectedSize, setSelectedSize] = useState<string>('Tall');
     const [menuDetail, setMenuDetail] = useState<MenuDetail | null>(null);
     const [sizes, setSizes] = useState<MenuSize[]>([]);
+    const [brandOptions, setBrandOptions] = useState<BrandOption[]>([]);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [sizeLoadError, setSizeLoadError] = useState<string | null>(null);
+    const [optionLoadError, setOptionLoadError] = useState<string | null>(null);
 
     const getGroupData = useOptionStore(state => state.getGroupData);
 
@@ -121,6 +137,60 @@ const RecordDrinkDetail = () => {
         };
     }, [menuDetail, temperature]);
 
+    useEffect(() => {
+        if (!menuDetail?.brandId) return;
+        let isMounted = true;
+        setOptionLoadError(null);
+        fetchBrandOptions(menuDetail.brandId)
+            .then((res) => {
+                if (!isMounted) return;
+                if (res.success && res.data) {
+                    setBrandOptions(res.data);
+                } else {
+                    setBrandOptions([]);
+                    setOptionLoadError(res.error?.message ?? '옵션 정보를 불러오지 못했어요.');
+                }
+            })
+            .catch(() => {
+                if (!isMounted) return;
+                setBrandOptions([]);
+                setOptionLoadError('옵션 정보를 불러오지 못했어요.');
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [menuDetail?.brandId]);
+
+    const groupedOptions = useMemo(() => {
+        const grouped = {
+            coffee: [] as StepperOption[],
+            syrup: [] as StepperOption[],
+            milk: [] as ChipOption[],
+        };
+
+        for (const option of brandOptions) {
+            const id = String(option.id);
+            const name = option.name?.trim();
+            if (!name) continue;
+
+            const optionType = normalizeOptionType(option.type ?? '');
+            if (optionType === 'milk') {
+                grouped.milk.push({ id, label: name });
+            } else if (optionType === 'syrup') {
+                grouped.syrup.push({ id, title: name });
+            } else {
+                grouped.coffee.push({ id, title: name });
+            }
+        }
+
+        return grouped;
+    }, [brandOptions]);
+
+    const coffeeOptions = groupedOptions.coffee.length > 0 ? groupedOptions.coffee : COFFEE_OPTIONS;
+    const syrupOptions = groupedOptions.syrup.length > 0 ? groupedOptions.syrup : SYRUP_OPTIONS;
+    const milkOptions = groupedOptions.milk.length > 0 ? groupedOptions.milk : MILK_OPTIONS;
+
     const handleTemperatureChange = (next: 'hot' | 'ice') => {
         if (!allowedTemps.has(next)) return;
         setTemperature(next);
@@ -130,6 +200,17 @@ const RecordDrinkDetail = () => {
         const coffeeGroup = getGroupData('extra1-option');
         const syrupGroup = getGroupData('extra2-option');
         const milkGroup = getGroupData('extra3-option');
+        const optionLabelMap: Record<string, string> = {};
+
+        coffeeOptions.forEach((option) => {
+            optionLabelMap[option.id] = option.title;
+        });
+        syrupOptions.forEach((option) => {
+            optionLabelMap[option.id] = option.title;
+        });
+        milkOptions.forEach((option) => {
+            optionLabelMap[option.id] = option.label;
+        });
 
         navigation.navigate('RecordingDetail', {
             drinkName,
@@ -142,6 +223,7 @@ const RecordDrinkDetail = () => {
                 syrup: syrupGroup?.stepperCounts || {},
                 milk: milkGroup ? Array.from(milkGroup.chipSelected) : [],
             },
+            optionLabelMap,
         });
     };
 
@@ -152,7 +234,7 @@ const RecordDrinkDetail = () => {
                 contentContainerStyle={styles.scrollContent}
             >
                     <View style={styles.container}>
-                    <List title={drinkName} />
+                    <List title={drinkName} showToggle={false} />
                     <View style={styles.requiredOptionsSection}>
                         <TemperatureSection 
                             temperature={temperature}
@@ -170,9 +252,16 @@ const RecordDrinkDetail = () => {
                         {!!loadError && (
                             <Text style={styles.errorText}>{loadError}</Text>
                         )}
+                        {!!optionLoadError && (
+                            <Text style={styles.errorText}>{optionLoadError}</Text>
+                        )}
                     </View>
                     
-                    <AdditionalOptionsSection />
+                    <AdditionalOptionsSection
+                        coffeeOptions={coffeeOptions}
+                        syrupOptions={syrupOptions}
+                        milkOptions={milkOptions}
+                    />
                     
                     <InfoMessage />
                 </View>
@@ -232,26 +321,34 @@ const SectionTitle = ({ title, required = false }: { title: string; required?: b
     </View>
 );
 
-const AdditionalOptionsSection = () => (
+const AdditionalOptionsSection = ({
+    coffeeOptions,
+    syrupOptions,
+    milkOptions,
+}: {
+    coffeeOptions: StepperOption[];
+    syrupOptions: StepperOption[];
+    milkOptions: ChipOption[];
+}) => (
     <View>
         <AccordionItem id="extra1-option" title="커피">
             <StepperOptions
                 groupId="extra1-option"
-                options={COFFEE_OPTIONS}
+                options={coffeeOptions}
             />
         </AccordionItem>
         
         <AccordionItem id="extra2-option" title="시럽">
             <StepperOptions
                 groupId="extra2-option"
-                options={SYRUP_OPTIONS}
+                options={syrupOptions}
             />
         </AccordionItem>
         
         <AccordionItem id="extra3-option" title="우유">
             <ChipOptions 
                 groupId="extra3-option"
-                options={MILK_OPTIONS}
+                options={milkOptions}
             />
         </AccordionItem>
     </View>

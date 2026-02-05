@@ -112,3 +112,38 @@ export const fetchBrands = async (): Promise<ApiResponse<Brand[]>> => {
     throw err;
   }
 };
+
+const normalizeApiResponse = <T>(res: ApiResponse<T>): ApiResponse<T> => {
+  const data = (res as unknown as { data?: T }).data;
+
+  if (!res.success && data !== undefined) {
+    return {
+      success: true,
+      data,
+      timestamp: res.timestamp ?? new Date().toISOString(),
+    };
+  }
+
+  return res;
+};
+
+export const addBrandFavorite = async (brandId: number | string) => {
+  const res = await api.post<ApiResponse<null>>(`/brands/${brandId}/favorites`);
+  return normalizeApiResponse(res.data);
+};
+
+export const removeBrandFavorite = async (brandId: number | string) => {
+  const res = await api.delete<ApiResponse<null>>(`/brands/${brandId}/favorites`);
+  return normalizeApiResponse(res.data);
+};
+
+export type BrandOption = {
+  id: number;
+  type: string;
+  name: string;
+};
+
+export const fetchBrandOptions = async (brandId: number | string) => {
+  const res = await api.get<ApiResponse<BrandOption[]>>(`/brands/${brandId}/options`);
+  return normalizeApiResponse(res.data);
+};
