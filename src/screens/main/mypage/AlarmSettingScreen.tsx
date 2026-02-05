@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,13 @@ import {
   Pressable,
   Modal,
   Platform,
+  Alert,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { colors } from '../../../constants/colors';
 import ToggleSwitch from '../../../components/common/ToggleSwitch';
 import Button from '../../../components/common/Button';
+import { useUserStore } from '../../../app/features/user/user.store';
 
 type AlarmKey = 'record' | 'daily';
 
@@ -39,7 +41,27 @@ const formatKoreanTime = (date: Date) => {
 const sameTime = (a: Date, b: Date) =>
   a.getHours() === b.getHours() && a.getMinutes() === b.getMinutes();
 
+const toDateFromHHmm = (time: string, fallbackHour: number, fallbackMinute: number) => {
+  const d = createTime(fallbackHour, fallbackMinute);
+  const match = time.match(/(\d{1,2}):(\d{2})/);
+  if (!match) return d;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (Number.isNaN(hour) || Number.isNaN(minute)) return d;
+  d.setHours(hour, minute, 0, 0);
+  return d;
+};
+
+const toHHmm = (date: Date) =>
+  `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+
 export default function AlarmSettingScreen() {
+  const fetchNotificationSettings = useUserStore((s) => s.fetchNotificationSettings);
+  const updateNotificationSettings = useUserStore((s) => s.updateNotificationSettings);
+  const notificationSettings = useUserStore((s) => s.notificationSettings);
+  const isLoading = useUserStore((s) => s.isLoading);
+  const errorMessage = useUserStore((s) => s.errorMessage);
+
   const initial: AlarmState = useMemo(
     () => ({
       recordEnabled: false,
@@ -51,6 +73,7 @@ export default function AlarmSettingScreen() {
   );
 
   const [state, setState] = useState<AlarmState>(initial);
+  const [initialState, setInitialState] = useState<AlarmState>(initial);
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [activeKey, setActiveKey] = useState<AlarmKey>('record');
@@ -58,14 +81,30 @@ export default function AlarmSettingScreen() {
   const activeDate =
     activeKey === 'record' ? state.recordTime : state.dailyTime;
 
+  useEffect(() => {
+    fetchNotificationSettings();
+  }, [fetchNotificationSettings]);
+
+  useEffect(() => {
+    if (!notificationSettings) return;
+    const next: AlarmState = {
+      recordEnabled: notificationSettings.recordEnabled,
+      recordTime: toDateFromHHmm(notificationSettings.recordTime, 14, 0),
+      dailyEnabled: notificationSettings.dailyEnabled,
+      dailyTime: toDateFromHHmm(notificationSettings.dailyTime, 21, 0),
+    };
+    setState(next);
+    setInitialState(next);
+  }, [notificationSettings]);
+
   const hasChanges = useMemo(() => {
     return (
-      state.recordEnabled !== initial.recordEnabled ||
-      state.dailyEnabled !== initial.dailyEnabled ||
-      !sameTime(state.recordTime, initial.recordTime) ||
-      !sameTime(state.dailyTime, initial.dailyTime)
+      state.recordEnabled !== initialState.recordEnabled ||
+      state.dailyEnabled !== initialState.dailyEnabled ||
+      !sameTime(state.recordTime, initialState.recordTime) ||
+      !sameTime(state.dailyTime, initialState.dailyTime)
     );
-  }, [state, initial]);
+  }, [state, initialState]);
 
   const openPicker = (key: AlarmKey) => {
     setActiveKey(key);
@@ -99,13 +138,21 @@ export default function AlarmSettingScreen() {
     });
   };
 
-  const onSave = () => {
-    console.log('SAVE', {
+  const onSave = async () => {
+    const ok = await updateNotificationSettings({
       recordEnabled: state.recordEnabled,
-      recordTime: formatKoreanTime(state.recordTime),
+      recordTime: toHHmm(state.recordTime),
       dailyEnabled: state.dailyEnabled,
-      dailyTime: formatKoreanTime(state.dailyTime),
+      dailyTime: toHHmm(state.dailyTime),
     });
+
+    if (!ok) {
+      Alert.alert('저장 실패', errorMessage ?? '다시 시도해 주세요.');
+      return;
+    }
+
+    setInitialState(state);
+    Alert.alert('저장 완료', '알림 설정이 업데이트됐어요.');
   };
 
   return (
@@ -138,7 +185,7 @@ export default function AlarmSettingScreen() {
       <View style={styles.bottom}>
         <Button
           title="저장하기"
-          disabled={!hasChanges}
+          disabled={!hasChanges || isLoading}
           onPress={onSave}
           backgroundColor={colors.primary[500]}
           disabledBackgroundColor={colors.grayscale[700]}

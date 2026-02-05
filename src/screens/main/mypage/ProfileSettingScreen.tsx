@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native'; 
+import React, { useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Image, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker'; 
 import { colors } from '../../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,15 +7,37 @@ import { Ionicons } from '@expo/vector-icons';
 import TextField from '../../../components/common/TextField';
 import Button from '../../../components/common/Button';
 import PreProfileImg from '../../../../assets/ComponentsImage/preProfile.svg';
+import { useUserStore } from '../../../app/features/user/user.store';
 
 export default function ProfileSettingScreen() {
-  const initialNickname = '라스트컵';
+  const me = useUserStore((s) => s.me);
+  const fetchMe = useUserStore((s) => s.fetchMe);
+  const updateNickname = useUserStore((s) => s.updateNickname);
+  const uploadProfileImage = useUserStore((s) => s.uploadProfileImage);
+  const isLoading = useUserStore((s) => s.isLoading);
+  const errorMessage = useUserStore((s) => s.errorMessage);
+
+  const initialNickname = useMemo(() => me?.nickname ?? '라스트컵', [me?.nickname]);
+  const initialProfileImage = useMemo(() => me?.profileImageUrl ?? null, [me?.profileImageUrl]);
   const [nickname, setNickname] = useState(initialNickname);
-  const [profileImage, setProfileImage] = useState<string | null>(null); 
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    fetchMe();
+  }, [fetchMe]);
+
+  useEffect(() => {
+    setNickname(initialNickname);
+    setProfileImage(initialProfileImage);
+  }, [initialNickname, initialProfileImage]);
 
   const hasNicknameChanged = nickname.trim() !== initialNickname.trim();
+  const hasProfileImageChanged = profileImage !== initialProfileImage;
+  const hasChanges = hasNicknameChanged || hasProfileImageChanged;
   const isNicknameValid = nickname.length >= 2 && nickname.length <= 10;
+  const canSaveNickname = !hasNicknameChanged || isNicknameValid;
   const nicknameError =
     touched && hasNicknameChanged && !isNicknameValid
       ? '2~10자 이내로 입력해 주세요.'
@@ -41,8 +63,29 @@ export default function ProfileSettingScreen() {
     }
   };
 
-  const onSave = () => {
-    console.log('저장하기', { nickname, profileImage });
+  const onSave = async () => {
+    if (isSaving || !hasChanges || !canSaveNickname) return;
+    setIsSaving(true);
+    try {
+      let ok = true;
+      if (hasNicknameChanged) {
+        ok = await updateNickname(nickname.trim());
+      }
+
+      const hasLocalImage = Boolean(profileImage && !profileImage.startsWith('http'));
+      if (ok && hasLocalImage && profileImage) {
+        ok = await uploadProfileImage(profileImage);
+      }
+
+      if (!ok) {
+        Alert.alert('저장 실패', errorMessage ?? '다시 시도해 주세요.');
+        return;
+      }
+
+      Alert.alert('저장 완료', '프로필이 업데이트됐어요.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -80,7 +123,11 @@ export default function ProfileSettingScreen() {
       </View>
 
       <View style={styles.bottom}>
-        <Button title="저장하기" onPress={onSave} disabled={!isNicknameValid} />
+        <Button
+          title={isSaving || isLoading ? '저장 중...' : '저장하기'}
+          onPress={onSave}
+          disabled={!hasChanges || !canSaveNickname || isSaving || isLoading}
+        />
       </View>
     </View>
   );

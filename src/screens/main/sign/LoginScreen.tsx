@@ -8,9 +8,14 @@ import GoogleLogin from "../../../../assets/ComponentsImage/GoogleLogin.svg";
 import KakaoLogin from "../../../../assets/ComponentsImage/KakaoLogin.svg";
 import AppleLogin from "../../../../assets/ComponentsImage/AppleLogin.svg";
 
+import CheckboxOut from '../../../../assets/ComponentsImage/checkboxOut.svg';
+import CheckboxIn from '../../../../assets/ComponentsImage/checkboxIn.svg';
+
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
-
+import * as AppleAuthentication from "expo-apple-authentication";
+import { login as kakaoSdkLogin } from "@react-native-seoul/kakao-login";
+     
 import { useAuthStore } from "../../../app/features/auth/auth.store";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -30,9 +35,13 @@ const LoginScreen: React.FC = () => {
   const isLoading = useAuthStore((s) => s.isLoading);
   const errorMessage = useAuthStore((s) => s.errorMessage);
 
+  const googleClientId =
+    process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ??
+    "1073477248905-t75dpkijvnlgdu7p3pgr81k7vtplii2u.apps.googleusercontent.com";
+
   // Google AuthSession (Expo)
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: "1073477248905-t75dpkijvnlgdu7p3pgr81k7vtplii2u.apps.googleusercontent.com",
+  const [, response, promptAsync] = Google.useAuthRequest({
+    clientId: googleClientId,
   });
 
   // Google 로그인 완료 후 서버로 토큰 전달
@@ -41,20 +50,22 @@ const LoginScreen: React.FC = () => {
       if (response?.type !== "success") return;
 
       const providerAccessToken = response.authentication?.accessToken;
+      const identityToken = response.authentication?.idToken;
 
-      if (!providerAccessToken) {
-        Alert.alert("구글 로그인 실패", "accessToken을 가져오지 못했어요.");
+      if (!providerAccessToken && !identityToken) {
+        Alert.alert("구글 로그인 실패", "토큰을 가져오지 못했어요.");
         return;
       }
 
       const ok = await socialLogin({
         provider: "GOOGLE",
         providerAccessToken,
+        identityToken: identityToken ?? undefined,
         autoLogin: true,
       });
 
       if (!ok) {
-        Alert.alert("로그인 실패", errorMessage ?? "다시 시도해 주세요.");
+        Alert.alert("로그인 실패", useAuthStore.getState().errorMessage ?? "다시 시도해 주세요.");
       }
     };
 
@@ -67,6 +78,73 @@ const LoginScreen: React.FC = () => {
       await promptAsync();
     } catch (e) {
       Alert.alert("구글 로그인 실패", "다시 시도해 주세요.");
+    }
+  };
+
+  const onKakaoPress = async () => {
+    try {
+      const token = await kakaoSdkLogin();
+      const providerAccessToken = token?.accessToken;
+
+      if (!providerAccessToken) {
+        Alert.alert("카카오 로그인 실패", "accessToken을 가져오지 못했어요.");
+        return;
+      }
+
+      const ok = await socialLogin({
+        provider: "KAKAO",
+        providerAccessToken,
+        autoLogin: true,
+      });
+
+      if (!ok) {
+        Alert.alert("로그인 실패", useAuthStore.getState().errorMessage ?? "다시 시도해 주세요.");
+      }
+    } catch (e: any) {
+      if (e?.code === "E_CANCELLED_OPERATION" || e?.message?.includes("cancel")) return;
+      Alert.alert("카카오 로그인 실패", "다시 시도해 주세요.");
+    }
+  };
+
+  const onApplePress = async () => {
+    try {
+      const available = await AppleAuthentication.isAvailableAsync();
+      if (!available) {
+        Alert.alert("Apple 로그인 불가", "이 기기에서는 Apple 로그인을 사용할 수 없어요.");
+        return;
+      }
+
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      const identityToken = credential.identityToken ?? undefined;
+      const authorizationCode = credential.authorizationCode ?? undefined;
+      const nickname = credential.fullName?.givenName ?? undefined;
+
+      if (!identityToken && !authorizationCode) {
+        Alert.alert("Apple 로그인 실패", "인증 정보를 가져오지 못했어요.");
+        return;
+      }
+
+      const ok = await socialLogin({
+        provider: "APPLE",
+        identityToken,
+        authorizationCode,
+        email: credential.email ?? undefined,
+        nickname,
+        autoLogin: true,
+      });
+
+      if (!ok) {
+        Alert.alert("로그인 실패", useAuthStore.getState().errorMessage ?? "다시 시도해 주세요.");
+      }
+    } catch (e: any) {
+      if (e?.code === "ERR_REQUEST_CANCELED") return;
+      Alert.alert("Apple 로그인 실패", "다시 시도해 주세요.");
     }
   };
 
@@ -135,15 +213,13 @@ const LoginScreen: React.FC = () => {
 
       <View style={styles.rowBetween}>
         <Pressable
-          style={styles.autoRow}
-          onPress={() => setAutoLogin((prev) => !prev)}
-          hitSlop={8}
-        >
-          <View style={[styles.checkbox, autoLogin && styles.checkboxChecked]}>
-            {autoLogin && <View style={styles.checkboxDot} />}
-          </View>
-          <Text style={styles.autoText}>자동 로그인</Text>
-        </Pressable>
+  onPress={() => setAutoLogin((prev) => !prev)}
+  hitSlop={8}
+  style={styles.autoRow}
+>
+  {autoLogin ? <CheckboxIn width={20} height={20} /> : <CheckboxOut width={20} height={20} />}
+  <Text style={styles.autoText}>자동 로그인</Text>
+</Pressable>
 
         <View style={styles.linkRow}>
           <Pressable hitSlop={8} onPress={() => navigation.navigate("SignUpScreen")}>
@@ -161,7 +237,7 @@ const LoginScreen: React.FC = () => {
 
       <View style={styles.loginBtnWrap}>
         <Button 
-        title={isLoading ? '로그인 중...' : '로그인'} 
+        title={isLoading ? '로그인' : '로그인'} 
         onPress={handleLogin}
         disabled={isLoading} 
         />
@@ -176,7 +252,7 @@ const LoginScreen: React.FC = () => {
       <View style={styles.socialRow}>
         <Pressable
           style={styles.socialBtn}
-          onPress={() => Alert.alert('안내', '카카오 로그인은 SDK 토큰 연동 후 활성화됩니다.')}
+          onPress={onKakaoPress}
           hitSlop={10}
         >
           <KakaoLogin width={44} height={44} />
@@ -192,7 +268,7 @@ const LoginScreen: React.FC = () => {
 
         <Pressable
           style={styles.socialBtn}
-          onPress={() => Alert.alert('안내', 'Apple 로그인은 SDK 토큰 연동 후 활성화됩니다.')}
+          onPress={onApplePress}
           hitSlop={10}
         >
           <AppleLogin width={44} height={44} />
@@ -246,33 +322,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: colors.grayscale[600],
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-    backgroundColor: "transparent",
-  },
-
-  checkboxChecked: {
-    borderColor: colors.primary[500],
-  },
-
-  checkboxDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 3,
-    backgroundColor: colors.primary[500],
-  },
-
   autoText: {
     color: colors.grayscale[300],
     fontSize: 14,
     fontFamily: "Pretendard-Regular",
+    paddingLeft: 7,
   },
 
   linkRow: {

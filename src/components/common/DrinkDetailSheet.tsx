@@ -137,7 +137,7 @@ export default function DrinkDetailSheet({
               title="수정"
               onPress={() => onEdit?.(drink)}
               backgroundColor={colors.primary[500]}
-              pressedBackgroundColor={colors.primary[600]}
+              pressedBackgroundColor={colors.primary[500]}
             />
           </View>
           <View style={{ width: 12 }} />

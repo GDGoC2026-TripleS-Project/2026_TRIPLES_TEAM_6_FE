@@ -43,6 +43,13 @@ export default function CalendarScreen() {
   const [periodSheetOpen, setPeriodSheetOpen] = useState(false);
 
   const events = useMemo(() => getEventDates(), []);
+  const calendarEvents = useMemo(() => {
+    const skippedDates = Object.entries(skippedByDate)
+      .filter(([, skipped]) => skipped)
+      .map(([date]) => date);
+
+    return Array.from(new Set([...events, ...skippedDates]));
+  }, [events, skippedByDate]);
   const baseDrinks = useMemo(() => findDrinksByDate(selectedDate), [selectedDate]);
 
   const isSkipped = !!skippedByDate[selectedDate];
@@ -107,7 +114,7 @@ export default function CalendarScreen() {
   return (
     <ScrollView style={styles.container}>
       <Calendar
-        events={events}
+        events={calendarEvents}
         startDate={selectedDate}
         endDate={selectedDate}
         onDayPress={setSelectedDate}
@@ -173,12 +180,7 @@ export default function CalendarScreen() {
                   onPress={() => openDetail(d)}
                 />
               ))}
-
-            {!hasRecord && isSkipped && (
-              <View style={styles.centerBox}>
-                <Text style={styles.subText}>오늘은 음료를 마시지 않았어요.</Text>
-              </View>
-            )}
+              
           </View>
         </>
       )}

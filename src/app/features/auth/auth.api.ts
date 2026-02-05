@@ -10,6 +10,15 @@ type SignupRes = ApiResponse<{ user: UserSummary; tokens: AuthTokens }>;
 type RefreshRes = ApiResponse<{ accessToken: string; refreshToken: string }>;
 type LogoutRes = ApiResponse<{ loggedOut: boolean }>;
 type AvailabilityRes = ApiResponse<{ isAvailable?: boolean; available?: boolean }>;
+export type SocialProvider = 'KAKAO' | 'GOOGLE' | 'APPLE';
+export type SocialLoginPayload = {
+  provider: SocialProvider;
+  providerAccessToken?: string;
+  authorizationCode?: string;
+  identityToken?: string;
+  email?: string;
+  nickname?: string;
+};
 
 export const authApiLayer = {
   login: (payload: { loginId: string; password: string }) =>
@@ -38,10 +47,8 @@ export const authApiLayer = {
       headers: { Authorization: `Bearer ${refreshToken}` },
     }),
 
-  socialLogin: (args: { provider: 'KAKAO' | 'GOOGLE' | 'APPLE'; providerAccessToken: string }) =>
-    authApi.post(`/auth/social/${args.provider}/login`, {
-      providerAccessToken: args.providerAccessToken,
-    }),
+  socialLogin: ({ provider, ...body }: SocialLoginPayload) =>
+    authApi.post(`/auth/social/${provider}/login`, body),
 
   // 보호 API 예시는 api 사용
   // getMe: () => api.get<UserMeRes>('/users/me'),

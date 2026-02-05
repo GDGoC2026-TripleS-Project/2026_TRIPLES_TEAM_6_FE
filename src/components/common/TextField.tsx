@@ -7,10 +7,11 @@ interface TextFieldProps extends Omit<TextInputProps, "value" | "onChangeText"> 
   onChangeText: (text: string) => void;
   error?: string;
   isValid?: boolean;
+  hideBorder?: boolean;
   style?: object;
 }
 
-const TextField = ({ value, onChangeText, error, isValid, style, onFocus, onBlur, ...props }: TextFieldProps) => {
+const TextField = ({ value, onChangeText, error, isValid, hideBorder, style, onFocus, onBlur, ...props }: TextFieldProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
   const getBorderColor = () => {
@@ -33,7 +34,7 @@ const TextField = ({ value, onChangeText, error, isValid, style, onFocus, onBlur
             styles.textInput,
             style,
             {
-              borderWidth: 1,
+              borderWidth: error ? 1 : hideBorder === false ? 1 : 0,
               borderColor: getBorderColor(),
               color: getTextColor(),
             },

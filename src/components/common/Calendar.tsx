@@ -151,17 +151,18 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                         week: {
                             marginTop: 7,
                             flexDirection: 'row',
-                            justifyContent: 'space-between',
+                            justifyContent: 'space-around',
                             borderBottomWidth: 1,
                             borderBottomColor: colors.grayscale[800],
                             paddingBottom: 7,
+                            paddingHorizontal: 2,
                             ...(style ?? {}),
                         },
                     },
                     'stylesheet.calendar.main': {
                         week: {
                             flexDirection: 'row',
-                            justifyContent: 'space-between',
+                            justifyContent: 'space-around',
                             borderBottomWidth: 1,
                             borderBottomColor: colors.grayscale[800],
                             paddingTop: 5,
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
         color: colors.grayscale[100],
     },
     dayCell: {
-        width: 44,
+        width: '100%',
         height: 44,
         alignItems: 'center',
         justifyContent: 'center',
@@ -201,17 +202,17 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 0,
         right: 0,
-        height: 36,
+        height: 30,
         borderRadius: 0,
         backgroundColor: 'rgba(64, 224, 208, 0.22)',
     },
     rangeBarStart: {
-        left: '50%',
+        left: '20%',
         borderTopLeftRadius: 18,
         borderBottomLeftRadius: 18,
     },
     rangeBarEnd: {
-        right: '50%',
+        right: '20%',
         borderTopRightRadius: 18,
         borderBottomRightRadius: 18,
     },
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
     dayText: {
         color: colors.grayscale[200],
         fontFamily: 'Pretendard-Medium',
-        fontSize: 13,
+        fontSize: 14,
     },
     dayTextActive: {
         color: colors.grayscale[1000],
