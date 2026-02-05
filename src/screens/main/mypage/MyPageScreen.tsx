@@ -11,6 +11,7 @@ import { useUserStore } from '../../../app/features/user/user.store';
 import GoogleLogin from '../../../../assets/ComponentsImage/GoogleLogin.svg';
 import KakaoLogin from '../../../../assets/ComponentsImage/KakaoLogin.svg';
 import AppleLogin from '../../../../assets/ComponentsImage/AppleLogin.svg';
+import MyPageProflie from '../../../../assets/ComponentsImage/MyPageProfile.svg';
 
 type LoginProvider = 'google' | 'kakao' | 'apple';
 
@@ -145,7 +146,7 @@ export default function MyPageScreen() {
         {user.profileImageUrl ? (
           <Image source={{ uri: user.profileImageUrl }} style={styles.avatar} />
         ) : (
-          <View style={styles.avatar} />
+          <MyPageProflie width={53} height={53} />
         )}
 
         <View style={styles.nameRow}>
@@ -280,7 +281,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 18,
+    paddingVertical: 15,
   },
   avatar: {
     width: 44,
@@ -298,6 +299,7 @@ const styles = StyleSheet.create({
     color: colors.grayscale[100],
     fontSize: 17,
     fontFamily: 'Pretendard-SemiBold',
+    marginLeft: 12,
   },
   providerIcon: {
     marginLeft: 7,

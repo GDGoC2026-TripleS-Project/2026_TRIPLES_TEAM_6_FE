@@ -18,6 +18,7 @@ export default function ProfileSettingScreen() {
   const errorMessage = useUserStore((s) => s.errorMessage);
 
   const initialNickname = useMemo(() => me?.nickname ?? '라스트컵', [me?.nickname]);
+  const initialProfileImage = useMemo(() => me?.profileImageUrl ?? null, [me?.profileImageUrl]);
   const [nickname, setNickname] = useState(initialNickname);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
@@ -29,11 +30,14 @@ export default function ProfileSettingScreen() {
 
   useEffect(() => {
     setNickname(initialNickname);
-    setProfileImage(me?.profileImageUrl ?? null);
-  }, [initialNickname, me?.profileImageUrl]);
+    setProfileImage(initialProfileImage);
+  }, [initialNickname, initialProfileImage]);
 
   const hasNicknameChanged = nickname.trim() !== initialNickname.trim();
+  const hasProfileImageChanged = profileImage !== initialProfileImage;
+  const hasChanges = hasNicknameChanged || hasProfileImageChanged;
   const isNicknameValid = nickname.length >= 2 && nickname.length <= 10;
+  const canSaveNickname = !hasNicknameChanged || isNicknameValid;
   const nicknameError =
     touched && hasNicknameChanged && !isNicknameValid
       ? '2~10자 이내로 입력해 주세요.'
@@ -60,7 +64,7 @@ export default function ProfileSettingScreen() {
   };
 
   const onSave = async () => {
-    if (isSaving) return;
+    if (isSaving || !hasChanges || !canSaveNickname) return;
     setIsSaving(true);
     try {
       let ok = true;
@@ -122,7 +126,7 @@ export default function ProfileSettingScreen() {
         <Button
           title={isSaving || isLoading ? '저장 중...' : '저장하기'}
           onPress={onSave}
-          disabled={!isNicknameValid || isSaving || isLoading}
+          disabled={!hasChanges || !canSaveNickname || isSaving || isLoading}
         />
       </View>
     </View>

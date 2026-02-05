@@ -325,7 +325,7 @@ const SignUpScreen: React.FC = () => {
       <View style={styles.bottomSection}>
         <View style={styles.agreeRow}>
           <Pressable style={styles.agreeLeft} onPress={() => setAgree((p) => !p)} hitSlop={10}>
-            {agree ? <CheckboxIn width={20} height={20} /> : <CheckboxOut width={20} height={20} />}
+            {agree ? <CheckboxOut width={20} height={20} /> : <CheckboxIn width={20} height={20} /> }
             <Text style={styles.agreeText}>개인정보 수집 및 이용 동의 (필수)</Text>
           </Pressable>
 

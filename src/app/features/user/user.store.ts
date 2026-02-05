@@ -138,7 +138,10 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ isLoading: true, errorMessage: undefined });
     try {
       const res = await userApiLayer.updateNickname(nickname);
-      set({ me: res.data.data, isLoading: false });
+      set((state) => ({
+        me: state.me ? { ...state.me, ...res.data.data } : res.data.data,
+        isLoading: false,
+      }));
       return true;
     } catch (e: any) {
       set({
@@ -153,7 +156,13 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ isLoading: true, errorMessage: undefined });
     try {
       const res = await userApiLayer.uploadProfileImage(uri);
-      set({ me: res.data.data, isLoading: false });
+      set((state) => {
+        const fallbackMe = state.me ? { ...state.me, profileImageUrl: uri } : state.me;
+        return {
+          me: res.data.data ? { ...(fallbackMe ?? {}), ...res.data.data } : fallbackMe,
+          isLoading: false,
+        };
+      });
       return true;
     } catch (e: any) {
       set({
