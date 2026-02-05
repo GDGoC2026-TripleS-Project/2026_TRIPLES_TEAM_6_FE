@@ -148,7 +148,7 @@ export default function HomeScreen() {
       <View style={styles.chartContainer}>
         <Chart 
           title="카페인"
-          currentIntake={stats.caffeine}
+          currentIntake={100000}
           dailyLimit={400}
           unit="mg"
         />
