@@ -52,6 +52,7 @@ const RecordDrinkDetail = () => {
     const [menuDetail, setMenuDetail] = useState<MenuDetail | null>(null);
     const [sizes, setSizes] = useState<MenuSize[]>([]);
     const [loadError, setLoadError] = useState<string | null>(null);
+    const [sizeLoadError, setSizeLoadError] = useState<string | null>(null);
 
     const getGroupData = useOptionStore(state => state.getGroupData);
 
@@ -96,6 +97,7 @@ const RecordDrinkDetail = () => {
     useEffect(() => {
         if (!menuDetail) return;
         let isMounted = true;
+        setSizeLoadError(null);
         fetchMenuSizes(menuDetail.id, tempToApi(temperature))
             .then((res) => {
                 if (!isMounted) return;
@@ -105,11 +107,14 @@ const RecordDrinkDetail = () => {
                         const next = res.data[0].sizeName;
                         setSelectedSize((prev) => (prev ? prev : next));
                     }
+                } else {
+                    setSizeLoadError(res.error?.message ?? '사이즈 정보를 불러오지 못했어요.');
                 }
             })
             .catch(() => {
                 if (!isMounted) return;
                 setSizes([]);
+                setSizeLoadError('사이즈 정보를 불러오지 못했어요.');
             });
         return () => {
             isMounted = false;
@@ -158,6 +163,9 @@ const RecordDrinkDetail = () => {
                             selectedSize={selectedSize}
                             onSizeChange={setSelectedSize}
                         />
+                        {!!sizeLoadError && (
+                            <Text style={styles.errorText}>{sizeLoadError}</Text>
+                        )}
                         <Text style={styles.subTitle}>옵션</Text>
                         {!!loadError && (
                             <Text style={styles.errorText}>{loadError}</Text>
