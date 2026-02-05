@@ -5,6 +5,7 @@ import { SvgProps } from 'react-native-svg';
 interface ToggleButtonProps {
   image1: React.FC<SvgProps>;
   image2: React.FC<SvgProps>;
+  isOn?: boolean;
   initialImage?: 1 | 2;
   onToggle?: (isImage2: boolean) => void;
   onPress?: () => void;
@@ -13,25 +14,30 @@ interface ToggleButtonProps {
 const ToggleButton = ({
   image1: Image1,
   image2: Image2,
+  isOn,
   initialImage = 1,
   onToggle,
   onPress,
 }: ToggleButtonProps) => {
-  const [isImage2, setIsImage2] = useState(initialImage === 2);
+  const [internalOn, setInternalOn] = useState(initialImage === 2);
+  const isControlled = isOn !== undefined;
+  const effectiveOn = isControlled ? isOn : internalOn;
 
   const toggleImage = () => {
-    setIsImage2(prev => {
-      const next = !prev;
-      onToggle?.(next);
-      return next;
-    });
+    const next = !effectiveOn;
+    if (!isControlled) setInternalOn(next);
+    onToggle?.(next);
+    onPress?.();
   };
 
-  const CurrentImage = isImage2 ? Image2 : Image1;
+  const CurrentImage = effectiveOn ? Image2 : Image1;
 
   return (
     <View style={styles.container}>
-      <Pressable onPress={toggleImage} onPressIn={onPress}>
+      <Pressable
+        onPress={toggleImage}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
         <CurrentImage width={24} height={24} />
       </Pressable>
     </View>

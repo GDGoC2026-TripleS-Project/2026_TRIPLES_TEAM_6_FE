@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View, Text, ScrollView } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -7,7 +7,7 @@ import List from '../../../components/common/List';
 import { colors } from '../../../constants/colors';
 import Chip from '../../../components/common/Chip';
 import { RootStackParamList } from '../../../types/navigation';
-import { fetchBrandMenus, type BrandMenuItem } from '../../../api/record/menu.api';
+import { useBrandMenus } from '../../../hooks/useBrandMenus';
 
 type RecordDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecordDetail'>;
 type RecordDetailRouteProp = RouteProp<RootStackParamList, 'RecordDetail'>;
@@ -33,48 +33,19 @@ const RecordDetailScreen = () => {
   const { brandId } = route.params;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [menus, setMenus] = useState<BrandMenuItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const { menus, isLoading, error: loadError } = useBrandMenus({
+    brandId,
+    category: apiCategory,
+    keyword: searchQuery,
+    page: 0,
+    size: 50,
+    debounceMs: 250,
+  });
 
   const apiCategory = useMemo(() => {
     if (selectedCategory === 'all') return undefined;
     return CATEGORY_TO_API[selectedCategory] ?? selectedCategory;
   }, [selectedCategory]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const t = setTimeout(() => {
-      setIsLoading(true);
-      setLoadError(null);
-      fetchBrandMenus(brandId, {
-        category: apiCategory,
-        keyword: searchQuery.trim() || undefined,
-        page: 0,
-        size: 50,
-      })
-        .then((res) => {
-          if (!isMounted) return;
-          if (res.success && res.data) {
-            setMenus(res.data.content);
-          } else {
-            setLoadError(res.error?.message ?? '메뉴를 불러오지 못했어요.');
-          }
-        })
-        .catch(() => {
-          if (!isMounted) return;
-          setLoadError('메뉴를 불러오지 못했어요.');
-        })
-        .finally(() => {
-          if (isMounted) setIsLoading(false);
-        });
-    }, 250);
-
-    return () => {
-      isMounted = false;
-      clearTimeout(t);
-    };
-  }, [brandId, apiCategory, searchQuery]);
 
   const handleDrinkPress = (drinkId: number, drinkName: string) => {
     navigation.navigate('RecordDrinkDetail', { drinkId: String(drinkId), drinkName });

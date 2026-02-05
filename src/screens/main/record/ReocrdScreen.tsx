@@ -4,9 +4,14 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import SearchField from '../../../components/common/SearchField';
 import List from '../../../components/common/List';
 import { RootStackParamList } from '../../../types/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { colors } from '../../../constants/colors';
-import { fetchBrands, type Brand } from '../../../api/record/brand.api';
+import {
+  addBrandFavorite,
+  deleteBrandFavorite,
+  type Brand,
+} from '../../../api/record/brand.api';
+import { useBrands } from '../../../hooks/useBrands';
 
 type RecordScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Record'>;
 
@@ -14,41 +19,36 @@ const RecordScreen = () => {
   const navigation = useNavigation<RecordScreenNavigationProp>();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [brands, setBrands] = useState<Brand[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const didFetch = useRef(false);
+  const { brands, setBrands, isLoading, error: loadError } = useBrands();
 
   const handleBrandPress = (brandId: number, brandName: string) => {
     navigation.navigate('RecordDetail', { brandId: String(brandId), brandName });
   };
 
-  useEffect(() => {
-    if (__DEV__ && didFetch.current) return;
-    didFetch.current = true;
-    let isMounted = true;
-    setIsLoading(true);
-    setLoadError(null);
-    fetchBrands()
-      .then((res) => {
-        if (!isMounted) return;
-        if (res.success && res.data) {
-          setBrands(res.data);
-        } else {
-          setLoadError(res.error?.message ?? '브랜드를 불러오지 못했어요.');
-        }
-      })
-      .catch(() => {
-        if (!isMounted) return;
-        setLoadError('브랜드를 불러오지 못했어요.');
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false);
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const handleFavoriteToggle = async (brandId: number, nextLiked: boolean) => {
+    setBrands((prev) =>
+      prev.map((brand) =>
+        brand.id === brandId ? { ...brand, isFavorite: nextLiked } : brand
+      )
+    );
+
+    try {
+      const res = nextLiked
+        ? await addBrandFavorite(brandId)
+        : await deleteBrandFavorite(brandId);
+
+      if (!res.success) {
+        throw new Error(res.error?.message ?? '즐겨찾기 처리에 실패했어요.');
+      }
+    } catch (err) {
+      if (__DEV__) console.log('[API ERR] /brands/:id/favorites', err);
+      setBrands((prev) =>
+        prev.map((brand) =>
+          brand.id === brandId ? { ...brand, isFavorite: !nextLiked } : brand
+        )
+      );
+    }
+  };
 
   const filteredCafeList = brands.filter((cafe) =>
     cafe.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -69,7 +69,9 @@ const RecordScreen = () => {
           renderItem={({ item }) => (
             <List
               title={item.name}
+              liked={item.isFavorite}
               onPress={() => handleBrandPress(item.id, item.name)}
+              onToggle={(nextLiked) => handleFavoriteToggle(item.id, nextLiked)}
             />
           )}
           keyExtractor={(item) => String(item.id)}

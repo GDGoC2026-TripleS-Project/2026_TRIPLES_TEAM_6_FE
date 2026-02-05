@@ -49,7 +49,6 @@ const styles = StyleSheet.create({
   wrap: {
     flex: 1,
     paddingVertical: 6,
-    minWidth: 118,
     borderRadius: 8, 
     alignItems: 'center',
     justifyContent: 'center',

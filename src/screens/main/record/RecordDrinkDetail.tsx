@@ -20,25 +20,10 @@ import {
     type MenuSize,
     type MenuTemperature,
 } from '../../../api/record/menu.api';
+import { fetchBrandOptions, type BrandOption } from '../../../api/record/brand.api';
 
 type RecordDrinkDetailRouteProp = RouteProp<RootStackParamList, 'RecordDrinkDetail'>;
 type RecordDrinkDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecordDrinkDetail'>;
-
-const COFFEE_OPTIONS = [
-    { id: 'shot', title: '샷 추가' },
-    { id: 'decafaine', title: '샷 추가(디카페인)' },
-];
-
-const SYRUP_OPTIONS = [
-    { id: 'sugar', title: '설탕 시럽' },
-    { id: 'vanilla', title: '바닐라 시럽' },
-    { id: 'hazelnut', title: '헤이즐럿 시럽' },
-];
-
-const MILK_OPTIONS = [
-    { id: 'soy', label: '두유' },
-    { id: 'almond', label: '아몬드 브리즈' },
-];
 
 const INFO_MESSAGE = '커피를 제외한 옵션은 기록용 메모이며, 영양정보 계산에는 포함되지 않아요.';
 
@@ -53,6 +38,8 @@ const RecordDrinkDetail = () => {
     const [sizes, setSizes] = useState<MenuSize[]>([]);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [sizeLoadError, setSizeLoadError] = useState<string | null>(null);
+    const [brandOptions, setBrandOptions] = useState<BrandOption[]>([]);
+    const [optionsLoadError, setOptionsLoadError] = useState<string | null>(null);
 
     const getGroupData = useOptionStore(state => state.getGroupData);
 
@@ -121,6 +108,30 @@ const RecordDrinkDetail = () => {
         };
     }, [menuDetail, temperature]);
 
+    useEffect(() => {
+        if (!menuDetail?.brandId) return;
+        let isMounted = true;
+        setOptionsLoadError(null);
+        fetchBrandOptions(menuDetail.brandId)
+            .then((res) => {
+                if (!isMounted) return;
+                if (res.success && res.data) {
+                    setBrandOptions(res.data);
+                } else {
+                    setBrandOptions([]);
+                    setOptionsLoadError(res.error?.message ?? '옵션 정보를 불러오지 못했어요.');
+                }
+            })
+            .catch(() => {
+                if (!isMounted) return;
+                setBrandOptions([]);
+                setOptionsLoadError('옵션 정보를 불러오지 못했어요.');
+            });
+        return () => {
+            isMounted = false;
+        };
+    }, [menuDetail?.brandId]);
+
     const handleTemperatureChange = (next: 'hot' | 'ice') => {
         if (!allowedTemps.has(next)) return;
         setTemperature(next);
@@ -144,6 +155,35 @@ const RecordDrinkDetail = () => {
             },
         });
     };
+
+    const groupedOptions = useMemo(() => {
+        const buckets = {
+            coffee: [] as BrandOption[],
+            syrup: [] as BrandOption[],
+            milk: [] as BrandOption[],
+        };
+
+        brandOptions.forEach((option) => {
+            const category = (option.category ?? '').toUpperCase();
+            if (category === 'COFFEE' || category === 'SHOT') {
+                buckets.coffee.push(option);
+                return;
+            }
+            if (category === 'SYRUP') {
+                buckets.syrup.push(option);
+                return;
+            }
+            if (category === 'MILK') {
+                buckets.milk.push(option);
+            }
+        });
+
+        return {
+            coffeeOptions: buckets.coffee.map((o) => ({ id: String(o.id), title: o.name })),
+            syrupOptions: buckets.syrup.map((o) => ({ id: String(o.id), title: o.name })),
+            milkOptions: buckets.milk.map((o) => ({ id: String(o.id), label: o.name })),
+        };
+    }, [brandOptions]);
 
     return (
         <View style={styles.wrapper}>
@@ -172,7 +212,14 @@ const RecordDrinkDetail = () => {
                         )}
                     </View>
                     
-                    <AdditionalOptionsSection />
+                    {!!optionsLoadError && (
+                        <Text style={[styles.errorText, styles.optionsError]}>{optionsLoadError}</Text>
+                    )}
+                    <AdditionalOptionsSection
+                        coffeeOptions={groupedOptions.coffeeOptions}
+                        syrupOptions={groupedOptions.syrupOptions}
+                        milkOptions={groupedOptions.milkOptions}
+                    />
                     
                     <InfoMessage />
                 </View>
@@ -232,28 +279,42 @@ const SectionTitle = ({ title, required = false }: { title: string; required?: b
     </View>
 );
 
-const AdditionalOptionsSection = () => (
+const AdditionalOptionsSection = ({
+    coffeeOptions,
+    syrupOptions,
+    milkOptions,
+}: {
+    coffeeOptions: { id: string; title: string }[];
+    syrupOptions: { id: string; title: string }[];
+    milkOptions: { id: string; label: string }[];
+}) => (
     <View>
-        <AccordionItem id="extra1-option" title="커피">
-            <StepperOptions
-                groupId="extra1-option"
-                options={COFFEE_OPTIONS}
-            />
-        </AccordionItem>
+        {coffeeOptions.length > 0 && (
+            <AccordionItem id="extra1-option" title="커피">
+                <StepperOptions
+                    groupId="extra1-option"
+                    options={coffeeOptions}
+                />
+            </AccordionItem>
+        )}
         
-        <AccordionItem id="extra2-option" title="시럽">
-            <StepperOptions
-                groupId="extra2-option"
-                options={SYRUP_OPTIONS}
-            />
-        </AccordionItem>
+        {syrupOptions.length > 0 && (
+            <AccordionItem id="extra2-option" title="시럽">
+                <StepperOptions
+                    groupId="extra2-option"
+                    options={syrupOptions}
+                />
+            </AccordionItem>
+        )}
         
-        <AccordionItem id="extra3-option" title="우유">
-            <ChipOptions 
-                groupId="extra3-option"
-                options={MILK_OPTIONS}
-            />
-        </AccordionItem>
+        {milkOptions.length > 0 && (
+            <AccordionItem id="extra3-option" title="우유">
+                <ChipOptions 
+                    groupId="extra3-option"
+                    options={milkOptions}
+                />
+            </AccordionItem>
+        )}
     </View>
 );
 
@@ -338,6 +399,10 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontFamily: 'Pretendard-Regular',
         marginTop: 4,
+    },
+    optionsError: {
+        paddingHorizontal: 16,
+        marginBottom: 8,
     },
     
     floatingButtonContainer: {
