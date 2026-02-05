@@ -52,6 +52,22 @@ export default function App() {
     };
   }, [hydrate]);
 
+  useEffect(() => {
+    let isMounted = true;
+    if (!accessToken) return () => {
+      isMounted = false;
+    };
+
+    (async () => {
+      const done = await storage.get(storageKeys.onboardingDone);
+      if (isMounted) setOnboardingDone(done === 'true');
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [accessToken]);
+
   if (!loaded || isHydrating) return null;
   const shouldBypassAuth = FORCE_ONBOARDING_PREVIEW;
   const showAppFlow = Boolean(accessToken) || shouldBypassAuth;
@@ -64,7 +80,7 @@ export default function App() {
       <StatusBar style="light" />
       <NavigationContainer>
         <Stack.Navigator
-          key={showAppFlow ? 'app' : 'auth'}
+          key={showAppFlow ? `app-${onboardingDone ? 'done' : 'todo'}` : 'auth'}
           initialRouteName={initialRouteName}
           screenOptions={{ headerShown: false }}
         >
