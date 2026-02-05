@@ -30,6 +30,9 @@ const ProviderIconMap = {
   apple: AppleLogin,
 } as const;
 
+const isLoginProvider = (value: string): value is LoginProvider =>
+  value === 'google' || value === 'kakao' || value === 'apple';
+
 function SettingRow({ label, subLabel, onPress, danger, hideIcon }: RowItem) {
   return (
     <Pressable onPress={onPress} style={styles.row}>
@@ -99,11 +102,11 @@ export default function MyPageScreen() {
   };
 
   const providerRaw =
-    me?.socialProvider ??
-    me?.loginProvider ??
-    me?.provider ??
-    'kakao';
-  const provider = providerRaw.toLowerCase() as LoginProvider;
+    (me?.socialProvider ??
+      me?.loginProvider ??
+      me?.provider ??
+      '').toLowerCase();
+  const provider = isLoginProvider(providerRaw) ? providerRaw : undefined;
 
   const user = {
     name: me?.nickname ?? '라스트컵',
@@ -112,7 +115,7 @@ export default function MyPageScreen() {
     criteriaText: `카페인 ${caffeine}mg, 당류 ${sugar}g`,
   };
 
-  const ProviderIcon = ProviderIconMap[user.provider] ?? KakaoLogin;
+  const ProviderIcon = user.provider ? ProviderIconMap[user.provider] : undefined;
 
   const rows: RowItem[] = [
     {
@@ -155,7 +158,7 @@ export default function MyPageScreen() {
 
         <View style={styles.nameRow}>
           <Text style={styles.profileName}>{user.name}</Text>
-          <ProviderIcon width={20} height={20} style={styles.providerIcon} />
+          {ProviderIcon ? <ProviderIcon width={20} height={20} style={styles.providerIcon} /> : null}
         </View>
 
         <Ionicons name="chevron-forward" size={20} color={colors.grayscale[100]} />
@@ -172,7 +175,6 @@ export default function MyPageScreen() {
         ))}
       </View>
 
-      {/* 로그아웃 모달 */}
       <Modal
         transparent
         visible={logoutModalVisible}
@@ -214,7 +216,6 @@ export default function MyPageScreen() {
         </Pressable>
       </Modal>
 
-      {/* 회원 탈퇴 모달 */}
       <Modal
         transparent
         visible={deleteModalVisible}
