@@ -11,17 +11,18 @@ import StepperOptions from "../../../components/common/StepperOptions";
 import ChipOptions from "../../../components/common/ChipOptions";
 import Info from "../../../../assets/info.svg";
 import Button from "../../../components/common/Button";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useOptionStore } from '../../../store/useOptionStore';
+import {
+    fetchMenuDetail,
+    fetchMenuSizes,
+    type MenuDetail,
+    type MenuSize,
+    type MenuTemperature,
+} from '../../../api/record/menu.api';
 
 type RecordDrinkDetailRouteProp = RouteProp<RootStackParamList, 'RecordDrinkDetail'>;
 type RecordDrinkDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecordDrinkDetail'>;
-
-const SIZES = [
-    { title: "Tall", volume: "355ml" },
-    { title: "Grande", volume: "473ml" },
-    { title: "Venti", volume: "591ml" },
-];
 
 const COFFEE_OPTIONS = [
     { id: 'shot', title: '샷 추가' },
@@ -48,8 +49,82 @@ const RecordDrinkDetail = () => {
 
     const [temperature, setTemperature] = useState<'hot' | 'ice'>('hot');
     const [selectedSize, setSelectedSize] = useState<string>('Tall');
+    const [menuDetail, setMenuDetail] = useState<MenuDetail | null>(null);
+    const [sizes, setSizes] = useState<MenuSize[]>([]);
+    const [loadError, setLoadError] = useState<string | null>(null);
+    const [sizeLoadError, setSizeLoadError] = useState<string | null>(null);
 
     const getGroupData = useOptionStore(state => state.getGroupData);
+
+    const tempToApi = (t: 'hot' | 'ice'): MenuTemperature => (t === 'hot' ? 'HOT' : 'ICED');
+    const apiToTemp = (t: MenuTemperature): 'hot' | 'ice' => (t === 'HOT' ? 'hot' : 'ice');
+
+    const allowedTemps = useMemo(() => {
+        const temps = menuDetail?.availableTemperatures ?? ['HOT', 'ICED'];
+        return new Set(temps.map(apiToTemp));
+    }, [menuDetail]);
+
+    useEffect(() => {
+        if (!menuDetail) return;
+        if (!allowedTemps.has(temperature)) {
+            const first = menuDetail.availableTemperatures?.[0];
+            if (first) setTemperature(apiToTemp(first));
+        }
+    }, [menuDetail, allowedTemps, temperature]);
+
+    useEffect(() => {
+        let isMounted = true;
+        setLoadError(null);
+        fetchMenuDetail(drinkId)
+            .then((res) => {
+                if (!isMounted) return;
+                if (res.success && res.data) {
+                    setMenuDetail(res.data);
+                } else {
+                    setLoadError(res.error?.message ?? '메뉴 정보를 불러오지 못했어요.');
+                }
+            })
+            .catch(() => {
+                if (!isMounted) return;
+                setLoadError('메뉴 정보를 불러오지 못했어요.');
+            })
+            .finally(() => undefined);
+        return () => {
+            isMounted = false;
+        };
+    }, [drinkId]);
+
+    useEffect(() => {
+        if (!menuDetail) return;
+        let isMounted = true;
+        setSizeLoadError(null);
+        fetchMenuSizes(menuDetail.id, tempToApi(temperature))
+            .then((res) => {
+                if (!isMounted) return;
+                if (res.success && res.data) {
+                    setSizes(res.data);
+                    if (res.data.length > 0) {
+                        const next = res.data[0].sizeName;
+                        setSelectedSize((prev) => (prev ? prev : next));
+                    }
+                } else {
+                    setSizeLoadError(res.error?.message ?? '사이즈 정보를 불러오지 못했어요.');
+                }
+            })
+            .catch(() => {
+                if (!isMounted) return;
+                setSizes([]);
+                setSizeLoadError('사이즈 정보를 불러오지 못했어요.');
+            });
+        return () => {
+            isMounted = false;
+        };
+    }, [menuDetail, temperature]);
+
+    const handleTemperatureChange = (next: 'hot' | 'ice') => {
+        if (!allowedTemps.has(next)) return;
+        setTemperature(next);
+    };
 
     const handleNext = () => {
         const coffeeGroup = getGroupData('extra1-option');
@@ -59,7 +134,7 @@ const RecordDrinkDetail = () => {
         navigation.navigate('RecordingDetail', {
             drinkName,
             drinkId,
-            brandName: '스타벅스',
+            brandName: menuDetail?.brandName ?? '',
             temperature,
             size: selectedSize,
             options: {
@@ -76,18 +151,25 @@ const RecordDrinkDetail = () => {
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
             >
-                <View style={styles.container}>
+                    <View style={styles.container}>
                     <List title={drinkName} />
                     <View style={styles.requiredOptionsSection}>
                         <TemperatureSection 
                             temperature={temperature}
-                            onTemperatureChange={setTemperature}
+                            onTemperatureChange={handleTemperatureChange}
                         />
                         <SizeSection 
+                            sizes={sizes}
                             selectedSize={selectedSize}
                             onSizeChange={setSelectedSize}
                         />
+                        {!!sizeLoadError && (
+                            <Text style={styles.errorText}>{sizeLoadError}</Text>
+                        )}
                         <Text style={styles.subTitle}>옵션</Text>
+                        {!!loadError && (
+                            <Text style={styles.errorText}>{loadError}</Text>
+                        )}
                     </View>
                     
                     <AdditionalOptionsSection />
@@ -117,9 +199,11 @@ const TemperatureSection = ({
 };
 
 const SizeSection = ({ 
+    sizes,
     selectedSize, 
     onSizeChange 
 }: { 
+    sizes: MenuSize[];
     selectedSize: string; 
     onSizeChange: (size: string) => void;
 }) => {
@@ -127,13 +211,13 @@ const SizeSection = ({
         <View style={styles.optionGroup}>
             <SectionTitle title="사이즈" required />
             <View style={styles.sizeButtonGroup}>
-                {SIZES.map(size => (
+                {sizes.map(size => (
                     <SizeButton
-                        key={size.title}
-                        title={size.title}
-                        volume={size.volume}
-                        selected={selectedSize === size.title}
-                        onPress={() => onSizeChange(size.title)}
+                        key={size.menuSizeId}
+                        title={size.sizeName}
+                        volume={`${size.volumeMl}ml`}
+                        selected={selectedSize === size.sizeName}
+                        onPress={() => onSizeChange(size.sizeName)}
                     />
                 ))}
             </View>
@@ -248,6 +332,12 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         lineHeight: 21,
         flexShrink: 1,
+    },
+    errorText: {
+        color: colors.grayscale[500],
+        fontSize: 12,
+        fontFamily: 'Pretendard-Regular',
+        marginTop: 4,
     },
     
     floatingButtonContainer: {

@@ -17,6 +17,37 @@ export const authApi = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+type JwtPayload = { exp?: number };
+
+const decodeJwtPayload = (token: string): JwtPayload | null => {
+  const parts = token.split('.');
+  if (parts.length < 2) return null;
+
+  const base64Url = parts[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+
+  try {
+    if (typeof globalThis.atob === 'function') {
+      return JSON.parse(globalThis.atob(padded)) as JwtPayload;
+    }
+    if (typeof Buffer !== 'undefined') {
+      return JSON.parse(Buffer.from(padded, 'base64').toString('utf-8')) as JwtPayload;
+    }
+  } catch (e) {
+    if (__DEV__) console.log('[JWT DECODE ERROR]', e);
+  }
+
+  return null;
+};
+
+const isTokenExpired = (token: string, skewSeconds = 30): boolean => {
+  const payload = decodeJwtPayload(token);
+  if (!payload?.exp) return false;
+  const now = Math.floor(Date.now() / 1000);
+  return payload.exp <= now + skewSeconds;
+};
+
 /** =========================
  * Request Interceptors
  * ========================= */
@@ -31,9 +62,23 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
     console.log('[API REQ BODY]', config.data);
   }
 
-  const token = await storage.get(storageKeys.accessToken);
+  let token = await storage.get(storageKeys.accessToken);
+  if (token && isTokenExpired(token)) {
+    if (__DEV__) console.log('[API AUTH] accessToken expired, refreshing...');
+    token = await refreshAccessToken();
+    if (!token && __DEV__) {
+      console.log('[API AUTH] refresh failed, tokens cleared');
+    }
+  }
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    if (__DEV__) {
+      const masked = `${token.slice(0, 6)}...${token.slice(-4)}`;
+      console.log('[API REQ AUTH] token:', masked);
+    }
+  } else if (__DEV__) {
+    console.log('[API REQ AUTH] token: <none>');
   }
 
   return config;
@@ -63,6 +108,60 @@ const runQueue = (token: string | null) => {
   refreshQueue = [];
 };
 
+const tryLogout = async (): Promise<void> => {
+  try {
+    const { useAuthStore } = await import('../../app/features/auth/auth.store');
+    await useAuthStore.getState().logout();
+  } catch (e) {
+    if (__DEV__) console.log('[AUTH LOGOUT ERROR]', e);
+    await storage.multiRemove([
+      storageKeys.accessToken,
+      storageKeys.refreshToken,
+      storageKeys.autoLogin,
+    ]);
+  }
+};
+
+const refreshAccessToken = async (): Promise<string | null> => {
+  const refreshToken = await storage.get(storageKeys.refreshToken);
+  if (!refreshToken) return null;
+
+  if (isRefreshing) {
+    return new Promise((resolve) => {
+      refreshQueue.push(resolve);
+    });
+  }
+
+  isRefreshing = true;
+
+  try {
+    const refreshRes = await authApi.post('/auth/refresh', null, {
+      headers: { Authorization: `Bearer ${refreshToken}` },
+    });
+
+    const newAccess = refreshRes.data?.data?.accessToken as string | undefined;
+    const newRefresh = refreshRes.data?.data?.refreshToken as string | undefined;
+
+    if (!newAccess) throw new Error('Invalid refresh response: accessToken missing');
+
+    const finalRefresh = newRefresh ?? refreshToken;
+
+    await Promise.all([
+      storage.set(storageKeys.accessToken, newAccess),
+      storage.set(storageKeys.refreshToken, finalRefresh),
+    ]);
+
+    runQueue(newAccess);
+    return newAccess;
+  } catch (e) {
+    runQueue(null);
+    await tryLogout();
+    return null;
+  } finally {
+    isRefreshing = false;
+  }
+};
+
 api.interceptors.response.use(
   (res) => res,
   async (error: AxiosError<any>) => {
@@ -80,56 +179,15 @@ api.interceptors.response.use(
 
     original._retry = true;
 
-    const refreshToken = await storage.get(storageKeys.refreshToken);
-    if (!refreshToken) return Promise.reject(error);
-
-    // ✅ 이미 refresh 중이면 queue에 쌓았다가 토큰 갱신되면 재시도
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        refreshQueue.push((newToken) => {
-          if (!newToken) return reject(error);
-          original.headers = original.headers ?? {};
-          original.headers.Authorization = `Bearer ${newToken}`;
-          resolve(api(original));
-        });
-      });
-    }
-
-    isRefreshing = true;
-
     try {
-      // ✅ refreshToken은 "Refresh Token"을 Bearer로 보냄 (문서 정책 반영)
-      const refreshRes = await authApi.post('/auth/refresh', null, {
-        headers: { Authorization: `Bearer ${refreshToken}` },
-      });
+      const newAccess = await refreshAccessToken();
+      if (!newAccess) return Promise.reject(error);
 
-      const newAccess = refreshRes.data?.data?.accessToken as string | undefined;
-      const newRefresh = refreshRes.data?.data?.refreshToken as string | undefined;
-
-      if (!newAccess) throw new Error('Invalid refresh response: accessToken missing');
-
-      // ✅ 서버가 refreshToken을 항상 주지 않는 정책일 수도 있어 대비
-      const finalRefresh = newRefresh ?? refreshToken;
-
-      await Promise.all([
-        storage.set(storageKeys.accessToken, newAccess),
-        storage.set(storageKeys.refreshToken, finalRefresh),
-      ]);
-
-      // ✅ 대기 중이던 요청들 처리
-      runQueue(newAccess);
-
-      // ✅ 원래 요청도 새 토큰으로 재시도
       original.headers = original.headers ?? {};
       original.headers.Authorization = `Bearer ${newAccess}`;
       return api(original);
     } catch (e) {
-      // refresh 실패 → 대기 요청들 모두 실패 처리 + 토큰 삭제
-      runQueue(null);
-      await storage.multiRemove([storageKeys.accessToken, storageKeys.refreshToken]);
       return Promise.reject(e);
-    } finally {
-      isRefreshing = false;
     }
   }
 );
