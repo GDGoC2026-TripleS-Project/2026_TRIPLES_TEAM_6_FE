@@ -55,6 +55,7 @@ function SettingRow({ label, subLabel, onPress, danger, hideIcon }: RowItem) {
 export default function MyPageScreen() {
   const navigation = useNavigation<MainTabNavigationProp<'Profile'>>();
   const logout = useAuthStore((s) => s.logout);
+  const authUser = useAuthStore((s) => s.user);
   const fetchMe = useUserStore((s) => s.fetchMe);
   const deleteMe = useUserStore((s) => s.deleteMe);
   const me = useUserStore((s) => s.me);
@@ -109,7 +110,7 @@ export default function MyPageScreen() {
   const provider = isLoginProvider(providerRaw) ? providerRaw : undefined;
 
   const user = {
-    name: me?.nickname ?? '라스트컵',
+    name: me?.nickname ?? authUser?.nickname ?? '라스트컵',
     provider,
     profileImageUrl: me?.profileImageUrl,
     criteriaText: `카페인 ${caffeine}mg, 당류 ${sugar}g`,
@@ -304,7 +305,7 @@ const styles = StyleSheet.create({
     color: colors.grayscale[100],
     fontSize: 17,
     fontFamily: 'Pretendard-SemiBold',
-    marginLeft: 4,
+    marginLeft: 8,
   },
   providerIcon: {
     marginLeft: 7,

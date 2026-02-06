@@ -77,7 +77,7 @@ export default function CalendarScreen() {
   };
 
   const onAddRecord = () => {
-    navigation.navigate('Record');
+    navigation.navigate('Record', { date: selectedDate });
   };
 
   const onGoPeriodSearch = () => {

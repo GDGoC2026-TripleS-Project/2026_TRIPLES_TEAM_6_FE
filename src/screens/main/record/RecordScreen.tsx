@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet, View, Text } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import SearchField from '../../../components/common/SearchField';
 import List from '../../../components/common/List';
@@ -14,6 +14,15 @@ import {
 } from '../../../api/record/brand.api';
 
 type RecordScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Record'>;
+type RecordRouteProp = RouteProp<RootStackParamList, 'Record'>;
+
+const todayString = () => {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
 
 const sortBrands = (items: Brand[]) =>
   [...items].sort((a, b) => {
@@ -25,7 +34,9 @@ const sortBrands = (items: Brand[]) =>
 
 const RecordScreen = () => {
   const navigation = useNavigation<RecordScreenNavigationProp>();
+  const route = useRoute<RecordRouteProp>();
   const [searchQuery, setSearchQuery] = useState('');
+  const selectedDate = route.params?.date ?? todayString();
 
   const [brands, setBrands] = useState<Brand[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -99,9 +110,9 @@ const RecordScreen = () => {
   return (
     <View style={styles.container}>
       <View style={{ paddingVertical: 16 }}>
-        <SearchField 
-          placeholder="브랜드 검색" 
-          variant="default" 
+        <SearchField
+          placeholder="브랜드 검색"
+          variant="default"
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -157,6 +168,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.grayscale[500],
     fontFamily: 'Pretendard-SemiBold',
+  },
+  dateText: {
+    fontSize: 14,
+    color: colors.grayscale[500],
+    fontFamily: 'Pretendard-Medium',
+    marginBottom: 8,
   },
 });
 
