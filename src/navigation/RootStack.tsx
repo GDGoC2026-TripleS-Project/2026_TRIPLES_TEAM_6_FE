@@ -5,6 +5,7 @@ import RecordScreen from '../screens/main/record/ReocrdScreen';
 import RecordDetailScreen from '../screens/main/record/RecordDetail';
 import RecordDrinkDetail from '../screens/main/record/RecordDrinkDetail';
 import RecordingDetail from '../screens/main/record/RecordingDetail';
+import IntakeDetailScreen from '../screens/main/record/IntakeDetailScreen';
 import SendScreen from '../screens/main/record/SendScreen';
 import HeaderDetail from '../components/common/HeaderDetail';
 import { RootStackParamList } from '../types/navigation';
@@ -98,6 +99,12 @@ export default function RootNavigator() {
             </SafeAreaView>
           ),
         })}
+      />
+
+      <Stack.Screen
+        name="IntakeDetail"
+        component={IntakeDetailScreen}
+        options={{ headerShown: false }}
       />
 
       <Stack.Screen

@@ -28,13 +28,23 @@ export default function DrinkList({
   RightIcon,
   onPress,
 }: DrinkListProps) {
+  const optionParts =
+    typeof optionText === 'string' ? optionText.split(' | ').map((s) => s.trim()) : [];
+  const optionBase = optionParts.length > 0 ? optionParts[0] : '';
+  const optionExtra = optionParts.slice(1);
+
   return (
     <Pressable style={styles.row} onPress={onPress}>
       <View style={styles.left}>
         <Text style={styles.brandLabel}>{brandName}</Text>
         <Text style={styles.menuName}>{menuName}</Text>
         {typeof optionText === 'string' ? (
-          <Text style={styles.optionText}>{optionText}</Text>
+          <View style={styles.optionWrap}>
+            <Text style={styles.optionBase}>{optionBase || optionText}</Text>
+            {optionExtra.length > 0 && (
+              <Text style={styles.optionExtra}>{optionExtra.join(', ')}</Text>
+            )}
+          </View>
         ) : (
           optionText
         )}
@@ -84,11 +94,20 @@ const styles = StyleSheet.create({
         marginBottom: 7,
     },
 
-    optionText: {
+    optionWrap: {
+        flexDirection: 'row',
+        gap: 16,
+        marginBottom: 15,
+    },
+    optionBase: {
         color: colors.grayscale[600],
         fontSize: 14,
         fontFamily: 'Pretendard-Regular',
-        marginBottom: 15,
+    },
+    optionExtra: {
+        color: colors.grayscale[200],
+        fontSize: 14,
+        fontFamily: 'Pretendard-Regular',
     },
 
     pillRow: {

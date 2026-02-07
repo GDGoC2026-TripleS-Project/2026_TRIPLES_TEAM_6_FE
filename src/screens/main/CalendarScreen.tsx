@@ -6,10 +6,10 @@ import Coffee from '../../../assets/ComponentsImage/coffeeImg.svg';
 import PeriodSelectBottomSheet from '../../components/common/PeriodSelectBottomSheet';
 import Calendar from '../../components/common/Calendar';
 import DrinkList from '../../components/common/MenuItem';
+import OptionText from '../../components/common/OptionText';
 import NutritionSummary from '../../components/calendar/NutritionSummary';
 import SkipDrinkCheckbox from '../../components/calendar/SkipDrinkCheckbox';
 import AddRecordButton from '../../components/common/AddRecordButton';
-import DrinkDetailSheet, { type DrinkLike } from '../../components/common/DrinkDetailSheet';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useGoalStore } from '../../store/goalStore';
@@ -57,8 +57,6 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState<string>(todayString());
   const [skippedByDate, setSkippedByDate] = useState<Record<string, boolean>>({});
 
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [selectedDrink, setSelectedDrink] = useState<DrinkLike | null>(null);
   const [periodSheetOpen, setPeriodSheetOpen] = useState(false);
 
   const [daily, setDaily] = useState<DailyIntake | null>(null);
@@ -82,17 +80,7 @@ export default function CalendarScreen() {
   const summaryDrinks = isSkipped ? [] : drinks;
 
   const today = todayString();
-  const isToday = selectedDate === today;
-  const isFuture = selectedDate > today;
   const hasRecord = drinks.length > 0;
-
-  const status = useMemo(() => {
-    if (isFuture) return 'future';
-    if (isToday && hasRecord) return 'today_has';
-    if (isToday && !hasRecord) return 'today_empty';
-    if (!isToday && hasRecord) return 'past_has';
-    return 'past_empty';
-  }, [isFuture, isToday, hasRecord]);
 
   useEffect(() => {
     let isMounted = true;
@@ -180,23 +168,7 @@ export default function CalendarScreen() {
   };
 
   const openDetail = (drink: IntakeDrink) => {
-    setSelectedDrink(drink);
-    setDetailOpen(true);
-  };
-
-  const closeDetail = () => setDetailOpen(false);
-
-  const onEditDrink = (drink: DrinkLike) => {
-    closeDetail();
-    // TODO: 수정 화면으로 이동
-    // navigation.navigate('EditDrinkScreen', { id: drink.id })
-    console.log('edit', drink.id);
-  };
-
-  const onDeleteDrink = (drink: DrinkLike) => {
-    closeDetail();
-    // TODO: 삭제 로직 연결 (confirm modal 추천)
-    console.log('delete', drink.id);
+    navigation.navigate('IntakeDetail', { intakeId: drink.id });
   };
 
   return (
@@ -230,43 +202,41 @@ export default function CalendarScreen() {
       <View style={styles.headerRow}>
         <Text style={styles.dataText}>{toKoreanDate(selectedDate)}</Text>
 
-        <AddRecordButton title="기록 추가하기" onPress={onAddRecord} disabled={isFuture} />
+        <AddRecordButton title="기록 추가하기" onPress={onAddRecord} />
       </View>
 
-      {status !== 'future' && (
-        <>
-          {(hasRecord || isSkipped) && (
-            <NutritionSummary
-              drinks={summaryDrinks}
-              caffeineMax={caffeineGoal}
-              sugarMax={sugarGoal}
-            />
-          )}
+      {(hasRecord || isSkipped) && (
+        <NutritionSummary
+          drinks={summaryDrinks}
+          caffeineMax={caffeineGoal}
+          sugarMax={sugarGoal}
+        />
+      )}
 
-          {!hasRecord && !isSkipped && (
-            <View style={styles.centerBox}>
-              <Coffee style={{ marginTop: -10 }} />
-              <Text style={styles.centerText}>
-                마신 음료가 있다면 기록을 추가해보세요.
-              </Text>
-            </View>
-          )}
+      {!hasRecord && !isSkipped && (
+        <View style={styles.centerBox}>
+          <Coffee style={{ marginTop: -10 }} />
+          <Text style={styles.centerText}>
+            마신 음료가 있다면 기록을 추가해보세요.
+          </Text>
+        </View>
+      )}
 
-          {!hasRecord && (
-            <View style={[styles.skipCheckboxWrap, isSkipped && styles.skipCheckboxWrapActive]}>
-              <SkipDrinkCheckbox value={isSkipped} onChange={onToggleSkip} disabled={false} />
-            </View>
-          )}
+      {!hasRecord && (
+        <View style={[styles.skipCheckboxWrap, isSkipped && styles.skipCheckboxWrapActive]}>
+          <SkipDrinkCheckbox value={isSkipped} onChange={onToggleSkip} disabled={false} />
+        </View>
+      )}
 
-          <View style={styles.list}>
-            {hasRecord &&
-              !isSkipped &&
-              drinks.map((d) => (
-                <DrinkList
-                  key={d.id}
-                  brandName={d.brandName}
-                  menuName={d.menuName}
-                  optionText={d.optionText}
+      <View style={styles.list}>
+        {hasRecord &&
+          !isSkipped &&
+          drinks.map((d) => (
+            <DrinkList
+              key={d.id}
+              brandName={d.brandName}
+              menuName={d.menuName}
+                  optionText={<OptionText text={d.optionText || '옵션 없음'} />}
                   pills={[
                     { label: '카페인', value: d.caffeineMg, unit: 'mg' },
                     { label: '당류', value: d.sugarG, unit: 'g' },
@@ -274,18 +244,7 @@ export default function CalendarScreen() {
                   onPress={() => openDetail(d)}
                 />
               ))}
-              
-          </View>
-        </>
-      )}
-
-      <DrinkDetailSheet
-        visible={detailOpen}
-        drink={selectedDrink}
-        onClose={closeDetail}
-        onEdit={onEditDrink}
-        onDelete={onDeleteDrink}
-      />
+      </View>
 
       <PeriodSelectBottomSheet
       visible={periodSheetOpen}
