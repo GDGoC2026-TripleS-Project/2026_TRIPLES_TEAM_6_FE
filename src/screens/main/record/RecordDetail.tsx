@@ -8,6 +8,7 @@ import { colors } from '../../../constants/colors';
 import Chip from '../../../components/common/Chip';
 import { RootStackParamList } from '../../../types/navigation';
 import { useBrandMenus } from '../../../hooks/useBrandMenus';
+import { useFavoriteMenus } from '../../../hooks/useFavoriteMenus';
 
 type RecordDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecordDetail'>;
 type RecordDetailRouteProp = RouteProp<RootStackParamList, 'RecordDetail'>;
@@ -30,9 +31,10 @@ const CATEGORY_TO_API: Record<string, string> = {
 const RecordDetailScreen = () => {
   const navigation = useNavigation<RecordDetailNavigationProp>();
   const route = useRoute<RecordDetailRouteProp>();
-  const { brandId } = route.params;
+  const { brandId, brandName } = route.params;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const { isFavorite, toggleFavorite } = useFavoriteMenus();
   const { menus, isLoading, error: loadError } = useBrandMenus({
     brandId,
     category: apiCategory,
@@ -84,6 +86,20 @@ const RecordDetailScreen = () => {
           renderItem={({ item }) => (
             <List 
               title={item.name}
+              liked={isFavorite(item.id)}
+              onToggle={(nextLiked) =>
+                toggleFavorite(
+                  {
+                    id: item.id,
+                    name: item.name,
+                    brandId: Number(brandId),
+                    brandName,
+                    imageUrl: item.imageUrl,
+                    category: item.category,
+                  },
+                  nextLiked
+                )
+              }
               onPress={() => handleDrinkPress(item.id, item.name)}
             />
           )}
