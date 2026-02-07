@@ -140,7 +140,6 @@ const LoginScreen: React.FC = () => {
 
     if (!ok) {
       Alert.alert(
-        "로그인 실패",
         useAuthStore.getState().errorMessage ?? "다시 시도해 주세요."
       );
     }
