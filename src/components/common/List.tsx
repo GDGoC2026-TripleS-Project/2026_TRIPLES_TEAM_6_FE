@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { colors } from "../../constants/colors";
 import ToggleButton from "./ToggleButton";
 import HeartOff from '../../../assets/Property 1=false.svg'
@@ -9,53 +9,52 @@ type ListProps = {
     title: string;
     defaultLiked?: boolean;
     liked?: boolean;
-    showToggle?: boolean;
-    onToggleLike?: (next: boolean) => void;
-    toggleDisabled?: boolean;
     onPress?: () => void;
+    onToggle?: (nextLiked: boolean) => void;
+    showToggle?: boolean;
 };
 
 function List({
     title,
     defaultLiked = false,
-    liked: likedProp,
-    showToggle = true,
-    onToggleLike,
-    toggleDisabled = false,
+    liked,
     onPress,
+    onToggle,
+    showToggle = true,
 }: ListProps) {
-    const [likedState, setLikedState] = useState(defaultLiked);
-    const isControlled = typeof likedProp !== 'undefined';
-    const isLiked = isControlled ? likedProp : likedState;
+    const [internalLiked, setInternalLiked] = useState(defaultLiked);
+    const isControlled = liked !== undefined;
+    const effectiveLiked = useMemo(
+        () => (isControlled ? liked : internalLiked),
+        [isControlled, liked, internalLiked]
+    );
 
-    useEffect(() => {
-        if (typeof likedProp === 'undefined') return;
-        setLikedState(likedProp);
-    }, [likedProp]);
-
-    const handleToggleLike = (next: boolean) => {
-        if (toggleDisabled) return;
-        if (!isControlled) {
-            setLikedState(next);
-        }
-        onToggleLike?.(next);
+    const handleToggle = (nextLiked: boolean) => {
+        if (!isControlled) setInternalLiked(nextLiked);
+        onToggle?.(nextLiked);
     };
 
     return (
         <View style={styles.container}>
             <View style={styles.row}>
-                <Pressable onPress={onPress} style={styles.titlePressArea}>
-                    <Text style={styles.title}>{title}</Text>
-                </Pressable>
-                {showToggle ? (
+                {onPress ? (
+                    <Pressable style={styles.titlePressable} onPress={onPress}>
+                        <Text style={styles.title}>{title}</Text>
+                    </Pressable>
+                ) : (
+                    <View style={styles.titlePressable}>
+                        <Text style={styles.title}>{title}</Text>
+                    </View>
+                )}
+                {showToggle && (
                     <ToggleButton
-                        key={`like_${isLiked ? 'on' : 'off'}`}
                         image1={HeartOff}
                         image2={HeartOn}
-                        initialImage={isLiked ? 2 : 1}
-                        onToggle={handleToggleLike}
+                        isOn={effectiveLiked}
+                        initialImage={defaultLiked ? 2 : 1}
+                        onToggle={handleToggle}
                     />
-                ) : null}
+                )}
             </View>
 
             <View style={styles.divider} />
@@ -77,8 +76,10 @@ const styles = StyleSheet.create({
         width: '100%',
         paddingHorizontal: 16,
     },
-    titlePressArea: {
+    titlePressable: {
         flex: 1,
+        paddingVertical: 4,
+        paddingRight: 12,
     },
 
     title: {

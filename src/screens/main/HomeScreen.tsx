@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
@@ -12,17 +12,8 @@ import Coffee from '../../../assets/ComponentsImage/coffeeImg.svg';
 import SkipDrinkCheckbox from '../../components/calendar/SkipDrinkCheckbox';
 import DrinkDetailSheet, { type DrinkLike } from '../../components/common/DrinkDetailSheet';
 import DatePickerBottomSheet from '../../components/common/DatePickerBottomSheet';
-
-const OPTION_NAMES: Record<string, string> = {
-  shot: '샷 추가',
-  syrup: '시럽 추가',
-  decafaine: '샷 추가(디카페인)',
-  sugar: '설탕 시럽',
-  vanilla: '바닐라 시럽',
-  hazelnut: '헤이즐럿 시럽',
-  soy: '두유',
-  almond: '아몬드 브리즈',
-};
+import { buildOptionInfoFromGroup } from '../../utils/recordOptions';
+import { fetchBrandOptions } from '../../api/record/brand.api';
 
 const ChevronLeft = () => (
   <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -43,11 +34,18 @@ export default function HomeScreen() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedDrink, setSelectedDrink] = useState<DrinkLike | null>(null);
   const [dateSheetOpen, setDateSheetOpen] = useState(false);
+  const [optionNamesByBrand, setOptionNamesByBrand] = useState<Record<number, Record<string, string>>>({});
   
   const getGroupsByDate = useOptionStore(state => state.getGroupsByDate);
   const getDailyStats = useOptionStore(state => state.getDailyStats);
   
   const todayGroups = getGroupsByDate(selectedDate);
+  const todayBrandIds = useMemo(() => {
+    const ids = todayGroups
+      .map((g) => g.brandId)
+      .filter((id): id is number => typeof id === 'number');
+    return Array.from(new Set(ids));
+  }, [todayGroups]);
   const stats = getDailyStats(selectedDate);
   const dateKey = (() => {
     const yyyy = selectedDate.getFullYear();
@@ -57,6 +55,46 @@ export default function HomeScreen() {
   })();
   const isSkipped = !!skippedByDate[dateKey];
   const hasRecord = todayGroups.length > 0;
+
+  useEffect(() => {
+    if (todayBrandIds.length === 0) return;
+    let isMounted = true;
+    const loadOptionNames = async () => {
+      const missing = todayBrandIds.filter((id) => !optionNamesByBrand[id]);
+      if (missing.length === 0) return;
+      const results = await Promise.all(
+        missing.map(async (brandId) => {
+          try {
+            const res = await fetchBrandOptions(brandId);
+            if (res.success && res.data) {
+              const map = res.data.reduce<Record<string, string>>((acc, opt) => {
+                acc[String(opt.id)] = opt.name;
+                return acc;
+              }, {});
+              return { brandId, map };
+            }
+          } catch {
+            return null;
+          }
+          return null;
+        })
+      );
+      if (!isMounted) return;
+      const next = results.filter(Boolean) as Array<{ brandId: number; map: Record<string, string> }>;
+      if (next.length === 0) return;
+      setOptionNamesByBrand((prev) => {
+        const merged = { ...prev };
+        next.forEach(({ brandId, map }) => {
+          merged[brandId] = map;
+        });
+        return merged;
+      });
+    };
+    loadOptionNames();
+    return () => {
+      isMounted = false;
+    };
+  }, [todayBrandIds, optionNamesByBrand]);
 
   const formatDateHeader = (date: Date) => {
     const month = date.getMonth() + 1;
@@ -83,36 +121,6 @@ export default function HomeScreen() {
     }));
   };
 
-  const formatOptions = (group: {
-    stepperCounts?: Record<string, number>;
-    chipSelected?: Set<string>;
-    temperature?: string;
-    size?: string;
-  }) => {
-    const parts: string[] = [];
-
-    if (group.stepperCounts) {
-      Object.entries(group.stepperCounts).forEach(([key, count]) => {
-        if (count > 0) {
-          const name = OPTION_NAMES[key] || key;
-          parts.push(`${name} ${count}`);
-        }
-      });
-    }
-
-    if (group.chipSelected && group.chipSelected.size > 0) {
-      group.chipSelected.forEach((id) => {
-        const name = OPTION_NAMES[id] || id;
-        parts.push(name);
-      });
-    }
-
-    const temp = group.temperature === 'hot' ? 'Hot' : 'Ice';
-    const size = group.size ?? '';
-    const base = size ? `${temp} | ${size}` : temp;
-
-    return { base, extra: parts };
-  };
 
   const openDetail = (drink: DrinkLike) => {
     setSelectedDrink(drink);
@@ -168,7 +176,13 @@ export default function HomeScreen() {
         <View>
           {hasRecord ? (
             todayGroups.map((groupData, index) => {
-              const optionInfo = formatOptions(groupData);
+              const optionInfo = buildOptionInfoFromGroup({
+                ...groupData,
+                optionNames:
+                  (typeof groupData.brandId === 'number' &&
+                    optionNamesByBrand[groupData.brandId]) ||
+                  groupData.optionNames,
+              });
               const drinkForSheet: DrinkLike = {
                 id: `${dateKey}_${index}`,
                 brandName: groupData.brandName,

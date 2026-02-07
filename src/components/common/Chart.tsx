@@ -14,12 +14,13 @@ const Chart = ({
   title = "카페인",
   unit = "mg" 
 }: ChartProps) => {
-  // 타이틀에 따라 최대값 설정
   const maxValue = title === "당류" ? 37.5 : 600;
   const displayUnit = title === "당류" ? "g" : unit;
   
-  const intakePercent = Math.min(((currentIntake - 10) / maxValue) * 100, 100);
-  const limitPercent = Math.min(((dailyLimit - 10) / maxValue) * 100, 100);
+  const intakePercent = Math.min(((currentIntake) / maxValue) * 100, 100);
+  const limitPercent = currentIntake > 0 
+    ? Math.max(Math.min((dailyLimit / currentIntake) * intakePercent, 100), 4)
+    : Math.max(Math.min(((dailyLimit) / maxValue) * 100, 100), 4);
 
   const getScaleValues = () => {
     if (title === "당류") {
@@ -38,31 +39,22 @@ const Chart = ({
       </View>
       <View style={styles.chartWrapper}>
         <View style={styles.chartContainer}>
-          <View style={{flexDirection: 'row', gap: 8, alignItems:'center'}}>
-            <Text style={styles.chartText}>{scaleValues[0]}</Text>
-            <View style={styles.line}/>
-          </View>
-          <View style={{flexDirection: 'row', gap: 8, alignItems:'center'}}>
-            <Text style={styles.chartText}>{scaleValues[1]}</Text>
-            <View style={styles.line}/>
-          </View>
-          <View style={{flexDirection: 'row', gap: 8, alignItems:'center'}}>
-            <Text style={styles.chartText}>{scaleValues[2]}</Text>
-            <View style={styles.line}/>
-          </View>
-          <View style={{flexDirection: 'row'}}>
-            <View style={styles.line}/>
-          </View>
-
-          <View style={styles.barsContainer}>
-            <View style={[styles.bar, styles.limitBar, { height: `${limitPercent}%` }]} />
+          <View>
+            <View style={styles.barsContainer}>
+            <View style={{gap: 3,}}>
+              <Text style={styles.barLabel}>{dailyLimit}{displayUnit}</Text>
+              <View style={[styles.bar, styles.limitBar, { height: `${limitPercent}%` }]} />
+            </View>
             <View style={[styles.bar, styles.intakeBar, { height: `${intakePercent}%` }]} />
           </View>
-        </View>
-        
-        <View style={styles.labelsContainer}>
-          <Text style={styles.barLabel}>내 기준량</Text>
-          <Text style={styles.barLabel}>내 섭취량</Text>
+           <View style={{flexDirection: 'row'}}>
+            <View style={styles.line}/>
+          </View>
+          </View>
+          <View style={styles.labelsContainer}>
+            <Text style={styles.barLabel}>내 기준량</Text>
+            <Text style={styles.barLabel}>내 섭취량</Text>
+          </View>
         </View>
       </View>
     </View>
@@ -89,13 +81,15 @@ const styles = StyleSheet.create({
   },
   chartWrapper: {
     flexDirection: 'column',
+    justifyContent: 'center',
     gap: 4,
   },
   chartContainer : {
-    height: 260,
+    height: 220,
     width: '100%',
     justifyContent: 'space-between',
-    position: 'relative'
+    position: 'relative',
+    gap: 4,
   },
   line : {
     flex: 1,
@@ -107,10 +101,6 @@ const styles = StyleSheet.create({
     color: colors.grayscale[700]
   },
   barsContainer: {
-    position: 'absolute',
-    left: 40,
-    right: 0,
-    bottom: 0,
     height: '100%',
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -131,11 +121,9 @@ const styles = StyleSheet.create({
   labelsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 4,
-    paddingLeft: 40,
+    gap: 8,
   },
   barLabel: {
-    width: 36,
     fontSize: 8,
     fontFamily: 'Pretendard-Regular',
     color: colors.grayscale[300],

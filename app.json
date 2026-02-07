@@ -7,15 +7,17 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
+    "jsEngine": "jsc",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "bundleIdentifier": "com.triples.lastcup",
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.lastcup"
+      "usesAppleSignIn": true
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +25,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.triples.lastcup"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -32,11 +35,10 @@
       "expo-font",
       "expo-web-browser",
       "@react-native-community/datetimepicker",
-      "expo-apple-authentication",
       [
         "@react-native-seoul/kakao-login",
         {
-          "kakaoAppKey": "__KAKAO_NATIVE_APP_KEY__"
+          "kakaoAppKey": "697c4d3c42b546e3401cb2763ff37c7f"
         }
       ],
       [

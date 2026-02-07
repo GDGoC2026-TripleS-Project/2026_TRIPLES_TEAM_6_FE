@@ -2,6 +2,7 @@ import { api, authApi } from '../../lib/api/client';
 import type { AxiosError } from 'axios';
 import { storage } from '../../utils/storage';
 import { storageKeys } from '../../constants/storageKeys';
+import type { ApiResponse } from '../../lib/api/types';
 
 export type Brand = {
   id: number;
@@ -10,31 +11,27 @@ export type Brand = {
   isFavorite: boolean;
 };
 
-export type ApiFieldError = {
-  field: string;
-  reason: string;
-  rejectedValue: unknown;
+export type BrandOption = {
+  id: number;
+  name: string;
+  category: string;
+  caffeineMg: number;
+  sugarG: number;
+  calories: number;
+  sodiumMg: number;
+  proteinG: number;
+  fatG: number;
+  displayUnitName: string;
+  sugarCubeEquivalent: number;
 };
 
-export type ApiError = {
-  code: string;
-  message: string;
-  fieldErrors?: ApiFieldError[];
+export type BrandFavoriteResponse = {
+  favorited: boolean;
 };
 
-export type ApiResponse<T> =
-  | {
-      success: true;
-      data: T;
-      error?: never;
-      timestamp: string;
-    }
-  | {
-      success: false;
-      data?: never;
-      error: ApiError;
-      timestamp: string;
-    };
+export type BrandFavoriteDeleteResponse = {
+  deleted: boolean;
+};
 
 const normalizeBrands = (brands: Brand[], hasAuth: boolean): Brand[] => {
   const normalized = hasAuth
@@ -113,37 +110,32 @@ export const fetchBrands = async (): Promise<ApiResponse<Brand[]>> => {
   }
 };
 
-const normalizeApiResponse = <T>(res: ApiResponse<T>): ApiResponse<T> => {
-  const data = (res as unknown as { data?: T }).data;
-
-  if (!res.success && data !== undefined) {
-    return {
-      success: true,
-      data,
-      timestamp: res.timestamp ?? new Date().toISOString(),
-    };
+export const fetchBrandOptions = async (
+  brandId: number | string,
+  params?: {
+    category?: string;
   }
-
-  return res;
+): Promise<ApiResponse<BrandOption[]>> => {
+  const res = await api.get<ApiResponse<BrandOption[]>>(`/brands/${brandId}/options`, {
+    params,
+  });
+  return res.data;
 };
 
-export const addBrandFavorite = async (brandId: number | string) => {
-  const res = await api.post<ApiResponse<null>>(`/brands/${brandId}/favorites`);
-  return normalizeApiResponse(res.data);
+export const addBrandFavorite = async (
+  brandId: number | string
+): Promise<ApiResponse<BrandFavoriteResponse>> => {
+  const res = await api.post<ApiResponse<BrandFavoriteResponse>>(
+    `/brands/${brandId}/favorites`
+  );
+  return res.data;
 };
 
-export const removeBrandFavorite = async (brandId: number | string) => {
-  const res = await api.delete<ApiResponse<null>>(`/brands/${brandId}/favorites`);
-  return normalizeApiResponse(res.data);
-};
-
-export type BrandOption = {
-  id: number;
-  type: string;
-  name: string;
-};
-
-export const fetchBrandOptions = async (brandId: number | string) => {
-  const res = await api.get<ApiResponse<BrandOption[]>>(`/brands/${brandId}/options`);
-  return normalizeApiResponse(res.data);
+export const deleteBrandFavorite = async (
+  brandId: number | string
+): Promise<ApiResponse<BrandFavoriteDeleteResponse>> => {
+  const res = await api.delete<ApiResponse<BrandFavoriteDeleteResponse>>(
+    `/brands/${brandId}/favorites`
+  );
+  return res.data;
 };

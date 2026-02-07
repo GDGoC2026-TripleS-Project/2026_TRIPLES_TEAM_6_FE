@@ -1,10 +1,30 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet, Text } from 'react-native';
 import Chip from '../../common/Chip';
 import { colors } from '../../../constants/colors';
-import { BRANDS } from '../../../constants/heartData';
+import type { Brand } from '../../../api/record/brand.api';
 
-export default function BrandChips() {
+export default function BrandChips({
+  brands,
+  isLoading,
+  error,
+}: {
+  brands: Brand[];
+  isLoading: boolean;
+  error: string | null;
+}) {
+  if (error) {
+    return (
+      <View style={styles.chipContainer}>
+        <Text style={styles.infoText}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (brands.length === 0 && !isLoading) {
+    return null;
+  }
+
   return (
     <View style={styles.chipContainer}>
       <ScrollView
@@ -12,14 +32,17 @@ export default function BrandChips() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {BRANDS.map((brand) => (
+        {brands.map((brand) => (
           <Chip
             key={brand.id}
             groupId="brand"
-            id={brand.id}
-            label={brand.label}
+            id={String(brand.id)}
+            label={brand.name}
           />
         ))}
+        {isLoading && (
+          <Text style={styles.infoText}>불러오는 중...</Text>
+        )}
       </ScrollView>
     </View>
   );
@@ -34,5 +57,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     gap: 12,
     paddingHorizontal: 16,
+  },
+  infoText: {
+    color: colors.grayscale[500],
+    fontSize: 12,
+    fontFamily: 'Pretendard-Regular',
+    alignSelf: 'center',
   },
 });
