@@ -23,7 +23,7 @@ export const authApiLayer = {
   login: (payload: { loginId: string; password: string }) =>
     authApi.post<LoginRes>('/auth/login', payload),
 
-  signup: (payload: { loginId: string; password: string; nickname: string }) =>
+  signup: (payload: { loginId: string; password: string; nickname: string; email: string }) =>
     authApi.post<SignupRes>('/auth/signup', payload),
 
   checkLoginId: (loginId: string) =>
@@ -50,10 +50,10 @@ export const authApiLayer = {
     authApi.post(`/auth/social/${provider}/login`, body),
 
   requestPasswordReset: (payload: { loginId: string; email: string }) =>
-    authApi.post<PasswordResetRequestRes>('/auth/password/reset-request', payload),
+    authApi.post<PasswordResetRequestRes>('/auth/password-reset/request', payload),
 
-  confirmPasswordReset: (payload: { loginId: string; newPassword: string }) =>
-    authApi.post<PasswordResetConfirmRes>('/auth/password/reset', payload),
+  confirmPasswordReset: (payload: { loginId: string; newPassword: string; token: string }) =>
+    authApi.post<PasswordResetConfirmRes>('/auth/password-reset/confirm', payload),
 
   // 보호 API 예시는 api 사용
   // getMe: () => api.get<UserMeRes>('/users/me'),
