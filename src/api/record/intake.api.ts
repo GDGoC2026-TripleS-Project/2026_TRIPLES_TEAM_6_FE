@@ -39,17 +39,14 @@ export type IntakeDetail = IntakeDrink & {
   brandId?: number | string;
   sizeName?: string;
   temperature?: 'HOT' | 'ICED';
-  options?: Array<{ optionId: number | string; count?: number }>;
+  options?: Array<{ optionId: number | string; optionName?: string; count?: number }>;
 };
 
 export type CreateIntakePayload = {
-  menuSizeId?: number;
-  menuId?: number | string;
-  brandId?: number | string;
-  recordedAt: string; // YYYY-MM-DD
-  temperature?: 'HOT' | 'ICED';
-  sizeName?: string;
-  options?: Array<{ optionId: number | string; count?: number }>;
+  menuSizeId: number;
+  intakeDate: string; // YYYY-MM-DD
+  quantity?: number;
+  options?: Array<{ optionId: number | string; quantity?: number }>;
 };
 
 const toNumber = (value: unknown, fallback = 0) => {
@@ -76,43 +73,87 @@ const normalizeOptionText = (raw: any) =>
       ''
   );
 
+const buildOptionTextFromOptions = (options: any[]) => {
+  if (!Array.isArray(options)) return '';
+  const parts = options
+    .map((opt) => {
+      const name = toString(opt?.optionName ?? opt?.name ?? '');
+      const qty = toNumber(opt?.quantity ?? opt?.count, 1);
+      if (!name) return '';
+      return qty > 1 ? `${name} ${qty}` : name;
+    })
+    .filter(Boolean);
+  return parts.join(' | ');
+};
+
 const normalizeDrink = (raw: any, index: number, fallbackDate?: string): IntakeDrink => {
   const nutrition = raw?.nutrition ?? {};
+  const optionsText =
+    normalizeOptionText(raw) || buildOptionTextFromOptions(raw?.options ?? raw?.optionList ?? []);
   return {
     id: toString(raw?.id ?? raw?.recordId ?? raw?.intakeId ?? `${index}`),
     brandName: toString(raw?.brandName ?? raw?.brand?.name ?? ''),
     menuName: toString(raw?.menuName ?? raw?.menu?.name ?? raw?.name ?? ''),
-    optionText: normalizeOptionText(raw),
+    optionText: optionsText,
     caffeineMg: toNumber(
-      raw?.caffeineMg ?? raw?.caffeine ?? nutrition?.caffeineMg ?? nutrition?.caffeine
+      raw?.caffeineMg ??
+        raw?.caffeine ??
+        raw?.caffeineSnapshot ??
+        nutrition?.caffeineMg ??
+        nutrition?.caffeine
     ),
-    sugarG: toNumber(raw?.sugarG ?? raw?.sugar ?? nutrition?.sugarG ?? nutrition?.sugar),
-    calorieKcal: toNumber(raw?.calorieKcal ?? raw?.calories ?? nutrition?.calorieKcal ?? nutrition?.calories),
-    sodiumMg: toNumber(raw?.sodiumMg ?? nutrition?.sodiumMg),
-    proteinG: toNumber(raw?.proteinG ?? nutrition?.proteinG),
-    fatG: toNumber(raw?.fatG ?? nutrition?.fatG),
+    sugarG: toNumber(
+      raw?.sugarG ?? raw?.sugar ?? raw?.sugarSnapshot ?? nutrition?.sugarG ?? nutrition?.sugar
+    ),
+    calorieKcal: toNumber(
+      raw?.calorieKcal ??
+        raw?.calories ??
+        raw?.caloriesSnapshot ??
+        nutrition?.calorieKcal ??
+        nutrition?.calories
+    ),
+    sodiumMg: toNumber(raw?.sodiumMg ?? raw?.sodiumSnapshot ?? nutrition?.sodiumMg),
+    proteinG: toNumber(raw?.proteinG ?? raw?.proteinSnapshot ?? nutrition?.proteinG),
+    fatG: toNumber(raw?.fatG ?? raw?.fatSnapshot ?? nutrition?.fatG),
     count:
       raw?.count === undefined && raw?.quantity === undefined
         ? undefined
         : toNumber(raw?.count ?? raw?.quantity),
-    recordedAt: toString(raw?.recordedAt ?? raw?.date ?? fallbackDate ?? ''),
+    recordedAt: toString(
+      raw?.recordedAt ??
+        raw?.date ??
+        raw?.intakeDate ??
+        raw?.createdAt ??
+        fallbackDate ??
+        ''
+    ),
   };
 };
 
 const normalizeDailyIntake = (raw: any, fallbackDate?: string): DailyIntake => {
-  const drinksRaw = raw?.drinks ?? raw?.records ?? raw?.items ?? raw?.content ?? [];
+  const drinksRaw =
+    raw?.intakes ?? raw?.drinks ?? raw?.records ?? raw?.items ?? raw?.content ?? [];
   const drinks = Array.isArray(drinksRaw)
     ? drinksRaw.map((d, idx) => normalizeDrink(d, idx, fallbackDate))
     : [];
 
   const totalCaffeine = toNumber(
-    raw?.totalCaffeineMg ?? raw?.caffeineTotal ?? raw?.totalCaffeine
+    raw?.totalCaffeineMg ??
+      raw?.caffeineTotal ??
+      raw?.totalCaffeine ??
+      raw?.totalCaffeineSnapshot
   );
-  const totalSugar = toNumber(raw?.totalSugarG ?? raw?.sugarTotal ?? raw?.totalSugar);
-  const drinkCount = toNumber(raw?.drinkCount ?? raw?.count ?? drinks.length);
+  const totalSugar = toNumber(
+    raw?.totalSugarG ?? raw?.sugarTotal ?? raw?.totalSugar ?? raw?.totalSugarSnapshot
+  );
+  const drinkCount = toNumber(
+    raw?.drinkCount ?? raw?.intakeCount ?? raw?.count ?? drinks.length
+  );
 
   return {
-    date: toString(raw?.date ?? raw?.recordDate ?? fallbackDate ?? ''),
+    date: toString(
+      raw?.date ?? raw?.recordDate ?? raw?.intakeDate ?? fallbackDate ?? ''
+    ),
     totalCaffeineMg: totalCaffeine || drinks.reduce((acc, d) => acc + (d.caffeineMg ?? 0), 0),
     totalSugarG: totalSugar || drinks.reduce((acc, d) => acc + (d.sugarG ?? 0), 0),
     drinkCount: drinkCount || drinks.length,
@@ -125,16 +166,22 @@ const normalizePeriodIntake = (raw: any, fallbackStart?: string, fallbackEnd?: s
     (Array.isArray(raw?.dates) && raw.dates) ||
     (Array.isArray(raw?.days) && raw.days) ||
     (Array.isArray(raw?.dailyDates) && raw.dailyDates) ||
-    (Array.isArray(raw?.dailyIntakes) && raw.dailyIntakes.map((d: any) => d?.date).filter(Boolean)) ||
-    (Array.isArray(raw?.recordsByDate) && raw.recordsByDate.map((d: any) => d?.date).filter(Boolean)) ||
+    (Array.isArray(raw?.dailyIntakes) &&
+      raw.dailyIntakes.map((d: any) => d?.date).filter(Boolean)) ||
+    (Array.isArray(raw?.recordsByDate) &&
+      raw.recordsByDate.map((d: any) => d?.date).filter(Boolean)) ||
     [];
 
   return {
     startDate: toString(raw?.startDate ?? raw?.from ?? fallbackStart ?? ''),
     endDate: toString(raw?.endDate ?? raw?.to ?? fallbackEnd ?? ''),
-    totalCaffeineMg: toNumber(raw?.totalCaffeineMg ?? raw?.caffeineTotal ?? raw?.totalCaffeine),
+    totalCaffeineMg: toNumber(
+      raw?.totalCaffeineMg ?? raw?.caffeineTotal ?? raw?.totalCaffeine
+    ),
     totalSugarG: toNumber(raw?.totalSugarG ?? raw?.sugarTotal ?? raw?.totalSugar),
-    drinkCount: toNumber(raw?.drinkCount ?? raw?.count ?? raw?.totalCount),
+    drinkCount: toNumber(
+      raw?.drinkCount ?? raw?.intakeCount ?? raw?.count ?? raw?.totalCount
+    ),
     dates,
   };
 };
@@ -157,7 +204,10 @@ export const fetchPeriodIntake = async (
   });
   const normalized = normalizeApiResponse(res.data);
   if (normalized.success && normalized.data) {
-    return { ...normalized, data: normalizePeriodIntake(normalized.data, startDate, endDate) };
+    return {
+      ...normalized,
+      data: normalizePeriodIntake(normalized.data, startDate, endDate),
+    };
   }
   return normalized as ApiResponse<PeriodIntake>;
 };
@@ -168,7 +218,16 @@ export const fetchIntakeDetail = async (
   const res = await api.get<ApiResponse<any>>(`/intakes/${recordId}`);
   const normalized = normalizeApiResponse(res.data);
   if (normalized.success && normalized.data) {
-    return { ...normalized, data: normalizeDrink(normalized.data, 0) as IntakeDetail };
+    const base = normalizeDrink(normalized.data, 0) as IntakeDetail;
+    const optionsRaw = normalized.data?.options ?? [];
+    const options = Array.isArray(optionsRaw)
+      ? optionsRaw.map((opt: any) => ({
+          optionId: opt?.optionId ?? opt?.id,
+          optionName: opt?.optionName ?? opt?.name,
+          count: toNumber(opt?.quantity ?? opt?.count, 1),
+        }))
+      : undefined;
+    return { ...normalized, data: { ...base, options } };
   }
   return normalized as ApiResponse<IntakeDetail>;
 };

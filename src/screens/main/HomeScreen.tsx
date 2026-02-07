@@ -3,13 +3,15 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import Chart from '../../components/common/Chart';
 import { colors } from '../../constants/colors';
 import DrinkList from '../../components/common/MenuItem';
+import OptionText from '../../components/common/OptionText';
 import { useGoalStore } from '../../store/goalStore';
 import { Svg, Path } from 'react-native-svg';
 import Coffee from '../../../assets/ComponentsImage/coffeeImg.svg';
 import SkipDrinkCheckbox from '../../components/calendar/SkipDrinkCheckbox';
-import DrinkDetailSheet, { type DrinkLike } from '../../components/common/DrinkDetailSheet';
 import DatePickerBottomSheet from '../../components/common/DatePickerBottomSheet';
 import { fetchDailyIntake, type DailyIntake, type IntakeDrink } from '../../api/record/intake.api';
+import { useNavigation } from '@react-navigation/native';
+import type { MainTabNavigationProp } from '../../types/navigation';
 
 const ChevronLeft = () => (
   <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -24,10 +26,9 @@ const ChevronRight = () => (
 );
 
 export default function HomeScreen() {
+  const navigation = useNavigation<MainTabNavigationProp<'Home'>>();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [skippedByDate, setSkippedByDate] = useState<Record<string, boolean>>({});
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [selectedDrink, setSelectedDrink] = useState<DrinkLike | null>(null);
   const [dateSheetOpen, setDateSheetOpen] = useState(false);
   const [daily, setDaily] = useState<DailyIntake | null>(null);
   const [dailyLoading, setDailyLoading] = useState(false);
@@ -117,21 +118,8 @@ export default function HomeScreen() {
   };
 
 
-  const openDetail = (drink: DrinkLike) => {
-    setSelectedDrink(drink);
-    setDetailOpen(true);
-  };
-
-  const closeDetail = () => setDetailOpen(false);
-
-  const onEditDrink = (drink: DrinkLike) => {
-    closeDetail();
-    console.log('edit', drink.id);
-  };
-
-  const onDeleteDrink = (drink: DrinkLike) => {
-    closeDetail();
-    console.log('delete', drink.id);
+  const openDetail = (drinkId: string) => {
+    navigation.navigate('IntakeDetail', { intakeId: drinkId });
   };
 
   return (
@@ -171,29 +159,18 @@ export default function HomeScreen() {
         <View>
           {hasRecord ? (
             drinks.map((drink, index) => {
-              const drinkForSheet: DrinkLike = {
-                id: drink.id ?? `${dateKey}_${index}`,
-                brandName: drink.brandName,
-                menuName: drink.menuName,
-                caffeineMg: drink.caffeineMg ?? 0,
-                sugarG: drink.sugarG ?? 0,
-                calorieKcal: drink.calorieKcal,
-                sodiumMg: drink.sodiumMg,
-                proteinG: drink.proteinG,
-                fatG: drink.fatG,
-              };
-
+              const intakeId = drink.id ?? `${dateKey}_${index}`;
               return (
-                <DrinkList 
-                  key={`drink_${drink.id ?? index}`}
+                <DrinkList
+                  key={`drink_${intakeId}`}
                   brandName={drink.brandName}
                   menuName={drink.menuName}
-                  optionText={drink.optionText || '옵션 없음'}
+                  optionText={<OptionText text={drink.optionText || '옵션 없음'} />}
                   pills={[
                     { label: '카페인', value: drink.caffeineMg || 0, unit: 'mg' },
                     { label: '당류', value: drink.sugarG || 0, unit: 'g' },
                   ]}
-                  onPress={() => openDetail(drinkForSheet)}
+                  onPress={() => openDetail(String(intakeId))}
                 />
               );
             })
@@ -206,14 +183,6 @@ export default function HomeScreen() {
           )}
         </View>
       </View>
-
-      <DrinkDetailSheet
-        visible={detailOpen}
-        drink={selectedDrink}
-        onClose={closeDetail}
-        onEdit={onEditDrink}
-        onDelete={onDeleteDrink}
-      />
 
       <DatePickerBottomSheet
         visible={dateSheetOpen}

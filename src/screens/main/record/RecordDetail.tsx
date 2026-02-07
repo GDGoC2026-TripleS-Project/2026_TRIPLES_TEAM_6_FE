@@ -31,7 +31,7 @@ const CATEGORY_TO_API: Record<string, string> = {
 const RecordDetailScreen = () => {
   const navigation = useNavigation<RecordDetailNavigationProp>();
   const route = useRoute<RecordDetailRouteProp>();
-  const { brandId, brandName } = route.params;
+  const { brandId, brandName, selectedDate } = route.params;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const { isFavorite, toggleFavorite } = useFavoriteMenus();
@@ -50,7 +50,11 @@ const RecordDetailScreen = () => {
   });
 
   const handleDrinkPress = (drinkId: number, drinkName: string) => {
-    navigation.navigate('RecordDrinkDetail', { drinkId: String(drinkId), drinkName });
+    navigation.navigate('RecordDrinkDetail', {
+      drinkId: String(drinkId),
+      drinkName,
+      selectedDate,
+    });
   };
 
   return (

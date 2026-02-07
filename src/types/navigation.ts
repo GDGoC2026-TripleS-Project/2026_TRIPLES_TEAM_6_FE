@@ -25,6 +25,7 @@ export type RootStackParamList = {
       milk?: string[];
     };
   };
+  IntakeDetail: { intakeId: string | number };
   Send: undefined;
   MyPage: undefined;
   EditCriteria: undefined;

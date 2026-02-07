@@ -81,17 +81,35 @@ const RecordingDetail = () => {
 
     const handleComplete = async () => {
         if (isSubmitting) return;
+        if (!menuSizeId) {
+            Alert.alert('섭취 기록 실패', '사이즈 정보를 불러오지 못했어요. 다시 시도해주세요.');
+            return;
+        }
         setIsSubmitting(true);
 
-        const toCountPayload = (entries: Record<string, number>) =>
+        const toNumericId = (value: string) => {
+            const parsed = Number(value);
+            return Number.isNaN(parsed) ? null : parsed;
+        };
+
+        const toQuantityPayload = (entries: Record<string, number>) =>
             Object.entries(entries)
                 .filter(([, count]) => count > 0)
-                .map(([optionId, count]) => ({ optionId, count }));
+                .map(([optionId, count]) => {
+                    const id = toNumericId(optionId);
+                    return id === null ? null : { optionId: id, quantity: count };
+                })
+                .filter((v): v is { optionId: number; quantity: number } => v !== null);
 
         const optionPayload = [
-            ...toCountPayload(options.coffee ?? {}),
-            ...toCountPayload(options.syrup ?? {}),
-            ...(options.milk ?? []).map((optionId) => ({ optionId, count: 1 })),
+            ...toQuantityPayload(options.coffee ?? {}),
+            ...toQuantityPayload(options.syrup ?? {}),
+            ...(options.milk ?? [])
+                .map((optionId) => {
+                    const id = toNumericId(optionId);
+                    return id === null ? null : { optionId: id, quantity: 1 };
+                })
+                .filter((v): v is { optionId: number; quantity: number } => v !== null),
         ];
 
         const yyyy = selectedDate.getFullYear();
@@ -102,11 +120,8 @@ const RecordingDetail = () => {
         try {
             const res = await createIntakeRecord({
                 menuSizeId,
-                menuId: Number.isNaN(Number(drinkId)) ? drinkId : Number(drinkId),
-                brandId,
-                recordedAt: recordDate,
-                temperature: temperature === 'hot' ? 'HOT' : 'ICED',
-                sizeName: size,
+                intakeDate: recordDate,
+                quantity: 1,
                 options: optionPayload,
             });
 
@@ -118,9 +133,9 @@ const RecordingDetail = () => {
             navigation.navigate('Send');
         } catch (e: any) {
             if (__DEV__) {
-                console.log('[API ERR] /records status:', e?.response?.status);
-                console.log('[API ERR] /records data:', e?.response?.data);
-                console.log('[API ERR] /records message:', e?.message);
+                console.log('[API ERR] /intakes status:', e?.response?.status);
+                console.log('[API ERR] /intakes data:', e?.response?.data);
+                console.log('[API ERR] /intakes message:', e?.message);
             }
             Alert.alert('섭취 기록 실패', '기록 저장에 실패했습니다.');
         } finally {

@@ -13,6 +13,7 @@ import { colors } from '../../constants/colors';
 
 import PeriodSelectBottomSheet from '../../components/common/PeriodSelectBottomSheet';
 import DrinkList from '../../components/common/MenuItem';
+import OptionText from '../../components/common/OptionText';
 
 import {
   fetchDailyIntake,
@@ -181,14 +182,14 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
       <DrinkList
         brandName={d.brandName}
         menuName={d.menuName}
-        optionText={d.optionText}
+        optionText={<OptionText text={d.optionText || '옵션 없음'} />}
         pills={[
           { label: '카페인', value: d.caffeineMg, unit: 'mg' },
           { label: '당류', value: d.sugarG, unit: 'g' },
         ]}
         rightText={d.count ? `${d.count}잔` : undefined}
         onPress={() => {
-          // TODO: 상세 화면 이동 필요 시 여기서 navigate
+          navigation.navigate('IntakeDetail', { intakeId: d.id });
         }}
       />
     );

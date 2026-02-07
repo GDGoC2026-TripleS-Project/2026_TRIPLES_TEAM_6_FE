@@ -93,7 +93,11 @@ const RecordDrinkDetail = () => {
                     setSizes(res.data);
                     if (res.data.length > 0) {
                         const next = res.data[0].sizeName;
-                        setSelectedSize((prev) => (prev ? prev : next));
+                        setSelectedSize((prev) => {
+                            if (!prev) return next;
+                            const exists = res.data.some((s) => s.sizeName === prev);
+                            return exists ? prev : next;
+                        });
                     }
                 } else {
                     setSizeLoadError(res.error?.message ?? '사이즈 정보를 불러오지 못했어요.');
