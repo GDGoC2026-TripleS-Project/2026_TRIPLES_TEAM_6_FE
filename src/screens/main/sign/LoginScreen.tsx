@@ -36,31 +36,30 @@ const LoginScreen: React.FC = () => {
   const errorMessage = useAuthStore((s) => s.errorMessage);
 
   const googleClientId =
-    process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ??
-    "1073477248905-t75dpkijvnlgdu7p3pgr81k7vtplii2u.apps.googleusercontent.com";
-
+    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ??
+    "1073477248905-mei7dih847gegd2vh3ovf78m0oib4eds.apps.googleusercontent.com";
   // Google AuthSession (Expo)
   const [, response, promptAsync] = Google.useAuthRequest({
-    clientId: googleClientId,
+  iosClientId: googleClientId,
+  androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
   });
 
   // Google 로그인 완료 후 서버로 토큰 전달
+  
   useEffect(() => {
     const run = async () => {
       if (response?.type !== "success") return;
 
-      const providerAccessToken = response.authentication?.accessToken;
-      const identityToken = response.authentication?.idToken;
+      const providerToken = response.authentication?.idToken;
 
-      if (!providerAccessToken && !identityToken) {
+      if (!providerToken) {
         Alert.alert("구글 로그인 실패", "토큰을 가져오지 못했어요.");
         return;
       }
 
       const ok = await socialLogin({
         provider: "GOOGLE",
-        providerAccessToken,
-        identityToken: identityToken ?? undefined,
+        providerToken,
         autoLogin: true,
       });
 
@@ -80,20 +79,20 @@ const LoginScreen: React.FC = () => {
       Alert.alert("구글 로그인 실패", "다시 시도해 주세요.");
     }
   };
-
+  // 카카오 로그인
   const onKakaoPress = async () => {
     try {
       const token = await kakaoSdkLogin();
-      const providerAccessToken = token?.accessToken;
+      const providerToken = token?.accessToken;
 
-      if (!providerAccessToken) {
+      if (!providerToken) {
         Alert.alert("카카오 로그인 실패", "accessToken을 가져오지 못했어요.");
         return;
       }
 
       const ok = await socialLogin({
-        provider: "KAKAO",
-        providerAccessToken,
+        provider: 'KAKAO',
+        providerToken,
         autoLogin: true,
       });
 
@@ -106,47 +105,51 @@ const LoginScreen: React.FC = () => {
     }
   };
 
+  // 애플 로그인
   const onApplePress = async () => {
-    try {
-      const available = await AppleAuthentication.isAvailableAsync();
-      if (!available) {
-        Alert.alert("Apple 로그인 불가", "이 기기에서는 Apple 로그인을 사용할 수 없어요.");
-        return;
-      }
-
-      const credential = await AppleAuthentication.signInAsync({
-        requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        ],
-      });
-
-      const identityToken = credential.identityToken ?? undefined;
-      const authorizationCode = credential.authorizationCode ?? undefined;
-      const nickname = credential.fullName?.givenName ?? undefined;
-
-      if (!identityToken && !authorizationCode) {
-        Alert.alert("Apple 로그인 실패", "인증 정보를 가져오지 못했어요.");
-        return;
-      }
-
-      const ok = await socialLogin({
-        provider: "APPLE",
-        identityToken,
-        authorizationCode,
-        email: credential.email ?? undefined,
-        nickname,
-        autoLogin: true,
-      });
-
-      if (!ok) {
-        Alert.alert("로그인 실패", useAuthStore.getState().errorMessage ?? "다시 시도해 주세요.");
-      }
-    } catch (e: any) {
-      if (e?.code === "ERR_REQUEST_CANCELED") return;
-      Alert.alert("Apple 로그인 실패", "다시 시도해 주세요.");
+  try {
+    const available = await AppleAuthentication.isAvailableAsync();
+    if (!available) {
+      Alert.alert(
+        "Apple 로그인 불가",
+        "이 기기에서는 Apple 로그인을 사용할 수 없어요."
+      );
+      return;
     }
-  };
+
+    const credential = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+      ],
+    });
+
+    const providerToken = credential.identityToken;
+
+    if (!providerToken) {
+      Alert.alert("Apple 로그인 실패", "ID Token을 가져오지 못했어요.");
+      return;
+    }
+
+    const ok = await socialLogin({
+      provider: "APPLE",
+      providerToken,
+      email: credential.email ?? undefined, // 최초 로그인 시에만 내려옴
+      autoLogin: true,
+    });
+
+    if (!ok) {
+      Alert.alert(
+        "로그인 실패",
+        useAuthStore.getState().errorMessage ?? "다시 시도해 주세요."
+      );
+    }
+  } catch (e: any) {
+    if (e?.code === "ERR_REQUEST_CANCELED") return;
+    Alert.alert("Apple 로그인 실패", "다시 시도해 주세요.");
+  }
+};
+
 
   // 로컬 로그인
   const handleLogin = async () => {
