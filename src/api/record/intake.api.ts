@@ -140,7 +140,7 @@ const normalizePeriodIntake = (raw: any, fallbackStart?: string, fallbackEnd?: s
 };
 
 export const fetchDailyIntake = async (date: string): Promise<ApiResponse<DailyIntake>> => {
-  const res = await api.get<ApiResponse<any>>('/records/daily', { params: { date } });
+  const res = await api.get<ApiResponse<any>>('/intakes/daily', { params: { date } });
   const normalized = normalizeApiResponse(res.data);
   if (normalized.success && normalized.data) {
     return { ...normalized, data: normalizeDailyIntake(normalized.data, date) };
@@ -152,7 +152,7 @@ export const fetchPeriodIntake = async (
   startDate: string,
   endDate: string
 ): Promise<ApiResponse<PeriodIntake>> => {
-  const res = await api.get<ApiResponse<any>>('/records/period', {
+  const res = await api.get<ApiResponse<any>>('/intakes/period', {
     params: { startDate, endDate },
   });
   const normalized = normalizeApiResponse(res.data);
@@ -165,7 +165,7 @@ export const fetchPeriodIntake = async (
 export const fetchIntakeDetail = async (
   recordId: number | string
 ): Promise<ApiResponse<IntakeDetail>> => {
-  const res = await api.get<ApiResponse<any>>(`/records/${recordId}`);
+  const res = await api.get<ApiResponse<any>>(`/intakes/${recordId}`);
   const normalized = normalizeApiResponse(res.data);
   if (normalized.success && normalized.data) {
     return { ...normalized, data: normalizeDrink(normalized.data, 0) as IntakeDetail };
@@ -176,6 +176,12 @@ export const fetchIntakeDetail = async (
 export const createIntakeRecord = async (
   payload: CreateIntakePayload
 ): Promise<ApiResponse<{ recordId?: number | string }>> => {
-  const res = await api.post<ApiResponse<{ recordId?: number | string }>>('/records', payload);
+  const cleanPayload = Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined)
+  ) as CreateIntakePayload;
+  const res = await api.post<ApiResponse<{ recordId?: number | string }>>(
+    '/intakes',
+    cleanPayload
+  );
   return normalizeApiResponse(res.data);
 };

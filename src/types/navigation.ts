@@ -4,14 +4,15 @@ import { CompositeNavigationProp, NavigatorScreenParams } from '@react-navigatio
 
 export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList>;
-  Record: undefined;
-  RecordDetail: { brandName: string; brandId: string };
-  RecordDrinkDetail: { drinkName: string; drinkId: string };
+  Record: { selectedDate?: string } | undefined;
+  RecordDetail: { brandName: string; brandId: string; selectedDate?: string };
+  RecordDrinkDetail: { drinkName: string; drinkId: string; selectedDate?: string };
   RecordingDetail: {
     drinkName: string;
     drinkId: string;
     brandName: string;
     brandId?: number;
+    selectedDate?: string;
     temperature: 'hot' | 'ice';
     size: string;
     menuSizeId?: number;

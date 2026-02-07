@@ -149,7 +149,7 @@ export default function MyPageScreen() {
         {user.profileImageUrl ? (
           <Image source={{ uri: user.profileImageUrl }} style={styles.avatar} />
         ) : (
-          <MyPageProflie width={53} height={53} />
+          <MyPageProflie width={57} height={57} />
         )}
 
         <View style={styles.nameRow}>
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 15,
+    paddingVertical: 12,
   },
   avatar: {
     width: 44,
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     color: colors.grayscale[100],
     fontSize: 17,
     fontFamily: 'Pretendard-SemiBold',
-    marginLeft: 12,
+    marginLeft: 4,
   },
   providerIcon: {
     marginLeft: 7,

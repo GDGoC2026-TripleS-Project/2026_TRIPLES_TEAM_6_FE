@@ -26,6 +26,7 @@ const RecordingDetail = () => {
         drinkName,
         brandName,
         brandId,
+        selectedDate: selectedDateParam,
         temperature,
         size,
         options,
@@ -34,7 +35,11 @@ const RecordingDetail = () => {
         menuSizeId,
         baseNutrition,
     } = route.params;
-    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedDate, setSelectedDate] = useState(() => {
+        if (!selectedDateParam) return new Date();
+        const parsed = new Date(selectedDateParam);
+        return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+    });
     const [baseCaffeine, setBaseCaffeine] = useState(baseNutrition?.caffeineMg ?? 150);
     const [baseSugar, setBaseSugar] = useState(baseNutrition?.sugarG ?? 3);
     
@@ -97,12 +102,12 @@ const RecordingDetail = () => {
         try {
             const res = await createIntakeRecord({
                 menuSizeId,
-                menuId: drinkId,
+                menuId: Number.isNaN(Number(drinkId)) ? drinkId : Number(drinkId),
                 brandId,
                 recordedAt: recordDate,
                 temperature: temperature === 'hot' ? 'HOT' : 'ICED',
                 sizeName: size,
-                options: optionPayload.length > 0 ? optionPayload : undefined,
+                options: optionPayload,
             });
 
             if (!res.success) {
@@ -111,7 +116,12 @@ const RecordingDetail = () => {
             }
 
             navigation.navigate('Send');
-        } catch {
+        } catch (e: any) {
+            if (__DEV__) {
+                console.log('[API ERR] /records status:', e?.response?.status);
+                console.log('[API ERR] /records data:', e?.response?.data);
+                console.log('[API ERR] /records message:', e?.message);
+            }
             Alert.alert('섭취 기록 실패', '기록 저장에 실패했습니다.');
         } finally {
             setIsSubmitting(false);
