@@ -30,7 +30,7 @@ type AuthState = {
   login: (args: { loginId: string; password: string; autoLogin: boolean }) => Promise<boolean>;
   logout: () => Promise<void>;
   hydrate: () => Promise<void>;
-  signup: (args: { loginId: string; password: string; nickname: string; autoLogin: boolean }) => Promise<boolean>;
+  signup: (args: { loginId: string; password: string; nickname: string; email: string; autoLogin: boolean }) => Promise<boolean>;
   checkLoginIdAvailable: (loginId: string) => Promise<{ ok: boolean; message?: string }>;
   checkNicknameAvailable: (nickname: string) => Promise<{ ok: boolean; message?: string }>;
   socialLogin: (args: SocialLoginPayload & { autoLogin?: boolean }) => Promise<boolean>;
@@ -181,11 +181,11 @@ console.log('[LOGIN TOKENS]', tokens);
     set({ user: null, accessToken: null, refreshToken: null });
     useUserStore.getState().clear();
   },
-  signup: async ({ loginId, password, nickname, autoLogin }) => {
+  signup: async ({ loginId, password, nickname, email, autoLogin }) => {
     set({ isLoading: true, errorMessage: undefined });
 
     try {
-      const result = await authApiLayer.signup({ loginId, password, nickname });
+      const result = await authApiLayer.signup({ loginId, password, nickname, email });
       const { user, tokens } = result.data.data;
 
       await Promise.all([
@@ -207,7 +207,14 @@ console.log('[LOGIN TOKENS]', tokens);
 
       return true;
     } catch (e: any) {
+      if (__DEV__) {
+        console.log('[SIGNUP ERR] status:', e?.response?.status);
+        console.log('[SIGNUP ERR] data:', e?.response?.data);
+        console.log('[SIGNUP ERR] fieldErrors:', e?.response?.data?.error?.fieldErrors);
+        console.log('[SIGNUP ERR] message:', e?.message);
+      }
       const msg =
+        e?.response?.data?.error?.message ??
         e?.response?.data?.message ??
         e?.message ??
         '회원가입에 실패했어요. 입력값을 확인해 주세요.';
@@ -220,10 +227,22 @@ console.log('[LOGIN TOKENS]', tokens);
   checkLoginIdAvailable: async (loginId: string) => {
     try {
       const res = await authApiLayer.checkLoginId(loginId);
+      if (__DEV__) {
+        console.log('[CHECK LOGIN ID RES]', res?.data);
+      }
       const available = res.data?.data?.isAvailable ?? res.data?.data?.available;
+
+      if (available === false) {
+        return { ok: false, message: '이미 사용 중인 아이디입니다.' };
+      }
 
       return { ok: typeof available === 'boolean' ? available : true };
     } catch (e: any) {
+      if (__DEV__) {
+        console.log('[CHECK LOGIN ID ERR] status:', e?.response?.status);
+        console.log('[CHECK LOGIN ID ERR] data:', e?.response?.data);
+        console.log('[CHECK LOGIN ID ERR] message:', e?.message);
+      }
       return {
         ok: false,
         message: e?.response?.data?.message ?? e?.message ?? '?꾩씠?붽? ?대? ?ъ슜 以묒엯?덈떎.',
@@ -234,10 +253,22 @@ console.log('[LOGIN TOKENS]', tokens);
   checkNicknameAvailable: async (nickname: string) => {
     try {
       const res = await authApiLayer.checkNickname(nickname);
+      if (__DEV__) {
+        console.log('[CHECK NICKNAME RES]', res?.data);
+      }
       const available = res.data?.data?.isAvailable ?? res.data?.data?.available;
+
+      if (available === false) {
+        return { ok: false, message: '이미 사용 중인 닉네임입니다.' };
+      }
 
       return { ok: typeof available === 'boolean' ? available : true };
     } catch (e: any) {
+      if (__DEV__) {
+        console.log('[CHECK NICKNAME ERR] status:', e?.response?.status);
+        console.log('[CHECK NICKNAME ERR] data:', e?.response?.data);
+        console.log('[CHECK NICKNAME ERR] message:', e?.message);
+      }
       return {
         ok: false,
         message: e?.response?.data?.message ?? e?.message ?? '?됰꽕?꾩씠 ?대? ?ъ슜 以묒엯?덈떎.',

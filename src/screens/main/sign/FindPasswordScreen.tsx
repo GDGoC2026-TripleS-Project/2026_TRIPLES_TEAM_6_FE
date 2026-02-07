@@ -64,12 +64,20 @@ const FindPasswordScreen: React.FC = () => {
         loginId: userName.trim(),
         email: email.trim(),
       });
-      if ((res as any)?.data?.requested === false) {
+      if (__DEV__) {
+        console.log('[PW RESET REQUEST RES]', res?.data);
+      }
+      if (res?.data?.data?.requested === false) {
         Alert.alert("요청 실패", "비밀번호 재설정 요청에 실패했습니다.");
         return;
       }
       Alert.alert("요청 완료", "비밀번호 재설정 안내를 전송했습니다.");
     } catch (e: any) {
+      if (__DEV__) {
+        console.log('[PW RESET REQUEST ERR] status:', e?.response?.status);
+        console.log('[PW RESET REQUEST ERR] data:', e?.response?.data);
+        console.log('[PW RESET REQUEST ERR] message:', e?.message);
+      }
       Alert.alert(
         "요청 실패",
         e?.response?.data?.message ?? e?.message ?? "비밀번호 재설정 요청에 실패했습니다."

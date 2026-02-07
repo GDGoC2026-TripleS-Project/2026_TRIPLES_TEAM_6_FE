@@ -9,10 +9,12 @@ import { authApiLayer } from "../../../app/features/auth/auth.api";
 const PasswordResetInputScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const [loginId, setLoginId] = useState("");
+  const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordCheck, setNewPasswordCheck] = useState("");
 
   const [loginIdError, setLoginIdError] = useState<string | undefined>();
+  const [tokenError, setTokenError] = useState<string | undefined>();
   const [newPasswordError, setNewPasswordError] = useState<string | undefined>();
   const [newPasswordCheckError, setNewPasswordCheckError] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,6 +36,13 @@ const PasswordResetInputScreen: React.FC = () => {
       ok = false;
     } else {
       setLoginIdError(undefined);
+    }
+
+    if (!token.trim()) {
+      setTokenError('재설정 토큰을 입력해 주세요.');
+      ok = false;
+    } else {
+      setTokenError(undefined);
     }
 
     if (!newPassword) {
@@ -62,13 +71,14 @@ const PasswordResetInputScreen: React.FC = () => {
   const canSubmit = useMemo(() => {
     return (
       loginId.trim() &&
+      token.trim() &&
       newPassword &&
       newPasswordCheck &&
       isValidLoginId(loginId.trim()) &&
       isValidPassword(newPassword) &&
       newPassword === newPasswordCheck
     );
-  }, [loginId, newPassword, newPasswordCheck]);
+  }, [loginId, token, newPassword, newPasswordCheck]);
 
   const onSubmit = async () => {
     const ok = validateAll();
@@ -79,14 +89,24 @@ const PasswordResetInputScreen: React.FC = () => {
     try {
       const res = await authApiLayer.confirmPasswordReset({
         loginId: loginId.trim(),
+        token: token.trim(),
         newPassword,
       });
-      if ((res as any)?.data?.reset === false) {
+      if (res?.data?.data?.reset === false) {
         Alert.alert('재설정 실패', '비밀번호 재설정에 실패했습니다.');
         return;
       }
       navigation.navigate('PasswordResetScreen');
     } catch (e: any) {
+      if (__DEV__) {
+        console.log('[PW RESET CONFIRM ERR] status:', e?.response?.status);
+        console.log('[PW RESET CONFIRM ERR] data:', e?.response?.data);
+        console.log(
+          '[PW RESET CONFIRM ERR] fieldErrors:',
+          JSON.stringify(e?.response?.data?.error?.fieldErrors)
+        );
+        console.log('[PW RESET CONFIRM ERR] message:', e?.message);
+      }
       Alert.alert(
         '재설정 실패',
         e?.response?.data?.message ?? e?.message ?? '비밀번호 재설정에 실패했습니다.'
@@ -120,6 +140,18 @@ const PasswordResetInputScreen: React.FC = () => {
           }}
           autoCapitalize="none"
           error={loginIdError}
+        />
+
+        <Text style={styles.label}>재설정 토큰</Text>
+        <TextField
+          placeholder="메일로 받은 토큰 입력"
+          value={token}
+          onChangeText={(t) => {
+            setToken(t);
+            if (tokenError) setTokenError(undefined);
+          }}
+          autoCapitalize="none"
+          error={tokenError}
         />
 
         <Text style={styles.label}>새 비밀번호</Text>

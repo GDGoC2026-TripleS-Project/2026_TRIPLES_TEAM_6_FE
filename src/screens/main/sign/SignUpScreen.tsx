@@ -114,9 +114,6 @@ const SignUpScreen: React.FC = () => {
     if (eErr) ok = false;
 
     if (!agree) ok = false;
-    if (!loginIdChecked) ok = false;
-    if (!nicknameChecked) ok = false;
-
     return ok;
   };
 
@@ -178,8 +175,6 @@ const SignUpScreen: React.FC = () => {
         password === passwordCheck &&
         isValidNickname(nickname.trim()) &&
         isValidEmail(email.trim()) &&
-        loginIdChecked &&
-        nicknameChecked &&
         !isCheckingLoginId &&
         !isCheckingNickname &&
         agree
@@ -190,8 +185,6 @@ const SignUpScreen: React.FC = () => {
     passwordCheck,
     nickname,
     email,
-    loginIdChecked,
-    nicknameChecked,
     isCheckingLoginId,
     isCheckingNickname,
     agree,
@@ -209,10 +202,16 @@ const SignUpScreen: React.FC = () => {
       loginId: userName.trim(),
       password,
       nickname: nickname.trim(),
+      email: email.trim(),
       autoLogin: true,
     });
 
     if (!success) {
+      if (errorMessage?.includes("이메일")) {
+        setTouched((p) => ({ ...p, email: true }));
+        setEmailError(errorMessage);
+        return;
+      }
       Alert.alert("회원가입 실패", errorMessage ?? "다시 시도해 주세요.");
       return;
     }
