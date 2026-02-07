@@ -30,6 +30,13 @@ type CalendarProps = {
 
 const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPress, style }: CalendarProps) => {
     const eventSet = useMemo(() => new Set(events), [events]);
+    const todayYmd = useMemo(() => {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }, []);
 
     const isSame = (a?: string, b?: string) => !!a && !!b && a === b;
     const isBetween = (d: string, start?: string, end?: string) => {
@@ -57,7 +64,7 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                     const isSingleDay = hasRange && startDate === endDate;
                     const isInRange = hasRange && (isBetween(dateString, startDate, endDate) || isStart || isEnd);
                     const isDisabled = state === 'disabled';
-                    const isToday = showToday && state === 'today';
+                    const isToday = showToday && dateString === todayYmd;
 
                     return (
                         <Pressable
@@ -78,16 +85,16 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                             <View
                                 style={[
                                     styles.dayCircle,
-                                    (isStart || isEnd) && styles.dayCircleActive,
-                                    isToday && !(isStart || isEnd) && styles.dayCircleToday,
+                                    (isStart || isEnd) && !isToday && styles.dayCircleActive,
+                                    isToday && styles.dayCircleToday,
                                 ]}
                             >
                                 <Text
                                     style={[
                                         styles.dayText,
                                         isDisabled && styles.dayTextDisabled,
-                                        (isStart || isEnd) && styles.dayTextActive,
-                                        isToday && !(isStart || isEnd) && styles.dayTextToday,
+                                        (isStart || isEnd) && !isToday && styles.dayTextActive,
+                                        isToday && styles.dayTextToday,
                                     ]}
                                 >
                                     {date.day}
@@ -114,7 +121,7 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                     selectedDayBackgroundColor: colors.grayscale[600],
                     selectedDayTextColor: colors.grayscale[100],
                     todayTextColor: '#0B0B0B',
-                    todayBackgroundColor: colors.primary[500],
+                    todayBackgroundColor: colors.primary[300],
                     dayTextColor: colors.grayscale[100],
                     textDisabledColor: colors.grayscale[600],
                     monthTextColor: colors.grayscale[100],
@@ -133,7 +140,7 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                             height: 28,
                         },
                         today: {
-                            backgroundColor: colors.primary[500],
+                            backgroundColor: colors.primary[300],
                             borderRadius: 14,
                             width: 28,
                             height: 28,
@@ -232,7 +239,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.primary[500],
     },
     dayCircleToday: {
-        backgroundColor: colors.primary[500],
+        backgroundColor: colors.primary[300],
     },
     dayText: {
         color: colors.grayscale[200],

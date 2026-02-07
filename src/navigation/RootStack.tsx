@@ -1,7 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppNavigator from './AppNavigator';
-import RecordScreen from '../screens/main/record/ReocrdScreen';
+import RecordScreen from '../screens/main/record/RecordScreen';
 import RecordDetailScreen from '../screens/main/record/RecordDetail';
 import RecordDrinkDetail from '../screens/main/record/RecordDrinkDetail';
 import RecordingDetail from '../screens/main/record/RecordingDetail';

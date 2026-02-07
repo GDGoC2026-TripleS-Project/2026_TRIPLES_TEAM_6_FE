@@ -123,6 +123,7 @@ function GoalSection({
 export default function GoalEditScreen({ navigation }: { navigation?: any }) {
   const initialCaffeine = useGoalStore((s) => s.caffeine);
   const initialSugar = useGoalStore((s) => s.sugar);
+  const setGoals = useGoalStore((s) => s.setGoals);
 
   const [caffeine, setCaffeine] = useState(initialCaffeine);
   const [sugar, setSugar] = useState(initialSugar);
@@ -136,7 +137,7 @@ export default function GoalEditScreen({ navigation }: { navigation?: any }) {
     sugar !== initialGoalsRef.current.sugar;
 
   const onSave = () => {
-    // TODO: 저장 로직 연결 (zustand / api)
+    setGoals({ caffeine, sugar });
     navigation?.goBack?.();
   };
 

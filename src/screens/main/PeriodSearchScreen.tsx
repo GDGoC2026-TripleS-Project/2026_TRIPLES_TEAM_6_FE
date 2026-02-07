@@ -125,7 +125,7 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* 헤더 */}
+      
       <View style={styles.header}>
         <Pressable
           onPress={() => navigation.goBack?.()}
@@ -138,7 +138,6 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
         <View style={{ width: 24 }} />
       </View>
 
-      {/* 기간 + 변경하기 */}
       <View style={styles.periodRow}>
         <Text style={styles.periodText}>
           {toKoreanDate(normalized.start)} - {toKoreanDate(normalized.end)}
@@ -148,7 +147,6 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
         </Pressable>
       </View>
 
-      {/* 요약 */}
       <View style={styles.summaryWrap}>
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>섭취한 카페인</Text>
@@ -166,7 +164,6 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
         </View>
       </View>
 
-      {/* 리스트 */}
       <FlatList
         data={rows}
         keyExtractor={(item) => item.id}
@@ -180,7 +177,6 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
         }
       />
 
-      {/* 기간 선택 바텀시트 */}
       <PeriodSelectBottomSheet
         visible={sheetVisible}
         onClose={() => setSheetVisible(false)}
