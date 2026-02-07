@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { colors } from '../../constants/colors';
 import Coffee from '../../../assets/ComponentsImage/coffeeImg.svg';
@@ -12,7 +12,13 @@ import AddRecordButton from '../../components/common/AddRecordButton';
 import DrinkDetailSheet, { type DrinkLike } from '../../components/common/DrinkDetailSheet';
 import { Ionicons } from '@expo/vector-icons';
 
-import { findDrinksByDate, getEventDates, type Drink } from '../../data/drinksData';
+import { useGoalStore } from '../../store/goalStore';
+import {
+  fetchDailyIntake,
+  fetchPeriodIntake,
+  type DailyIntake,
+  type IntakeDrink,
+} from '../../api/record/intake.api';
 
 import { useNavigation } from '@react-navigation/native';
 import type { MainTabNavigationProp } from '../../types/navigation';
@@ -30,6 +36,19 @@ const toKoreanDate = (dateString: string) => {
   return `${y}년 ${Number(m)}월 ${Number(d)}일`;
 };
 
+const toMonthRange = (dateString: string) => {
+  const [yRaw, mRaw] = dateString.split('-');
+  const y = Number(yRaw);
+  const m = Number(mRaw);
+  if (!y || !m) {
+    return { start: dateString, end: dateString };
+  }
+  const start = `${y}-${String(m).padStart(2, '0')}-01`;
+  const endDate = new Date(y, m, 0);
+  const end = `${y}-${String(m).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+  return { start, end };
+};
+
 type Nav = MainTabNavigationProp<'Calendar'>;
 
 export default function CalendarScreen() {
@@ -42,19 +61,25 @@ export default function CalendarScreen() {
   const [selectedDrink, setSelectedDrink] = useState<DrinkLike | null>(null);
   const [periodSheetOpen, setPeriodSheetOpen] = useState(false);
 
-  const events = useMemo(() => getEventDates(), []);
+  const [daily, setDaily] = useState<DailyIntake | null>(null);
+  const [dailyLoading, setDailyLoading] = useState(false);
+  const [dailyError, setDailyError] = useState<string | null>(null);
+  const [eventDates, setEventDates] = useState<string[]>([]);
+
+  const caffeineGoal = useGoalStore((s) => s.caffeine);
+  const sugarGoal = useGoalStore((s) => s.sugar);
+
   const calendarEvents = useMemo(() => {
     const skippedDates = Object.entries(skippedByDate)
       .filter(([, skipped]) => skipped)
       .map(([date]) => date);
 
-    return Array.from(new Set([...events, ...skippedDates]));
-  }, [events, skippedByDate]);
-  const baseDrinks = useMemo(() => findDrinksByDate(selectedDate), [selectedDate]);
+    return Array.from(new Set([...eventDates, ...skippedDates]));
+  }, [eventDates, skippedByDate]);
 
   const isSkipped = !!skippedByDate[selectedDate];
-  const drinks: Drink[] = baseDrinks;
-  const summaryDrinks: Drink[] = isSkipped ? [] : drinks;
+  const drinks: IntakeDrink[] = daily?.drinks ?? [];
+  const summaryDrinks = isSkipped ? [] : drinks;
 
   const today = todayString();
   const isToday = selectedDate === today;
@@ -68,6 +93,69 @@ export default function CalendarScreen() {
     if (!isToday && hasRecord) return 'past_has';
     return 'past_empty';
   }, [isFuture, isToday, hasRecord]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadDaily = async () => {
+      setDailyLoading(true);
+      setDailyError(null);
+      try {
+        const res = await fetchDailyIntake(selectedDate);
+        if (!isMounted) return;
+        if (res.success && res.data) {
+          setDaily(res.data);
+        } else {
+          setDaily({
+            date: selectedDate,
+            totalCaffeineMg: 0,
+            totalSugarG: 0,
+            drinkCount: 0,
+            drinks: [],
+          });
+          setDailyError(res.error?.message ?? '일별 기록을 불러오지 못했습니다.');
+        }
+      } catch {
+        if (!isMounted) return;
+        setDaily({
+          date: selectedDate,
+          totalCaffeineMg: 0,
+          totalSugarG: 0,
+          drinkCount: 0,
+          drinks: [],
+        });
+        setDailyError('일별 기록을 불러오지 못했습니다.');
+      } finally {
+        if (isMounted) setDailyLoading(false);
+      }
+    };
+    loadDaily();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedDate]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const { start, end } = toMonthRange(selectedDate);
+    const loadEvents = async () => {
+      try {
+        const res = await fetchPeriodIntake(start, end);
+        if (!isMounted) return;
+        if (res.success && res.data) {
+          setEventDates(res.data.dates ?? []);
+        } else {
+          setEventDates([]);
+        }
+      } catch {
+        if (!isMounted) return;
+        setEventDates([]);
+      }
+    };
+    loadEvents();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedDate]);
 
   const onToggleSkip = (next: boolean) => {
     setSkippedByDate((prev) => ({
@@ -91,7 +179,7 @@ export default function CalendarScreen() {
     });
   };
 
-  const openDetail = (drink: Drink) => {
+  const openDetail = (drink: IntakeDrink) => {
     setSelectedDrink(drink);
     setDetailOpen(true);
   };
@@ -147,7 +235,13 @@ export default function CalendarScreen() {
 
       {status !== 'future' && (
         <>
-          {(hasRecord || isSkipped) && <NutritionSummary drinks={summaryDrinks} />}
+          {(hasRecord || isSkipped) && (
+            <NutritionSummary
+              drinks={summaryDrinks}
+              caffeineMax={caffeineGoal}
+              sugarMax={sugarGoal}
+            />
+          )}
 
           {!hasRecord && !isSkipped && (
             <View style={styles.centerBox}>

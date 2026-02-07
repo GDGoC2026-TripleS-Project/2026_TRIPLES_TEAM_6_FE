@@ -1,21 +1,40 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Alert } from "react-native";
 import { colors } from "../../../constants/colors";
+import { useNavigation } from "@react-navigation/native";
 import TextField from "../../../components/common/TextField";
 import Button from "../../../components/common/Button";
+import { authApiLayer } from "../../../app/features/auth/auth.api";
 
 const PasswordResetInputScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
+  const [loginId, setLoginId] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordCheck, setNewPasswordCheck] = useState("");
 
+  const [loginIdError, setLoginIdError] = useState<string | undefined>();
   const [newPasswordError, setNewPasswordError] = useState<string | undefined>();
   const [newPasswordCheckError, setNewPasswordCheckError] = useState<string | undefined>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isValidLoginId = (v: string) =>
+    /^[a-zA-Z0-9]+$/.test(v) && /[a-zA-Z]/.test(v) && /[0-9]/.test(v);
 
   const isValidPassword = (v: string) =>
     v.length >= 8 && /[a-zA-Z]/.test(v) && /[0-9]/.test(v);
 
   const validateAll = () => {
     let ok = true;
+
+    if (!loginId.trim()) {
+      setLoginIdError('??? ID? ??? ???.');
+      ok = false;
+    } else if (!isValidLoginId(loginId.trim())) {
+      setLoginIdError('??? ID ??? ???? ????.');
+      ok = false;
+    } else {
+      setLoginIdError(undefined);
+    }
 
     if (!newPassword) {
       setNewPasswordError("새 비밀번호를 입력해 주세요.");
@@ -42,19 +61,39 @@ const PasswordResetInputScreen: React.FC = () => {
 
   const canSubmit = useMemo(() => {
     return (
+      loginId.trim() &&
       newPassword &&
       newPasswordCheck &&
+      isValidLoginId(loginId.trim()) &&
       isValidPassword(newPassword) &&
       newPassword === newPasswordCheck
     );
-  }, [newPassword, newPasswordCheck]);
+  }, [loginId, newPassword, newPasswordCheck]);
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     const ok = validateAll();
     if (!ok) return;
 
-    console.log("비밀번호 재설정하기");
-    // api
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const res = await authApiLayer.confirmPasswordReset({
+        loginId: loginId.trim(),
+        newPassword,
+      });
+      if ((res as any)?.data?.reset === false) {
+        Alert.alert('재설정 실패', '비밀번호 재설정에 실패했습니다.');
+        return;
+      }
+      navigation.navigate('PasswordResetScreen');
+    } catch (e: any) {
+      Alert.alert(
+        '재설정 실패',
+        e?.response?.data?.message ?? e?.message ?? '비밀번호 재설정에 실패했습니다.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -65,6 +104,24 @@ const PasswordResetInputScreen: React.FC = () => {
       </View>
 
       <View style={styles.form}>
+        <Text style={styles.label}>로그인 ID</Text>
+        <TextField
+          placeholder="로그인 ID 입력"
+          value={loginId}
+          onChangeText={(t) => {
+            setLoginId(t);
+            if (!t) {
+              setLoginIdError('로그인 ID 형식이 올바르지 않습니다.');
+            } else if (!isValidLoginId(t.trim())) {
+              setLoginIdError('로그인 ID 형식이 올바르지 않습니다.');
+            } else {
+              setLoginIdError(undefined);
+            }
+          }}
+          autoCapitalize="none"
+          error={loginIdError}
+        />
+
         <Text style={styles.label}>새 비밀번호</Text>
         <TextField
           placeholder="영문, 숫자 포함 8자 이상"
@@ -103,7 +160,7 @@ const PasswordResetInputScreen: React.FC = () => {
       </View>
 
       <View style={styles.submitWrap}>
-        <Button title="재설정하기" disabled={!canSubmit} onPress={onSubmit} />
+        <Button title="재설정하기" disabled={!canSubmit || isSubmitting} onPress={onSubmit} />
       </View>
     </View>
   );

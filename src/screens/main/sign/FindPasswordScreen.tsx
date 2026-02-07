@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Alert } from "react-native";
 import { colors } from "../../../constants/colors";
 import TextField from "../../../components/common/TextField";
 import Button from "../../../components/common/Button";
+import { authApiLayer } from "../../../app/features/auth/auth.api";
 
 const FindPasswordScreen: React.FC = () => {
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [userNameError, setUserNameError] = useState<string | undefined>();
   const [emailError, setEmailError] = useState<string | undefined>();
@@ -51,12 +53,30 @@ const FindPasswordScreen: React.FC = () => {
     );
   }, [userName, email]);
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     const ok = validateAll();
     if (!ok) return;
 
-    console.log("재설정 링크 받기");
-    // api
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const res = await authApiLayer.requestPasswordReset({
+        loginId: userName.trim(),
+        email: email.trim(),
+      });
+      if ((res as any)?.data?.requested === false) {
+        Alert.alert("요청 실패", "비밀번호 재설정 요청에 실패했습니다.");
+        return;
+      }
+      Alert.alert("요청 완료", "비밀번호 재설정 안내를 전송했습니다.");
+    } catch (e: any) {
+      Alert.alert(
+        "요청 실패",
+        e?.response?.data?.message ?? e?.message ?? "비밀번호 재설정 요청에 실패했습니다."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -96,7 +116,11 @@ const FindPasswordScreen: React.FC = () => {
       </View>
 
       <View style={styles.submitWrap}>
-        <Button title="재설정 링크 받기" disabled={!canSubmit} onPress={onSubmit} />
+        <Button
+          title="재설정 링크 받기"
+          disabled={!canSubmit || isSubmitting}
+          onPress={onSubmit}
+        />
       </View>
     </View>
   );

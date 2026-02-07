@@ -1,10 +1,8 @@
 ﻿import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../../constants/colors';
-import type { Drink } from '../../data/drinksData';
-
 interface NutritionSummaryProps {
-  drinks: Drink[];
+  drinks: Array<{ caffeineMg: number; sugarG: number }>;
   caffeineMax?: number;
   sugarMax?: number;
 }
