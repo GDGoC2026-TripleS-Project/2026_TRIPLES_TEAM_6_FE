@@ -30,7 +30,7 @@ const INFO_MESSAGE = '커피를 제외한 옵션은 기록용 메모이며, 영�
 const RecordDrinkDetail = () => {
     const route = useRoute<RecordDrinkDetailRouteProp>();
     const navigation = useNavigation<RecordDrinkDetailNavigationProp>();
-    const { drinkId, drinkName } = route.params;
+    const { drinkId, drinkName, selectedDate } = route.params;
 
     const [temperature, setTemperature] = useState<'hot' | 'ice'>('hot');
     const [selectedSize, setSelectedSize] = useState<string>('Tall');
@@ -181,6 +181,7 @@ const RecordDrinkDetail = () => {
             drinkId,
             brandName: menuDetail?.brandName ?? '',
             brandId: menuDetail?.brandId,
+            selectedDate,
             temperature,
             size: selectedSize,
             menuSizeId: selectedSizeInfo?.menuSizeId,

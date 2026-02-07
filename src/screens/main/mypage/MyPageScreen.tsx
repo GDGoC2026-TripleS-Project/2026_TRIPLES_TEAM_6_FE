@@ -7,6 +7,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MainTabNavigationProp, RootStackParamList } from '../../../types/navigation';
 import { useAuthStore } from '../../../app/features/auth/auth.store';
 import { useUserStore } from '../../../app/features/user/user.store';
+import { useGoalStore } from '../../../store/goalStore';
 
 import GoogleLogin from '../../../../assets/ComponentsImage/GoogleLogin.svg';
 import KakaoLogin from '../../../../assets/ComponentsImage/KakaoLogin.svg';
@@ -55,6 +56,8 @@ export default function MyPageScreen() {
   const deleteMe = useUserStore((s) => s.deleteMe);
   const me = useUserStore((s) => s.me);
   const userError = useUserStore((s) => s.errorMessage);
+  const caffeine = useGoalStore((s) => s.caffeine);
+  const sugar = useGoalStore((s) => s.sugar);
   const rootNavigation =
     navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -105,7 +108,7 @@ export default function MyPageScreen() {
     name: me?.nickname ?? '라스트컵',
     provider,
     profileImageUrl: me?.profileImageUrl,
-    criteriaText: '카페인 400mg, 당류 25g',
+    criteriaText: `카페인 ${caffeine}mg, 당류 ${sugar}g`,
   };
 
   const ProviderIcon = ProviderIconMap[user.provider] ?? KakaoLogin;
@@ -146,7 +149,7 @@ export default function MyPageScreen() {
         {user.profileImageUrl ? (
           <Image source={{ uri: user.profileImageUrl }} style={styles.avatar} />
         ) : (
-          <MyPageProflie width={53} height={53} />
+          <MyPageProflie width={57} height={57} />
         )}
 
         <View style={styles.nameRow}>
@@ -281,7 +284,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 15,
+    paddingVertical: 12,
   },
   avatar: {
     width: 44,
@@ -299,7 +302,7 @@ const styles = StyleSheet.create({
     color: colors.grayscale[100],
     fontSize: 17,
     fontFamily: 'Pretendard-SemiBold',
-    marginLeft: 12,
+    marginLeft: 4,
   },
   providerIcon: {
     marginLeft: 7,

@@ -1,6 +1,7 @@
 import { FlatList, StyleSheet, View, Text } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RouteProp } from '@react-navigation/native';
 import SearchField from '../../../components/common/SearchField';
 import List from '../../../components/common/List';
 import { RootStackParamList } from '../../../types/navigation';
@@ -14,15 +15,22 @@ import {
 import { useBrands } from '../../../hooks/useBrands';
 
 type RecordScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Record'>;
+type RecordScreenRouteProp = RouteProp<RootStackParamList, 'Record'>;
 
 const RecordScreen = () => {
   const navigation = useNavigation<RecordScreenNavigationProp>();
+  const route = useRoute<RecordScreenRouteProp>();
+  const selectedDate = route.params?.selectedDate;
   const [searchQuery, setSearchQuery] = useState('');
 
   const { brands, setBrands, isLoading, error: loadError } = useBrands();
 
   const handleBrandPress = (brandId: number, brandName: string) => {
-    navigation.navigate('RecordDetail', { brandId: String(brandId), brandName });
+    navigation.navigate('RecordDetail', {
+      brandId: String(brandId),
+      brandName,
+      selectedDate,
+    });
   };
 
   const handleFavoriteToggle = async (brandId: number, nextLiked: boolean) => {

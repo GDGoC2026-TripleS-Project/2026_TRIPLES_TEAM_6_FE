@@ -35,6 +35,11 @@ const RecordDetailScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const { isFavorite, toggleFavorite } = useFavoriteMenus();
+  const apiCategory = useMemo(() => {
+    if (selectedCategory === 'all') return undefined;
+    return CATEGORY_TO_API[selectedCategory] ?? selectedCategory;
+  }, [selectedCategory]);
+
   const { menus, isLoading, error: loadError } = useBrandMenus({
     brandId,
     category: apiCategory,
@@ -43,11 +48,6 @@ const RecordDetailScreen = () => {
     size: 50,
     debounceMs: 250,
   });
-
-  const apiCategory = useMemo(() => {
-    if (selectedCategory === 'all') return undefined;
-    return CATEGORY_TO_API[selectedCategory] ?? selectedCategory;
-  }, [selectedCategory]);
 
   const handleDrinkPress = (drinkId: number, drinkName: string) => {
     navigation.navigate('RecordDrinkDetail', { drinkId: String(drinkId), drinkName });

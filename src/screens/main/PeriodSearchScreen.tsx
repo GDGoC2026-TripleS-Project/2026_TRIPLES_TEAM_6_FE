@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,12 @@ import { colors } from '../../constants/colors';
 import PeriodSelectBottomSheet from '../../components/common/PeriodSelectBottomSheet';
 import DrinkList from '../../components/common/MenuItem';
 
-import { findDrinksByRange, type Drink, MOCK_DAY_DRINKS } from '../../data/drinksData';
+import {
+  fetchDailyIntake,
+  fetchPeriodIntake,
+  type DailyIntake,
+  type IntakeDrink,
+} from '../../api/record/intake.api';
 
 type Props = {
   navigation: any;
@@ -31,9 +36,32 @@ const toSectionTitle = (dateString: string) => {
   return toKoreanDate(dateString);
 };
 
+const parseDate = (dateString: string) => {
+  const [y, m, d] = dateString.split('-').map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+};
+
+const toDateList = (start: string, end: string) => {
+  const startDate = parseDate(start);
+  const endDate = parseDate(end);
+  if (!startDate || !endDate) return [];
+
+  const dates: string[] = [];
+  const cursor = new Date(startDate);
+  while (cursor <= endDate) {
+    const yyyy = cursor.getFullYear();
+    const mm = String(cursor.getMonth() + 1).padStart(2, '0');
+    const dd = String(cursor.getDate()).padStart(2, '0');
+    dates.push(`${yyyy}-${mm}-${dd}`);
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return dates;
+};
+
 type SectionRow =
   | { type: 'header'; id: string; title: string }
-  | { type: 'drink'; id: string; date: string; drink: Drink };
+  | { type: 'drink'; id: string; date: string; drink: IntakeDrink };
 
 export default function PeriodSearchScreen({ navigation, route }: Props) {
   const initialStart = route?.params?.startDate ?? '2026-01-07';
@@ -42,30 +70,82 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
   const [sheetVisible, setSheetVisible] = useState(false);
   const [startDate, setStartDate] = useState<string>(initialStart);
   const [endDate, setEndDate] = useState<string>(initialEnd);
+  const [days, setDays] = useState<DailyIntake[]>([]);
+  const [summary, setSummary] = useState({
+    caffeineTotal: 0,
+    sugarTotal: 0,
+    drinkCount: 0,
+  });
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const normalized = useMemo(() => {
     if (!startDate || !endDate) return { start: startDate, end: endDate };
     return startDate <= endDate ? { start: startDate, end: endDate } : { start: endDate, end: startDate };
   }, [startDate, endDate]);
 
-  const rangeDrinks = useMemo(() => {
-    if (!normalized.start || !normalized.end) return [];
-    return findDrinksByRange(normalized.start, normalized.end);
-  }, [normalized.start, normalized.end]);
+  useEffect(() => {
+    let isMounted = true;
+    const loadPeriod = async () => {
+      if (!normalized.start || !normalized.end) {
+        setDays([]);
+        setSummary({ caffeineTotal: 0, sugarTotal: 0, drinkCount: 0 });
+        return;
+      }
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const periodRes = await fetchPeriodIntake(normalized.start, normalized.end);
+        if (isMounted && periodRes.success && periodRes.data) {
+          setSummary({
+            caffeineTotal: periodRes.data.totalCaffeineMg ?? 0,
+            sugarTotal: periodRes.data.totalSugarG ?? 0,
+            drinkCount: periodRes.data.drinkCount ?? 0,
+          });
+        } else if (isMounted) {
+          setSummary({ caffeineTotal: 0, sugarTotal: 0, drinkCount: 0 });
+        }
 
-  const dayGroups = useMemo(() => {
-    const daysInRange = MOCK_DAY_DRINKS
-      .filter((d) => d.date >= normalized.start && d.date <= normalized.end)
-      .slice()
-      .sort((a, b) => (a.date < b.date ? 1 : -1));
+        const dates = toDateList(normalized.start, normalized.end);
+        const dailyResults = await Promise.all(
+          dates.map(async (date) => {
+            try {
+              return await fetchDailyIntake(date);
+            } catch {
+              return null;
+            }
+          })
+        );
+        if (!isMounted) return;
 
-    return daysInRange;
+        const nextDays = dailyResults
+          .filter((res): res is { success: true; data: DailyIntake } =>
+            Boolean(res && (res as any).success && (res as any).data)
+          )
+          .map((res) => res.data)
+          .filter((day) => day.drinks.length > 0)
+          .sort((a, b) => (a.date < b.date ? 1 : -1));
+
+        setDays(nextDays);
+      } catch {
+        if (!isMounted) return;
+        setDays([]);
+        setSummary({ caffeineTotal: 0, sugarTotal: 0, drinkCount: 0 });
+        setLoadError('기간 기록을 불러오지 못했습니다.');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    loadPeriod();
+    return () => {
+      isMounted = false;
+    };
   }, [normalized.start, normalized.end]);
 
   const rows: SectionRow[] = useMemo(() => {
     const out: SectionRow[] = [];
 
-    for (const day of dayGroups) {
+    for (const day of days) {
       out.push({
         type: 'header',
         id: `h_${day.date}`,
@@ -83,16 +163,7 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
     }
 
     return out;
-  }, [dayGroups]);
-
-  const summary = useMemo(() => {
-    const caffeineTotal = rangeDrinks.reduce((acc, cur) => acc + (cur.caffeineMg ?? 0), 0);
-    const sugarTotal = rangeDrinks.reduce((acc, cur) => acc + (cur.sugarG ?? 0), 0);
-
-    const drinkCount = rangeDrinks.reduce((acc, cur) => acc + (cur.count ?? 1), 0);
-
-    return { caffeineTotal, sugarTotal, drinkCount };
-  }, [rangeDrinks]);
+  }, [days]);
 
   const handleConfirmPeriod = (s: string, e: string) => {
     setStartDate(s);
@@ -175,7 +246,9 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>조회된 음료가 없습니다.</Text>
+            <Text style={styles.emptyText}>
+              {loading ? '불러오는 중...' : loadError ?? '조회된 음료가 없습니다.'}
+            </Text>
           </View>
         }
       />
