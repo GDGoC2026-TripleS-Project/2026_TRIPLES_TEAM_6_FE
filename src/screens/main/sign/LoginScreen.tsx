@@ -36,15 +36,16 @@ const LoginScreen: React.FC = () => {
   const errorMessage = useAuthStore((s) => s.errorMessage);
 
   const googleClientId =
-    process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ??
-    "1073477248905-t75dpkijvnlgdu7p3pgr81k7vtplii2u.apps.googleusercontent.com";
-
+    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ??
+    "1073477248905-mei7dih847gegd2vh3ovf78m0oib4eds.apps.googleusercontent.com";
   // Google AuthSession (Expo)
   const [, response, promptAsync] = Google.useAuthRequest({
-    clientId: googleClientId,
+  iosClientId: googleClientId,
+  androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
   });
 
   // Google 로그인 완료 후 서버로 토큰 전달
+  
   useEffect(() => {
     const run = async () => {
       if (response?.type !== "success") return;
@@ -92,9 +93,9 @@ const LoginScreen: React.FC = () => {
       }
 
       const ok = await socialLogin({
-        provider: "KAKAO",
-        providerAccessToken,
-        autoLogin: true,
+        provider: 'KAKAO',
+        providerAccessToken: providerAccessToken,
+        
       });
 
       if (!ok) {

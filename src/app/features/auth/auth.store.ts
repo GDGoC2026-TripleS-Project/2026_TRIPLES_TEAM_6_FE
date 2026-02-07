@@ -41,7 +41,7 @@ type AuthState = {
   signup: (args: { loginId: string; password: string; nickname: string; autoLogin: boolean }) => Promise<boolean>;
   checkLoginIdAvailable: (loginId: string) => Promise<{ ok: boolean; message?: string }>;
   checkNicknameAvailable: (nickname: string) => Promise<{ ok: boolean; message?: string }>;
-  socialLogin: (args: SocialLoginPayload & { autoLogin: boolean }) => Promise<boolean>;
+  socialLogin: (args: SocialLoginPayload & { autoLogin?: boolean }) => Promise<boolean>;
 
 };
 
