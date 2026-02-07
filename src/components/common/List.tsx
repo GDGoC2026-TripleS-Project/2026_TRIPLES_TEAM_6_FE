@@ -4,24 +4,15 @@ import { colors } from "../../constants/colors";
 import ToggleButton from "./ToggleButton";
 import HeartOff from '../../../assets/Property 1=false.svg'
 import HeartOn from '../../../assets/Property 1=true.svg'
-
 type ListProps = {
     title: string;
     defaultLiked?: boolean;
     liked?: boolean;
     onPress?: () => void;
     onToggle?: (nextLiked: boolean) => void;
-    showToggle?: boolean;
 };
 
-function List({
-    title,
-    defaultLiked = false,
-    liked,
-    onPress,
-    onToggle,
-    showToggle = true,
-}: ListProps) {
+function List({ title, defaultLiked = false, liked, onPress, onToggle }: ListProps) {
     const [internalLiked, setInternalLiked] = useState(defaultLiked);
     const isControlled = liked !== undefined;
     const effectiveLiked = useMemo(
@@ -46,15 +37,13 @@ function List({
                         <Text style={styles.title}>{title}</Text>
                     </View>
                 )}
-                {showToggle && (
-                    <ToggleButton
-                        image1={HeartOff}
-                        image2={HeartOn}
-                        isOn={effectiveLiked}
-                        initialImage={defaultLiked ? 2 : 1}
-                        onToggle={handleToggle}
-                    />
-                )}
+                <ToggleButton
+                    image1={HeartOff}
+                    image2={HeartOn}
+                    isOn={effectiveLiked}
+                    initialImage={defaultLiked ? 2 : 1}
+                    onToggle={handleToggle}
+                />
             </View>
 
             <View style={styles.divider} />

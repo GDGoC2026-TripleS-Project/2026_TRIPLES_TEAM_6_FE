@@ -25,20 +25,7 @@ import { fetchBrandOptions, type BrandOption } from '../../../api/record/brand.a
 type RecordDrinkDetailRouteProp = RouteProp<RootStackParamList, 'RecordDrinkDetail'>;
 type RecordDrinkDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecordDrinkDetail'>;
 
-const INFO_MESSAGE = 'Extra options except coffee are not included in nutrition totals.';
-
-type StepperOption = { id: string; title: string };
-type ChipOption = { id: string; label: string };
-
-const normalizeOptionType = (value: string) => {
-    const normalized = value.trim().toUpperCase();
-
-    if (normalized.includes('MILK')) return 'milk';
-    if (normalized.includes('SYRUP')) return 'syrup';
-    if (normalized.includes('COFFEE') || normalized.includes('SHOT')) return 'coffee';
-
-    return 'coffee';
-};
+const INFO_MESSAGE = '커피를 제외한 옵션은 기록용 메모이며, 영양정보 계산에는 포함되지 않아요.';
 
 const RecordDrinkDetail = () => {
     const route = useRoute<RecordDrinkDetailRouteProp>();
@@ -49,9 +36,9 @@ const RecordDrinkDetail = () => {
     const [selectedSize, setSelectedSize] = useState<string>('Tall');
     const [menuDetail, setMenuDetail] = useState<MenuDetail | null>(null);
     const [sizes, setSizes] = useState<MenuSize[]>([]);
-    const [brandOptions, setBrandOptions] = useState<BrandOption[]>([]);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [sizeLoadError, setSizeLoadError] = useState<string | null>(null);
+    const [brandOptions, setBrandOptions] = useState<BrandOption[]>([]);
     const [optionsLoadError, setOptionsLoadError] = useState<string | null>(null);
 
     const getGroupData = useOptionStore(state => state.getGroupData);
@@ -244,7 +231,7 @@ const RecordDrinkDetail = () => {
                 contentContainerStyle={styles.scrollContent}
             >
                     <View style={styles.container}>
-                    <List title={drinkName} showToggle={false} />
+                    <List title={drinkName} />
                     <View style={styles.requiredOptionsSection}>
                         <TemperatureSection 
                             temperature={temperature}
@@ -258,12 +245,9 @@ const RecordDrinkDetail = () => {
                         {!!sizeLoadError && (
                             <Text style={styles.errorText}>{sizeLoadError}</Text>
                         )}
-                        <Text style={styles.subTitle}>Options</Text>
+                        <Text style={styles.subTitle}>옵션</Text>
                         {!!loadError && (
                             <Text style={styles.errorText}>{loadError}</Text>
-                        )}
-                        {!!optionsLoadError && (
-                            <Text style={styles.errorText}>{optionsLoadError}</Text>
                         )}
                     </View>
                     
@@ -294,7 +278,7 @@ const TemperatureSection = ({
 }) => {
     return (
         <View style={styles.optionGroup}>
-            <SectionTitle title="Temperature" required />
+            <SectionTitle title="온도" required />
             <TemperatureButton value={temperature} onChange={onTemperatureChange} />
         </View>
     );
@@ -311,7 +295,7 @@ const SizeSection = ({
 }) => {
     return (
         <View style={styles.optionGroup}>
-            <SectionTitle title="Size" required />
+            <SectionTitle title="사이즈" required />
             <View style={styles.sizeButtonGroup}>
                 {sizes.map(size => (
                     <SizeButton
@@ -345,7 +329,7 @@ const AdditionalOptionsSection = ({
 }) => (
     <View>
         {coffeeOptions.length > 0 && (
-            <AccordionItem id="extra1-option" title="Coffee">
+            <AccordionItem id="extra1-option" title="커피">
                 <StepperOptions
                     groupId="extra1-option"
                     options={coffeeOptions}
@@ -354,7 +338,7 @@ const AdditionalOptionsSection = ({
         )}
         
         {syrupOptions.length > 0 && (
-            <AccordionItem id="extra2-option" title="Syrup">
+            <AccordionItem id="extra2-option" title="시럽">
                 <StepperOptions
                     groupId="extra2-option"
                     options={syrupOptions}
@@ -363,7 +347,7 @@ const AdditionalOptionsSection = ({
         )}
         
         {milkOptions.length > 0 && (
-            <AccordionItem id="extra3-option" title="Milk">
+            <AccordionItem id="extra3-option" title="우유">
                 <ChipOptions 
                     groupId="extra3-option"
                     options={milkOptions}
@@ -382,7 +366,7 @@ const InfoMessage = () => (
 
 const FloatingButton = ({ onPress }: { onPress: () => void }) => (
     <View style={styles.floatingButtonContainer}>
-        <Button title="Next" onPress={onPress} />
+        <Button title="다음" onPress={onPress} />
     </View>
 );
 

@@ -21,29 +21,16 @@ type RecordingDetailNavigationProp = NativeStackNavigationProp<RootStackParamLis
 const RecordingDetail = () => {
     const route = useRoute<RecordingDetailRouteProp>();
     const navigation = useNavigation<RecordingDetailNavigationProp>();
-    const {
-        drinkName,
-        brandName,
-        brandId,
-        temperature,
-        size,
-        options,
-        optionNames,
-        optionNutrition,
-        optionLabelMap,
-        menuSizeId,
-        baseNutrition,
-    } = route.params;
+    const { drinkName, brandName, brandId, temperature, size, options, optionNames, optionNutrition, menuSizeId, baseNutrition } = route.params;
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [baseCaffeine, setBaseCaffeine] = useState(baseNutrition?.caffeineMg ?? 150);
     const [baseSugar, setBaseSugar] = useState(baseNutrition?.sugarG ?? 3);
     
     const setGroupInfo = useOptionStore(state => state.setGroupInfo);
-    const resolvedOptionNames = { ...(optionNames ?? {}), ...(optionLabelMap ?? {}) };
 
     const optionInfo = useMemo(
-        () => buildOptionInfoFromSelections(options, resolvedOptionNames, temperature, size),
-        [options, resolvedOptionNames, temperature, size]
+        () => buildOptionInfoFromSelections(options, optionNames, temperature, size),
+        [options, optionNames, temperature, size]
     );
     const totals = useMemo(
         () =>
@@ -97,7 +84,7 @@ const RecordingDetail = () => {
             date: selectedDate,
             chipSelected,
             stepperCounts,
-            optionNames: resolvedOptionNames,
+            optionNames,
             caffeine: totals.caffeine,
             sugar: totals.sugar,
         });
@@ -120,9 +107,9 @@ const RecordingDetail = () => {
     const formatAdditionalOptions = () => {
         const parts: string[] = [];
 
-        parts.push(...buildOptionPartsFromSelections(options, resolvedOptionNames));
+        parts.push(...buildOptionPartsFromSelections(options, optionNames));
 
-        return parts.length > 0 ? parts.join(' | ') : 'No options selected';
+        return parts.length > 0 ? parts.join(' | ') : '선택한 옵션이 없습니다';
     };
 
     return (
@@ -144,29 +131,29 @@ const RecordingDetail = () => {
                             </View>
                         }
                         pills={[
-                            { label: 'Caffeine', value: totals.caffeine, unit: 'mg' },
-                            { label: 'Sugar', value: totals.sugar, unit: 'g' },
+                            { label: '카페인', value: totals.caffeine, unit: 'mg' },
+                            { label: '당류', value: totals.sugar, unit: 'g' },
                         ]}
                     />
 
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Additional options</Text>
+                        <Text style={styles.sectionTitle}>추가 옵션</Text>
                         <Text style={styles.optionDetail}>{formatAdditionalOptions()}</Text>
                     </View>
 
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Intake date</Text>
+                        <Text style={styles.sectionTitle}>섭취 날짜</Text>
                         <DatePickerField
                             value={selectedDate}
                             onChange={setSelectedDate}
-                            placeholder="Select date"
+                            placeholder="날짜를 선택하세요"
                         />
                     </View>
                 </View>
             </ScrollView>
 
             <View style={styles.floatingButtonContainer}>
-                <Button title="Save" onPress={handleComplete} />
+                <Button title="등록하기" onPress={handleComplete} />
             </View>
         </View>
     );
