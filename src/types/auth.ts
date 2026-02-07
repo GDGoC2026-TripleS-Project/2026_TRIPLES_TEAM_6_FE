@@ -1,0 +1,1 @@
+export type LoginProvider = 'google' | 'kakao' | 'apple';
