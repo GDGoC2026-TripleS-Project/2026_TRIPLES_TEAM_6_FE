@@ -7,26 +7,18 @@ import { useUserStore } from '../user/user.store';
 const hasText = (value?: string) => Boolean(value?.trim());
 
 const validateSocialPayload = (payload: SocialLoginPayload) => {
-  switch (payload.provider) {
-    case 'GOOGLE':
-      if (!hasText(payload.providerAccessToken) && !hasText(payload.identityToken)) {
-        return 'Google login requires providerAccessToken or identityToken.';
-      }
-      return undefined;
-    case 'KAKAO':
-      if (!hasText(payload.providerAccessToken) && !hasText(payload.authorizationCode)) {
-        return 'Kakao login requires providerAccessToken or authorizationCode.';
-      }
-      return undefined;
-    case 'APPLE':
-      if (!hasText(payload.identityToken) && !hasText(payload.authorizationCode)) {
-        return 'Apple login requires identityToken or authorizationCode.';
-      }
-      return undefined;
-    default:
-      return 'Unsupported social provider.';
+  
+  if (!payload.provider) {
+    return 'Social provider is required.';
   }
+
+  if (!hasText(payload.providerToken)) {
+    return 'providerToken is required.';
+  }
+
+  return undefined;
 };
+
 
 type AuthState = {
   user: { id: number; nickname: string } | null;
