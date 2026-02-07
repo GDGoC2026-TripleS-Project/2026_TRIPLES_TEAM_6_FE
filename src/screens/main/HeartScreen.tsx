@@ -78,7 +78,7 @@ export default function HeartScreen() {
 
       <View style={styles.content}>
         {activeTab === 'drink' ? (
-          <DrinkList selectedBrands={chipSelected} brands={favoriteBrands} />
+          <DrinkList selectedBrands={chipSelected} />
         ) : (
           <BrandList
             brands={favoriteBrands}
