@@ -1,36 +1,56 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import List from '../../common/List';
 import SectionHeader from './SectionHeader';
 import EmptyState from './EmptyState';
-import { BRANDS, MOCK_DRINKS } from '../../../constants/heartData';
+import { useFavoriteMenus } from '../../../hooks/useFavoriteMenus';
 
 interface DrinkListProps {
   selectedBrands: Set<string>;
 }
 
 export default function DrinkList({ selectedBrands }: DrinkListProps) {
+  const { favorites, isFavorite, toggleFavorite } = useFavoriteMenus();
   const isAllSelected = selectedBrands.size === 0 || selectedBrands.has('all');
 
-  const filteredDrinks = isAllSelected
-    ? MOCK_DRINKS
-    : MOCK_DRINKS.filter((section) =>
-        [...selectedBrands].some(
-          (brandId) => section.brand === BRANDS.find((b) => b.id === brandId)?.label
-        )
-      );
+  const filteredFavorites = useMemo(() => {
+    if (isAllSelected) return favorites;
+    return favorites.filter((menu) => selectedBrands.has(String(menu.brandId)));
+  }, [favorites, isAllSelected, selectedBrands]);
 
-  if (filteredDrinks.length === 0) {
+  const sections = useMemo(() => {
+    const map = new Map<number, { brandName: string; items: typeof filteredFavorites }>();
+    filteredFavorites.forEach((menu) => {
+      const existing = map.get(menu.brandId);
+      if (existing) {
+        existing.items.push(menu);
+      } else {
+        map.set(menu.brandId, { brandName: menu.brandName, items: [menu] });
+      }
+    });
+    return [...map.entries()].map(([brandId, data]) => ({
+      id: String(brandId),
+      brandName: data.brandName,
+      items: data.items,
+    }));
+  }, [filteredFavorites]);
+
+  if (sections.length === 0) {
     return <EmptyState message="즐겨찾기한 음료가 없어요." />;
   }
 
   return (
     <ScrollView style={styles.listContainer}>
-      {filteredDrinks.map((section) => (
+      {sections.map((section) => (
         <View key={section.id}>
-          <SectionHeader title={section.brand} />
-          {section.items.map((item, index) => (
-            <List key={`${section.id}-${index}`} title={item} />
+          <SectionHeader title={section.brandName} />
+          {section.items.map((item) => (
+            <List
+              key={`${section.id}-${item.id}`}
+              title={item.name}
+              liked={isFavorite(item.id)}
+              onToggle={(nextLiked) => toggleFavorite(item, nextLiked)}
+            />
           ))}
         </View>
       ))}

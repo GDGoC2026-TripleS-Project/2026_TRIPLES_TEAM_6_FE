@@ -70,6 +70,14 @@ export type BrandMenuResponse = {
   hasNext: boolean;
 };
 
+export type MenuFavoriteResponse = {
+  favorited: boolean;
+};
+
+export type MenuFavoriteDeleteResponse = {
+  unfavorited: boolean;
+};
+
 export const fetchMenuDetail = async (menuId: number | string) => {
   const res = await api.get<ApiResponse<MenuDetail>>(`/menus/${menuId}`);
   return normalizeApiResponse(res.data);
@@ -112,5 +120,19 @@ export const fetchBrandMenus = async (
   const res = await api.get<ApiResponse<BrandMenuResponse>>(`/brands/${brandId}/menus`, {
     params,
   });
+  return normalizeApiResponse(res.data);
+};
+
+export const addMenuFavorite = async (menuId: number | string) => {
+  const res = await api.post<ApiResponse<MenuFavoriteResponse>>(
+    `/menus/${menuId}/favorites`
+  );
+  return normalizeApiResponse(res.data);
+};
+
+export const deleteMenuFavorite = async (menuId: number | string) => {
+  const res = await api.delete<ApiResponse<MenuFavoriteDeleteResponse>>(
+    `/menus/${menuId}/favorites`
+  );
   return normalizeApiResponse(res.data);
 };
