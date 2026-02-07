@@ -4,8 +4,6 @@ import {
   UserMe,
   userApiLayer,
 } from './user.api';
-import { storage } from '../../../utils/storage';
-import { storageKeys } from '../../../constants/storageKeys';
 
 export type NotificationSettings = {
   recordEnabled: boolean;
@@ -232,7 +230,6 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ isLoading: true, errorMessage: undefined });
     try {
       await userApiLayer.deleteMe();
-      await storage.remove(storageKeys.onboardingDone);
       set({ isLoading: false });
       return true;
     } catch (e: any) {

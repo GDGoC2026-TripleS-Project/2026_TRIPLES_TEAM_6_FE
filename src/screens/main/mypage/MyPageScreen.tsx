@@ -7,7 +7,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MainTabNavigationProp, RootStackParamList } from '../../../types/navigation';
 import { useAuthStore } from '../../../app/features/auth/auth.store';
 import { useUserStore } from '../../../app/features/user/user.store';
-import { useGoalStore } from '../../../store/goalStore';
 
 import GoogleLogin from '../../../../assets/ComponentsImage/GoogleLogin.svg';
 import KakaoLogin from '../../../../assets/ComponentsImage/KakaoLogin.svg';
@@ -29,9 +28,6 @@ const ProviderIconMap = {
   kakao: KakaoLogin,
   apple: AppleLogin,
 } as const;
-
-const isLoginProvider = (value: string): value is LoginProvider =>
-  value === 'google' || value === 'kakao' || value === 'apple';
 
 function SettingRow({ label, subLabel, onPress, danger, hideIcon }: RowItem) {
   return (
@@ -55,13 +51,10 @@ function SettingRow({ label, subLabel, onPress, danger, hideIcon }: RowItem) {
 export default function MyPageScreen() {
   const navigation = useNavigation<MainTabNavigationProp<'Profile'>>();
   const logout = useAuthStore((s) => s.logout);
-  const authUser = useAuthStore((s) => s.user);
   const fetchMe = useUserStore((s) => s.fetchMe);
   const deleteMe = useUserStore((s) => s.deleteMe);
   const me = useUserStore((s) => s.me);
   const userError = useUserStore((s) => s.errorMessage);
-  const caffeine = useGoalStore((s) => s.caffeine);
-  const sugar = useGoalStore((s) => s.sugar);
   const rootNavigation =
     navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -98,25 +91,24 @@ export default function MyPageScreen() {
       Alert.alert('회원 탈퇴 실패', userError ?? '다시 시도해 주세요.');
       return;
     }
-    await logout();
     goRoot('DropCompleteScreen');
   };
 
   const providerRaw =
-    (me?.socialProvider ??
-      me?.loginProvider ??
-      me?.provider ??
-      '').toLowerCase();
-  const provider = isLoginProvider(providerRaw) ? providerRaw : undefined;
+    me?.socialProvider ??
+    me?.loginProvider ??
+    me?.provider ??
+    'kakao';
+  const provider = providerRaw.toLowerCase() as LoginProvider;
 
   const user = {
-    name: me?.nickname ?? authUser?.nickname ?? '라스트컵',
+    name: me?.nickname ?? '라스트컵',
     provider,
     profileImageUrl: me?.profileImageUrl,
-    criteriaText: `카페인 ${caffeine}mg, 당류 ${sugar}g`,
+    criteriaText: '카페인 400mg, 당류 25g',
   };
 
-  const ProviderIcon = user.provider ? ProviderIconMap[user.provider] : undefined;
+  const ProviderIcon = ProviderIconMap[user.provider] ?? KakaoLogin;
 
   const rows: RowItem[] = [
     {
@@ -159,7 +151,7 @@ export default function MyPageScreen() {
 
         <View style={styles.nameRow}>
           <Text style={styles.profileName}>{user.name}</Text>
-          {ProviderIcon ? <ProviderIcon width={20} height={20} style={styles.providerIcon} /> : null}
+          <ProviderIcon width={20} height={20} style={styles.providerIcon} />
         </View>
 
         <Ionicons name="chevron-forward" size={20} color={colors.grayscale[100]} />
@@ -176,6 +168,7 @@ export default function MyPageScreen() {
         ))}
       </View>
 
+      {/* 로그아웃 모달 */}
       <Modal
         transparent
         visible={logoutModalVisible}
@@ -217,6 +210,7 @@ export default function MyPageScreen() {
         </Pressable>
       </Modal>
 
+      {/* 회원 탈퇴 모달 */}
       <Modal
         transparent
         visible={deleteModalVisible}
@@ -287,11 +281,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 15,
   },
   avatar: {
-    width: 50,
-    height: 50,
+    width: 44,
+    height: 44,
     borderRadius: 22,
     backgroundColor: colors.grayscale[700],
     marginRight: 12,
@@ -305,7 +299,7 @@ const styles = StyleSheet.create({
     color: colors.grayscale[100],
     fontSize: 17,
     fontFamily: 'Pretendard-SemiBold',
-    marginLeft: 8,
+    marginLeft: 12,
   },
   providerIcon: {
     marginLeft: 7,

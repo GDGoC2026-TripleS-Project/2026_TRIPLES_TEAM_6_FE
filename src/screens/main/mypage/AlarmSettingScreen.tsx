@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,6 @@ import { colors } from '../../../constants/colors';
 import ToggleSwitch from '../../../components/common/ToggleSwitch';
 import Button from '../../../components/common/Button';
 import { useUserStore } from '../../../app/features/user/user.store';
-import { useFocusEffect } from '@react-navigation/native';
 
 type AlarmKey = 'record' | 'daily';
 
@@ -82,11 +81,9 @@ export default function AlarmSettingScreen() {
   const activeDate =
     activeKey === 'record' ? state.recordTime : state.dailyTime;
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchNotificationSettings();
-    }, [fetchNotificationSettings])
-  );
+  useEffect(() => {
+    fetchNotificationSettings();
+  }, [fetchNotificationSettings]);
 
   useEffect(() => {
     if (!notificationSettings) return;
