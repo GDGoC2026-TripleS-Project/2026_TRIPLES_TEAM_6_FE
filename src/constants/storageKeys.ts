@@ -7,4 +7,5 @@ export const storageKeys = {
   goalCaffeine: 'goalCaffeine',
   goalSugar: 'goalSugar',
   notificationSettings: 'notificationSettings',
+  alarmFirstSeen: 'alarmFirstSeen',
 } as const;

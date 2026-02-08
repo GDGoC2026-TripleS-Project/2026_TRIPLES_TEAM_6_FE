@@ -13,6 +13,8 @@ import { colors } from '../../../constants/colors';
 import ToggleSwitch from '../../../components/common/ToggleSwitch';
 import Button from '../../../components/common/Button';
 import { useUserStore } from '../../../app/features/user/user.store';
+import { storage } from '../../../utils/storage';
+import { storageKeys } from '../../../constants/storageKeys';
 
 type AlarmKey = 'record' | 'daily';
 
@@ -70,6 +72,8 @@ export default function AlarmSettingScreen() {
     dailyTime: createTime(21, 0),
   });
 
+  const [isFirstVisit, setIsFirstVisit] = useState<boolean | null>(null);
+
   const [initialState, setInitialState] = useState<AlarmState | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [activeKey, setActiveKey] = useState<AlarmKey>('record');
@@ -79,22 +83,45 @@ export default function AlarmSettingScreen() {
   // 1. 화면 진입 시 데이터 불러오기
   useEffect(() => {
     fetchNotificationSettings();
+    (async () => {
+      const seen = await storage.get(storageKeys.alarmFirstSeen);
+      setIsFirstVisit(seen !== 'true');
+    })();
   }, []);
 
-  // 2. 서버 데이터가 들어오면 로컬 state 업데이트
   useEffect(() => {
-    if (notificationSettings) {
-      console.log('Server data:', notificationSettings);
-      const synced: AlarmState = {
-        recordEnabled: notificationSettings.recordEnabled,
-        recordTime: toDateFromHHmm(notificationSettings.recordTime, 14, 0),
-        dailyEnabled: notificationSettings.dailyEnabled,
-        dailyTime: toDateFromHHmm(notificationSettings.dailyTime, 21, 0),
-      };
-      setState(synced);
-      setInitialState(synced); // 저장 버튼 활성화 판단용
+    if (isFirstVisit === null) return;
+    if (!notificationSettings) {
+      if (!initialState) {
+        setInitialState(state);
+      }
+      return;
     }
-  }, [notificationSettings]);
+
+    const synced: AlarmState = {
+      recordEnabled: isFirstVisit ? false : notificationSettings.recordEnabled,
+      recordTime: toDateFromHHmm(notificationSettings.recordTime, 14, 0),
+      dailyEnabled: isFirstVisit ? false : notificationSettings.dailyEnabled,
+      dailyTime: toDateFromHHmm(notificationSettings.dailyTime, 21, 0),
+    };
+
+    const shouldUpdate =
+      !initialState ||
+      state.recordEnabled !== synced.recordEnabled ||
+      state.dailyEnabled !== synced.dailyEnabled ||
+      !sameTime(state.recordTime, synced.recordTime) ||
+      !sameTime(state.dailyTime, synced.dailyTime);
+
+    if (shouldUpdate) {
+      setState(synced);
+      setInitialState(synced);
+    }
+
+    if (isFirstVisit) {
+      void storage.set(storageKeys.alarmFirstSeen, 'true');
+      setIsFirstVisit(false);
+    }
+  }, [notificationSettings, isFirstVisit]);
 
   const hasChanges = useMemo(() => {
     if (!initialState) return false;
