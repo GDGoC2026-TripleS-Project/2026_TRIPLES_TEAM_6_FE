@@ -16,7 +16,8 @@ const PasswordResetInputScreen: React.FC = () => {
   const [loginIdError, setLoginIdError] = useState<string | undefined>();
   const [tokenError, setTokenError] = useState<string | undefined>();
   const [newPasswordError, setNewPasswordError] = useState<string | undefined>();
-  const [newPasswordCheckError, setNewPasswordCheckError] = useState<string | undefined>();
+  const [newPasswordCheckError, setNewPasswordCheckError] =
+    useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isValidLoginId = (v: string) =>
@@ -29,17 +30,17 @@ const PasswordResetInputScreen: React.FC = () => {
     let ok = true;
 
     if (!loginId.trim()) {
-      setLoginIdError('??? ID? ??? ???.');
+      setLoginIdError("로그인 ID를 입력해 주세요.");
       ok = false;
     } else if (!isValidLoginId(loginId.trim())) {
-      setLoginIdError('??? ID ??? ???? ????.');
+      setLoginIdError("로그인 ID 형식이 올바르지 않습니다.");
       ok = false;
     } else {
       setLoginIdError(undefined);
     }
 
     if (!token.trim()) {
-      setTokenError('재설정 토큰을 입력해 주세요.');
+      setTokenError("인증 코드를 입력해 주세요.");
       ok = false;
     } else {
       setTokenError(undefined);
@@ -93,23 +94,25 @@ const PasswordResetInputScreen: React.FC = () => {
         newPassword,
       });
       if (res?.data?.data?.reset === false) {
-        Alert.alert('재설정 실패', '비밀번호 재설정에 실패했습니다.');
+        Alert.alert("재설정 실패", "비밀번호 재설정에 실패했습니다.");
         return;
       }
-      navigation.navigate('PasswordResetScreen');
+      navigation.navigate("PasswordResetScreen");
     } catch (e: any) {
       if (__DEV__) {
-        console.log('[PW RESET CONFIRM ERR] status:', e?.response?.status);
-        console.log('[PW RESET CONFIRM ERR] data:', e?.response?.data);
+        console.log("[PW RESET CONFIRM ERR] status:", e?.response?.status);
+        console.log("[PW RESET CONFIRM ERR] data:", e?.response?.data);
         console.log(
-          '[PW RESET CONFIRM ERR] fieldErrors:',
+          "[PW RESET CONFIRM ERR] fieldErrors:",
           JSON.stringify(e?.response?.data?.error?.fieldErrors)
         );
-        console.log('[PW RESET CONFIRM ERR] message:', e?.message);
+        console.log("[PW RESET CONFIRM ERR] message:", e?.message);
       }
       Alert.alert(
-        '재설정 실패',
-        e?.response?.data?.message ?? e?.message ?? '비밀번호 재설정에 실패했습니다.'
+        "재설정 실패",
+        e?.response?.data?.message ??
+          e?.message ??
+          "비밀번호 재설정에 실패했습니다."
       );
     } finally {
       setIsSubmitting(false);
@@ -131,9 +134,9 @@ const PasswordResetInputScreen: React.FC = () => {
           onChangeText={(t) => {
             setLoginId(t);
             if (!t) {
-              setLoginIdError('로그인 ID 형식이 올바르지 않습니다.');
+              setLoginIdError("로그인 ID 형식이 올바르지 않습니다.");
             } else if (!isValidLoginId(t.trim())) {
-              setLoginIdError('로그인 ID 형식이 올바르지 않습니다.');
+              setLoginIdError("로그인 ID 형식이 올바르지 않습니다.");
             } else {
               setLoginIdError(undefined);
             }
@@ -142,9 +145,9 @@ const PasswordResetInputScreen: React.FC = () => {
           error={loginIdError}
         />
 
-        <Text style={styles.label}>재설정 토큰</Text>
+        <Text style={styles.label}>인증 코드</Text>
         <TextField
-          placeholder="메일로 받은 토큰 입력"
+          placeholder="메일로 받은 코드 입력"
           value={token}
           onChangeText={(t) => {
             setToken(t);
@@ -161,9 +164,9 @@ const PasswordResetInputScreen: React.FC = () => {
           onChangeText={(t) => {
             setNewPassword(t);
             if (!t) {
-              setNewPasswordError("아이디 형식이 올바르지 않습니다.");
+              setNewPasswordError("비밀번호 형식이 올바르지 않습니다.");
             } else if (!isValidPassword(t)) {
-              setNewPasswordError("아이디 형식이 올바르지 않습니다.");
+              setNewPasswordError("비밀번호 형식이 올바르지 않습니다.");
             } else {
               setNewPasswordError(undefined);
             }
@@ -192,7 +195,11 @@ const PasswordResetInputScreen: React.FC = () => {
       </View>
 
       <View style={styles.submitWrap}>
-        <Button title="재설정하기" disabled={!canSubmit || isSubmitting} onPress={onSubmit} />
+        <Button
+          title="재설정하기"
+          disabled={!canSubmit || isSubmitting}
+          onPress={onSubmit}
+        />
       </View>
     </View>
   );
@@ -208,7 +215,7 @@ const styles = StyleSheet.create({
   },
 
   headerArea: {
-    width: '100%',
+    width: "100%",
     marginBottom: 22,
   },
 
@@ -228,7 +235,7 @@ const styles = StyleSheet.create({
   },
 
   form: {
-    width: '100%',
+    width: "100%",
     gap: 10,
   },
 
@@ -241,7 +248,7 @@ const styles = StyleSheet.create({
   },
 
   submitWrap: {
-    width: '100%',
+    width: "100%",
     marginTop: 60,
   },
 });

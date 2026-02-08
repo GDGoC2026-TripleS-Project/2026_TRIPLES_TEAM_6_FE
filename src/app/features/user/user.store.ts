@@ -4,6 +4,8 @@ import {
   UserMe,
   userApiLayer,
 } from './user.api';
+import { storage } from '../../../utils/storage';
+import { storageKeys } from '../../../constants/storageKeys';
 
 export type NotificationSettings = {
   recordEnabled: boolean;
@@ -112,6 +114,16 @@ const parseNotification = (raw?: NotificationSettingsRaw) => {
   };
 };
 
+const parseStoredNotification = (raw: string | null) => {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as NotificationSettingsRaw;
+    return parseNotification(parsed).settings;
+  } catch {
+    return null;
+  }
+};
+
 export const useUserStore = create<UserState>((set, get) => ({
   me: null,
   notificationSettings: null,
@@ -183,8 +195,26 @@ export const useUserStore = create<UserState>((set, get) => ({
         notificationKeys: parsed.keys,
         isLoading: false,
       });
+      await storage.set(
+        storageKeys.notificationSettings,
+        JSON.stringify(parsed.settings)
+      );
       return true;
     } catch (e: any) {
+      const cached = parseStoredNotification(
+        await storage.get(storageKeys.notificationSettings)
+      );
+      if (cached) {
+        set({
+          notificationSettings: cached,
+          notificationKeys: defaultKeys,
+          isLoading: false,
+          errorMessage:
+            e?.response?.data?.message ?? e?.message ?? '알림 설정을 불러오지 못했어요.',
+        });
+        return false;
+      }
+
       const fallback = parseNotification(undefined);
       set({
         notificationSettings: fallback.settings,
@@ -215,6 +245,10 @@ export const useUserStore = create<UserState>((set, get) => ({
         notificationKeys: parsed.keys,
         isLoading: false,
       });
+      await storage.set(
+        storageKeys.notificationSettings,
+        JSON.stringify(parsed.settings)
+      );
       return true;
     } catch (e: any) {
       set({

@@ -191,6 +191,8 @@ console.log('[LOGIN TOKENS]', tokens);
       await Promise.all([
         storage.set(storageKeys.accessToken, tokens.accessToken),
         storage.set(storageKeys.refreshToken, tokens.refreshToken),
+        storage.set(storageKeys.onboardingPending, 'true'),
+        storage.remove(storageKeys.onboardingDone),
       ]);
       if (autoLogin) {
         await storage.set(storageKeys.autoLogin, 'true');
