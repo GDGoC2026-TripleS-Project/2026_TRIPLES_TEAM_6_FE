@@ -10,6 +10,8 @@ export type UserMe = {
   provider?: string;
   socialProvider?: string;
   loginProvider?: string;
+  caffeineLimit?: number;
+  sugarLimit?: number;
 };
 
 export type NotificationSettingsRaw = Record<string, unknown>;
@@ -41,6 +43,9 @@ export const userApiLayer = {
 
   updateNotificationSettings: (payload: NotificationSettingsRaw) =>
     api.patch<ApiResponse<NotificationSettingsRaw>>('/users/me/notification-settings', payload),
+
+  updateGoals: (payload: { caffeine: number; sugar: number }) =>
+    api.patch<ApiResponse<{ caffeine: number; sugar: number }>>('/users/me/goals', payload),
 
   registerDeviceToken: (token: string) =>
     api.post<ApiResponse<{ registered: boolean }>>('/users/me/devices', { token }),

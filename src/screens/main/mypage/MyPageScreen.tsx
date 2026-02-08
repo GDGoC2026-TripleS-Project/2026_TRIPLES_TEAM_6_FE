@@ -96,9 +96,11 @@ export default function MyPageScreen() {
   const providerRaw =
     me?.socialProvider ??
     me?.loginProvider ??
-    me?.provider ??
-    "kakao";
-  const provider = providerRaw.toLowerCase() as LoginProvider;
+    me?.provider;
+  const provider =
+    typeof providerRaw === "string"
+      ? (providerRaw.toLowerCase() as LoginProvider)
+      : undefined;
 
   const user = {
     name: me?.nickname ?? "캡스터",
@@ -107,7 +109,7 @@ export default function MyPageScreen() {
     criteriaText: `카페인 ${caffeine}mg, 당류 ${sugar}g`,
   };
 
-  const ProviderIcon = ProviderIconMap[user.provider] ?? KakaoLogin;
+  const ProviderIcon = provider ? ProviderIconMap[provider] : undefined;
 
   const rows: RowItem[] = [
     {
@@ -150,7 +152,9 @@ export default function MyPageScreen() {
 
         <View style={styles.nameRow}>
           <Text style={styles.profileName}>{user.name}</Text>
-          <ProviderIcon width={20} height={20} style={styles.providerIcon} />
+          {ProviderIcon ? (
+            <ProviderIcon width={20} height={20} style={styles.providerIcon} />
+          ) : null}
         </View>
 
         <Ionicons name="chevron-forward" size={20} color={colors.grayscale[100]} />

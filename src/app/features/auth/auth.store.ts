@@ -3,6 +3,7 @@ import { storage } from '../../../utils/storage';
 import { storageKeys } from '../../../constants/storageKeys';
 import { authApiLayer, SocialLoginPayload } from './auth.api';
 import { useUserStore } from '../user/user.store';
+import { useGoalStore } from '../../../store/goalStore';
 
 const hasText = (value?: string) => Boolean(value?.trim());
 
@@ -154,6 +155,16 @@ console.log('[LOGIN TOKENS]', tokens);
         refreshToken: tokens.refreshToken,
         isLoading: false,
       });
+
+      if (
+        typeof (user as any)?.caffeineLimit === 'number' ||
+        typeof (user as any)?.sugarLimit === 'number'
+      ) {
+        void useGoalStore.getState().setGoals({
+          caffeine: (user as any)?.caffeineLimit ?? useGoalStore.getState().caffeine,
+          sugar: (user as any)?.sugarLimit ?? useGoalStore.getState().sugar,
+        });
+      }
 
       return true;
     } catch (e: any) {

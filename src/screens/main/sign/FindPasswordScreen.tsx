@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { colors } from "../../../constants/colors";
 import TextField from "../../../components/common/TextField";
 import Button from "../../../components/common/Button";
 import { authApiLayer } from "../../../app/features/auth/auth.api";
 
 const FindPasswordScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,7 +73,15 @@ const FindPasswordScreen: React.FC = () => {
         Alert.alert("요청 실패", "비밀번호 재설정 요청에 실패했습니다.");
         return;
       }
-      Alert.alert("요청 완료", "비밀번호 재설정 안내를 전송했습니다.");
+      Alert.alert("요청 완료", "비밀번호 재설정 안내를 전송했습니다.", [
+        {
+          text: "확인",
+          onPress: () =>
+            navigation.navigate("PasswordResetInputScreen", {
+              defaultLoginId: userName.trim(),
+            }),
+        },
+      ]);
     } catch (e: any) {
       if (__DEV__) {
         console.log("[PW RESET REQUEST ERR] status:", e?.response?.status);

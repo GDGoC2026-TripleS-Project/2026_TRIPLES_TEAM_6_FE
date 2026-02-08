@@ -6,6 +6,7 @@ import {
 } from './user.api';
 import { storage } from '../../../utils/storage';
 import { storageKeys } from '../../../constants/storageKeys';
+import { useGoalStore } from '../../../store/goalStore';
 
 export type NotificationSettings = {
   recordEnabled: boolean;
@@ -135,7 +136,17 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ isLoading: true, errorMessage: undefined });
     try {
       const res = await userApiLayer.getMe();
-      set({ me: res.data.data, isLoading: false });
+      const userData = res.data.data;
+      if (
+        typeof userData?.caffeineLimit === 'number' ||
+        typeof userData?.sugarLimit === 'number'
+      ) {
+        void useGoalStore.getState().setGoals({
+          caffeine: userData?.caffeineLimit ?? useGoalStore.getState().caffeine,
+          sugar: userData?.sugarLimit ?? useGoalStore.getState().sugar,
+        });
+      }
+      set({ me: userData, isLoading: false });
       return true;
     } catch (e: any) {
       set({

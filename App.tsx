@@ -12,6 +12,7 @@ import LoginScreen from './src/screens/main/sign/LoginScreen';
 import OnBoardingScreen from './src/screens/main/onBoarding/OnBoardingScreen';
 import SignUpScreen from './src/screens/main/sign/SignUpScreen';
 import FindPasswordScreen from './src/screens/main/sign/FindPasswordScreen';
+import PasswordResetInputScreen from './src/screens/main/sign/PasswordResetInputScreen';
 import TermsScreen from './src/screens/main/sign/TermsScreen';
 import { useAuthStore } from './src/app/features/auth/auth.store';
 import { storage } from './src/utils/storage';
@@ -101,11 +102,28 @@ export default function App() {
                 }}
               />
               <Stack.Screen
-                name="PasswordResetInputScreen"
+                name="FindPasswordScreen"
                 component={FindPasswordScreen}
                 options={{
                   headerShown: true,
                   title: '비밀번호 찾기',
+                  headerTitleAlign: 'center',
+                  headerStyle: { backgroundColor: colors.grayscale[1000] },
+                  headerShadowVisible: false,
+                  headerTintColor: '#FFFFFF',
+                  headerTitleStyle: {
+                    fontSize: 16,
+                    fontFamily: 'Pretendard-SemiBold',
+                  },
+                  headerBackButtonDisplayMode: 'minimal',
+                }}
+              />
+              <Stack.Screen
+                name="PasswordResetInputScreen"
+                component={PasswordResetInputScreen}
+                options={{
+                  headerShown: true,
+                  title: '비밀번호 변경',
                   headerTitleAlign: 'center',
                   headerStyle: { backgroundColor: colors.grayscale[1000] },
                   headerShadowVisible: false,
