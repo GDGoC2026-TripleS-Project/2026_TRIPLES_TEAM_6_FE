@@ -10,11 +10,13 @@ import OptionText from '../../components/common/OptionText';
 import NutritionSummary from '../../components/calendar/NutritionSummary';
 import SkipDrinkCheckbox from '../../components/calendar/SkipDrinkCheckbox';
 import AddRecordButton from '../../components/common/AddRecordButton';
+import DrinkDetailSheet, { type DrinkLike } from '../../components/common/DrinkDetailSheet';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useGoalStore } from '../../store/goalStore';
 import {
   fetchDailyIntake,
+  fetchIntakeDetail,
   fetchPeriodIntake,
   type DailyIntake,
   type IntakeDrink,
@@ -22,6 +24,7 @@ import {
 
 import { useNavigation } from '@react-navigation/native';
 import type { MainTabNavigationProp } from '../../types/navigation';
+import { buildOptionBase } from '../../utils/recordOptions';
 
 const todayString = () => {
   const d = new Date();
@@ -57,6 +60,8 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState<string>(todayString());
   const [skippedByDate, setSkippedByDate] = useState<Record<string, boolean>>({});
 
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedDrink, setSelectedDrink] = useState<DrinkLike | null>(null);
   const [periodSheetOpen, setPeriodSheetOpen] = useState(false);
 
   const [daily, setDaily] = useState<DailyIntake | null>(null);
@@ -167,8 +172,58 @@ export default function CalendarScreen() {
     });
   };
 
-  const openDetail = (drink: IntakeDrink) => {
-    navigation.navigate('IntakeDetail', { intakeId: drink.id });
+  const openDetail = async (drink: IntakeDrink) => {
+    const base: DrinkLike = {
+      id: drink.id ?? '',
+      brandName: drink.brandName,
+      menuName: drink.menuName,
+      caffeineMg: drink.caffeineMg ?? 0,
+      sugarG: drink.sugarG ?? 0,
+      calorieKcal: drink.calorieKcal,
+      sodiumMg: drink.sodiumMg,
+      proteinG: drink.proteinG,
+      fatG: drink.fatG,
+    };
+
+    setSelectedDrink(base);
+    setDetailOpen(true);
+
+    try {
+      const res = await fetchIntakeDetail(drink.id);
+      if (res.success && res.data) {
+        setSelectedDrink({
+          id: String(res.data.id ?? drink.id),
+          brandName: res.data.brandName ?? drink.brandName,
+          menuName: res.data.menuName ?? drink.menuName,
+          caffeineMg: res.data.caffeineMg ?? 0,
+          sugarG: res.data.sugarG ?? 0,
+          calorieKcal: res.data.calorieKcal,
+          sodiumMg: res.data.sodiumMg,
+          proteinG: res.data.proteinG,
+          fatG: res.data.fatG,
+        });
+      }
+    } catch {
+      // fallback to list data
+    }
+  };
+
+  const closeDetail = () => setDetailOpen(false);
+
+  const renderOptionText = (drink: IntakeDrink) => {
+    const temp = drink.temperature === 'HOT' ? 'hot' : drink.temperature === 'ICED' ? 'ice' : undefined;
+    const base = buildOptionBase(temp, drink.sizeName);
+    const extraText = drink.optionText?.trim();
+    const extras =
+      extraText && extraText !== '옵션 없음'
+        ? extraText.split(' | ').map((s) => s.trim()).filter(Boolean)
+        : [];
+
+    if (base) {
+      return <OptionText base={base} extra={extras} />;
+    }
+
+    return <OptionText text={extraText || '옵션 없음'} />;
   };
 
   return (
@@ -236,15 +291,21 @@ export default function CalendarScreen() {
               key={d.id}
               brandName={d.brandName}
               menuName={d.menuName}
-                  optionText={<OptionText text={d.optionText || '옵션 없음'} />}
-                  pills={[
-                    { label: '카페인', value: d.caffeineMg, unit: 'mg' },
-                    { label: '당류', value: d.sugarG, unit: 'g' },
-                  ]}
-                  onPress={() => openDetail(d)}
-                />
-              ))}
+              optionText={renderOptionText(d)}
+              pills={[
+                { label: '카페인', value: d.caffeineMg, unit: 'mg' },
+                { label: '당류', value: d.sugarG, unit: 'g' },
+              ]}
+              onPress={() => openDetail(d)}
+            />
+          ))}
       </View>
+
+      <DrinkDetailSheet
+        visible={detailOpen}
+        drink={selectedDrink}
+        onClose={closeDetail}
+      />
 
       <PeriodSelectBottomSheet
       visible={periodSheetOpen}

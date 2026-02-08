@@ -14,13 +14,16 @@ import { colors } from '../../constants/colors';
 import PeriodSelectBottomSheet from '../../components/common/PeriodSelectBottomSheet';
 import DrinkList from '../../components/common/MenuItem';
 import OptionText from '../../components/common/OptionText';
+import DrinkDetailSheet, { type DrinkLike } from '../../components/common/DrinkDetailSheet';
 
 import {
   fetchDailyIntake,
+  fetchIntakeDetail,
   fetchPeriodIntake,
   type DailyIntake,
   type IntakeDrink,
 } from '../../api/record/intake.api';
+import { buildOptionBase } from '../../utils/recordOptions';
 
 type Props = {
   navigation: any;
@@ -72,6 +75,8 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
   const [startDate, setStartDate] = useState<string>(initialStart);
   const [endDate, setEndDate] = useState<string>(initialEnd);
   const [days, setDays] = useState<DailyIntake[]>([]);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedDrink, setSelectedDrink] = useState<DrinkLike | null>(null);
   const [summary, setSummary] = useState({
     caffeineTotal: 0,
     sugarTotal: 0,
@@ -171,26 +176,75 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
     setEndDate(e);
   };
 
+  const openDetail = async (drink: IntakeDrink) => {
+    const base: DrinkLike = {
+      id: drink.id ?? '',
+      brandName: drink.brandName,
+      menuName: drink.menuName,
+      caffeineMg: drink.caffeineMg ?? 0,
+      sugarG: drink.sugarG ?? 0,
+      calorieKcal: drink.calorieKcal,
+      sodiumMg: drink.sodiumMg,
+      proteinG: drink.proteinG,
+      fatG: drink.fatG,
+    };
+
+    setSelectedDrink(base);
+    setDetailOpen(true);
+
+    try {
+      const res = await fetchIntakeDetail(drink.id);
+      if (res.success && res.data) {
+        setSelectedDrink({
+          id: String(res.data.id ?? drink.id),
+          brandName: res.data.brandName ?? drink.brandName,
+          menuName: res.data.menuName ?? drink.menuName,
+          caffeineMg: res.data.caffeineMg ?? 0,
+          sugarG: res.data.sugarG ?? 0,
+          calorieKcal: res.data.calorieKcal,
+          sodiumMg: res.data.sodiumMg,
+          proteinG: res.data.proteinG,
+          fatG: res.data.fatG,
+        });
+      }
+    } catch {
+      // fallback to list data
+    }
+  };
+
+  const closeDetail = () => setDetailOpen(false);
+
   const renderItem = ({ item }: ListRenderItemInfo<SectionRow>) => {
     if (item.type === 'header') {
       return <Text style={styles.sectionTitle}>{item.title}</Text>;
     }
 
     const d = item.drink;
+    const temp = d.temperature === 'HOT' ? 'hot' : d.temperature === 'ICED' ? 'ice' : undefined;
+    const base = buildOptionBase(temp, d.sizeName);
+    const extraText = d.optionText?.trim();
+    const extras =
+      extraText && extraText !== '옵션 없음'
+        ? extraText.split(' | ').map((s) => s.trim()).filter(Boolean)
+        : [];
 
     return (
       <DrinkList
         brandName={d.brandName}
         menuName={d.menuName}
-        optionText={<OptionText text={d.optionText || '옵션 없음'} />}
+        optionText={
+          base ? (
+            <OptionText base={base} extra={extras} />
+          ) : (
+            <OptionText text={extraText || '옵션 없음'} />
+          )
+        }
         pills={[
           { label: '카페인', value: d.caffeineMg, unit: 'mg' },
           { label: '당류', value: d.sugarG, unit: 'g' },
         ]}
         rightText={d.count ? `${d.count}잔` : undefined}
-        onPress={() => {
-          navigation.navigate('IntakeDetail', { intakeId: d.id });
-        }}
+        onPress={() => openDetail(d)}
       />
     );
   };
@@ -252,6 +306,12 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
             </Text>
           </View>
         }
+      />
+
+      <DrinkDetailSheet
+        visible={detailOpen}
+        drink={selectedDrink}
+        onClose={closeDetail}
       />
 
       {/* 기간 선택 바텀시트 */}

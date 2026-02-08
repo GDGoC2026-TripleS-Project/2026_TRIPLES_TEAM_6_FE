@@ -17,6 +17,7 @@ import { useAuthStore } from './src/app/features/auth/auth.store';
 import { storage } from './src/utils/storage';
 import { storageKeys } from './src/constants/storageKeys';
 import { colors } from './src/constants/colors';
+import { useGoalStore } from './src/store/goalStore';
 
 const Stack = createNativeStackNavigator();
 const FORCE_ONBOARDING_PREVIEW = false; 
@@ -25,6 +26,7 @@ export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);
   const [onboardingDone, setOnboardingDone] = useState(false);
   const hydrate = useAuthStore((s) => s.hydrate);
+  const hydrateGoals = useGoalStore((s) => s.hydrate);
   const accessToken = useAuthStore((s) => s.accessToken);
 
   const [loaded] = useFonts({
@@ -40,9 +42,12 @@ export default function App() {
       try {
         const [, done] = await Promise.all([
           hydrate(),
+          hydrateGoals(),
           storage.get(storageKeys.onboardingDone),
         ]);
-        if (isMounted) setOnboardingDone(done === 'true');
+        if (isMounted) {
+          setOnboardingDone(done === 'true');
+        }
       } finally {
         if (isMounted) setIsHydrating(false);
       }
@@ -50,13 +55,15 @@ export default function App() {
     return () => {
       isMounted = false;
     };
-  }, [hydrate]);
+  }, [hydrate, hydrateGoals]);
 
   if (!loaded || isHydrating) return null;
   const shouldBypassAuth = FORCE_ONBOARDING_PREVIEW;
   const showAppFlow = Boolean(accessToken) || shouldBypassAuth;
+  const shouldShowOnboarding = !onboardingDone;
+
   const initialRouteName = showAppFlow
-    ? (shouldBypassAuth ? 'OnBoardingScreen' : (onboardingDone ? 'Main' : 'OnBoardingScreen'))
+    ? (shouldBypassAuth ? 'OnBoardingScreen' : (shouldShowOnboarding ? 'OnBoardingScreen' : 'Main'))
     : 'Login';
 
   return (

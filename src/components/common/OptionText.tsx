@@ -3,19 +3,23 @@ import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../../constants/colors';
 
 type OptionTextProps = {
-  text: string;
+  text?: string;
+  base?: string;
+  extra?: string[];
 };
 
-export default function OptionText({ text }: OptionTextProps) {
-  const parts = text.split(' | ').map((s) => s.trim()).filter(Boolean);
-  const base = parts.length > 0 ? parts[0] : text;
-  const extra = parts.length > 1 ? parts.slice(1) : [];
+export default function OptionText({ text, base, extra }: OptionTextProps) {
+  const parts = text ? text.split(' | ').map((s) => s.trim()).filter(Boolean) : [];
+  const baseFromText = parts.length > 0 ? parts[0] : text ?? '';
+  const extraFromText = parts.length > 1 ? parts.slice(1) : [];
+  const resolvedBase = base || baseFromText || '';
+  const resolvedExtra = extra ?? extraFromText;
 
   return (
     <View style={styles.optionWrap}>
-      <Text style={styles.optionBase}>{base}</Text>
-      {extra.length > 0 && (
-        <Text style={styles.optionExtra}>{extra.join(', ')}</Text>
+      <Text style={styles.optionBase}>{resolvedBase}</Text>
+      {resolvedExtra.length > 0 && (
+        <Text style={styles.optionExtra}>{resolvedExtra.join(', ')}</Text>
       )}
     </View>
   );

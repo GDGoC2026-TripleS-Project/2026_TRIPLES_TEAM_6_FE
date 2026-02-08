@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { colors } from "../../constants/colors";
 import { Ionicons } from '@expo/vector-icons';
@@ -8,21 +8,25 @@ type HeaderDetailProps = {
     title: string;
     onBack?: () => void;
     initialRightType?: 'close' | 'heart' | 'none';
+    onRightPress?: () => void;
 };
 
 function HeaderDetail({
     title,
     onBack,
     initialRightType = 'close',
+    onRightPress,
 }: HeaderDetailProps) {
-    const [rightType, setRightType] = useState<'close' | 'heart' | 'none'>(initialRightType);
-
+    const rightType = initialRightType;
     const handleRightPress = () => {
         if (rightType === 'none') return;
-
-        setRightType(prev =>
-            prev === 'close' ? 'heart' : 'close'
-        );
+        if (onRightPress) {
+            onRightPress();
+            return;
+        }
+        if (rightType === 'close') {
+            onBack?.();
+        }
     };
 
     return (

@@ -4,14 +4,19 @@ import Chart from '../../components/common/Chart';
 import { colors } from '../../constants/colors';
 import DrinkList from '../../components/common/MenuItem';
 import OptionText from '../../components/common/OptionText';
+import DrinkDetailSheet, { type DrinkLike } from '../../components/common/DrinkDetailSheet';
 import { useGoalStore } from '../../store/goalStore';
 import { Svg, Path } from 'react-native-svg';
 import Coffee from '../../../assets/ComponentsImage/coffeeImg.svg';
 import SkipDrinkCheckbox from '../../components/calendar/SkipDrinkCheckbox';
 import DatePickerBottomSheet from '../../components/common/DatePickerBottomSheet';
-import { fetchDailyIntake, type DailyIntake, type IntakeDrink } from '../../api/record/intake.api';
-import { useNavigation } from '@react-navigation/native';
-import type { MainTabNavigationProp } from '../../types/navigation';
+import {
+  fetchDailyIntake,
+  fetchIntakeDetail,
+  type DailyIntake,
+  type IntakeDrink,
+} from '../../api/record/intake.api';
+import { buildOptionBase } from '../../utils/recordOptions';
 
 const ChevronLeft = () => (
   <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -26,9 +31,10 @@ const ChevronRight = () => (
 );
 
 export default function HomeScreen() {
-  const navigation = useNavigation<MainTabNavigationProp<'Home'>>();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [skippedByDate, setSkippedByDate] = useState<Record<string, boolean>>({});
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedDrink, setSelectedDrink] = useState<DrinkLike | null>(null);
   const [dateSheetOpen, setDateSheetOpen] = useState(false);
   const [daily, setDaily] = useState<DailyIntake | null>(null);
   const [dailyLoading, setDailyLoading] = useState(false);
@@ -118,8 +124,58 @@ export default function HomeScreen() {
   };
 
 
-  const openDetail = (drinkId: string) => {
-    navigation.navigate('IntakeDetail', { intakeId: drinkId });
+  const openDetail = async (drink: IntakeDrink) => {
+    const base: DrinkLike = {
+      id: drink.id ?? '',
+      brandName: drink.brandName,
+      menuName: drink.menuName,
+      caffeineMg: drink.caffeineMg ?? 0,
+      sugarG: drink.sugarG ?? 0,
+      calorieKcal: drink.calorieKcal,
+      sodiumMg: drink.sodiumMg,
+      proteinG: drink.proteinG,
+      fatG: drink.fatG,
+    };
+
+    setSelectedDrink(base);
+    setDetailOpen(true);
+
+    try {
+      const res = await fetchIntakeDetail(drink.id);
+      if (res.success && res.data) {
+        setSelectedDrink({
+          id: String(res.data.id ?? drink.id),
+          brandName: res.data.brandName ?? drink.brandName,
+          menuName: res.data.menuName ?? drink.menuName,
+          caffeineMg: res.data.caffeineMg ?? 0,
+          sugarG: res.data.sugarG ?? 0,
+          calorieKcal: res.data.calorieKcal,
+          sodiumMg: res.data.sodiumMg,
+          proteinG: res.data.proteinG,
+          fatG: res.data.fatG,
+        });
+      }
+    } catch {
+      // fallback to list data
+    }
+  };
+
+  const closeDetail = () => setDetailOpen(false);
+
+  const renderOptionText = (drink: IntakeDrink) => {
+    const temp = drink.temperature === 'HOT' ? 'hot' : drink.temperature === 'ICED' ? 'ice' : undefined;
+    const base = buildOptionBase(temp, drink.sizeName);
+    const extraText = drink.optionText?.trim();
+    const extras =
+      extraText && extraText !== '옵션 없음'
+        ? extraText.split(' | ').map((s) => s.trim()).filter(Boolean)
+        : [];
+
+    if (base) {
+      return <OptionText base={base} extra={extras} />;
+    }
+
+    return <OptionText text={extraText || '옵션 없음'} />;
   };
 
   return (
@@ -159,18 +215,17 @@ export default function HomeScreen() {
         <View>
           {hasRecord ? (
             drinks.map((drink, index) => {
-              const intakeId = drink.id ?? `${dateKey}_${index}`;
               return (
-                <DrinkList
-                  key={`drink_${intakeId}`}
+                <DrinkList 
+                  key={`drink_${drink.id ?? index}`}
                   brandName={drink.brandName}
                   menuName={drink.menuName}
-                  optionText={<OptionText text={drink.optionText || '옵션 없음'} />}
+                  optionText={renderOptionText(drink)}
                   pills={[
                     { label: '카페인', value: drink.caffeineMg || 0, unit: 'mg' },
                     { label: '당류', value: drink.sugarG || 0, unit: 'g' },
                   ]}
-                  onPress={() => openDetail(String(intakeId))}
+                  onPress={() => openDetail(drink)}
                 />
               );
             })
@@ -183,6 +238,12 @@ export default function HomeScreen() {
           )}
         </View>
       </View>
+
+      <DrinkDetailSheet
+        visible={detailOpen}
+        drink={selectedDrink}
+        onClose={closeDetail}
+      />
 
       <DatePickerBottomSheet
         visible={dateSheetOpen}
@@ -197,7 +258,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#111',
     gap: 20,
     paddingTop: 16,
   },

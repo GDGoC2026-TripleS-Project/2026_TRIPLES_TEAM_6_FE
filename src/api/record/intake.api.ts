@@ -7,6 +7,8 @@ export type IntakeDrink = {
   brandName: string;
   menuName: string;
   optionText: string;
+  temperature?: 'HOT' | 'ICED';
+  sizeName?: string;
   caffeineMg: number;
   sugarG: number;
   calorieKcal?: number;
@@ -95,6 +97,8 @@ const normalizeDrink = (raw: any, index: number, fallbackDate?: string): IntakeD
     brandName: toString(raw?.brandName ?? raw?.brand?.name ?? ''),
     menuName: toString(raw?.menuName ?? raw?.menu?.name ?? raw?.name ?? ''),
     optionText: optionsText,
+    temperature: raw?.temperature,
+    sizeName: toString(raw?.sizeName ?? ''),
     caffeineMg: toNumber(
       raw?.caffeineMg ??
         raw?.caffeine ??

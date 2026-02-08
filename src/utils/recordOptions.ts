@@ -19,6 +19,7 @@ const resolveOptionName = (id: string, optionNames?: OptionNamesMap) =>
   optionNames?.[id] || id;
 
 export const buildOptionBase = (temperature?: string, size?: string) => {
+  if (!temperature) return size ?? '';
   const temp = temperature === 'hot' ? 'Hot' : 'Ice';
   return size ? `${temp} | ${size}` : temp;
 };
