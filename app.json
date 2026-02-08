@@ -17,7 +17,10 @@
     "ios": {
       "bundleIdentifier": "com.triples.lastcup",
       "supportsTablet": true,
-      "usesAppleSignIn": true
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -51,6 +54,12 @@
           }
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f2fd9b7c-43e3-41e0-a0ee-67617f477007"
+      }
+    },
+    "owner": "gkstldus22"
   }
 }
