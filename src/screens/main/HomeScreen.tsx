@@ -232,7 +232,9 @@ export default function HomeScreen() {
           ) : (
             <View style={{justifyContent: 'center', alignItems: 'center', flex: 1, marginTop: 20, gap: 8}}>
               <Coffee width={80} height={80}/>
-              <Text style={{color: colors.grayscale[100], fontSize: 18, fontFamily: 'Pretendard-Medium'}}>마신 음료가 있다면 기록을 추가해보세요.</Text>
+              <Text style={{color: colors.grayscale[100], fontSize: 18, fontFamily: 'Pretendard-Medium'}}>
+                {isSkipped ? '오늘은 카페에서 음료를 마시지 않았어요.' : '마신 음료가 있다면 기록을 추가해보세요.'}
+              </Text>
               <SkipDrinkCheckbox value={isSkipped} onChange={onToggleSkip} disabled={false} />
             </View>
           )}
