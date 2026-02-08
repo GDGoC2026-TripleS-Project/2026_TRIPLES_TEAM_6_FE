@@ -15,6 +15,7 @@ import PeriodSearchScreen from "../screens/main/PeriodSearchScreen";
 import GoalEditScreen from "../screens/main/mypage/GoalEditScreen";
 import PasswordResetScreen from "../screens/main/sign/PasswordResetScreen";
 import PasswordResetInputScreen from "../screens/main/sign/PasswordResetInputScreen";
+import FindPasswordScreen from "../screens/main/sign/FindPasswordScreen";
 import ProfileSettingScreen from "../screens/main/mypage/ProfileSettingScreen";
 import AlarmSettingScreen from "../screens/main/mypage/AlarmSettingScreen";
 
@@ -131,6 +132,24 @@ export default function RootNavigator() {
       />
 
       <Stack.Screen name="PasswordResetScreen" component={PasswordResetScreen} options={{ headerShown: true, title: "" }} />
+
+      <Stack.Screen
+        name="FindPasswordScreen"
+        component={FindPasswordScreen}
+        options={{
+          headerShown: true,
+          title: "비밀번호 찾기",
+          headerTitleAlign: "center",
+          headerStyle: { backgroundColor: colors.grayscale[1000] },
+          headerShadowVisible: false,
+          headerTintColor: colors.grayscale[100],
+          headerTitleStyle: {
+            fontSize: 14,
+            fontFamily: "Pretendard-SemiBold",
+          },
+          headerBackButtonDisplayMode: "minimal",
+        }}
+      />
 
       <Stack.Screen
         name="PasswordResetInputScreen"

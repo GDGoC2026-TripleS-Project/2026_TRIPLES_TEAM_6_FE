@@ -15,6 +15,12 @@ export type UserMe = {
 };
 
 export type NotificationSettingsRaw = Record<string, unknown>;
+export type GoalsRaw = {
+  caffeine?: number;
+  sugar?: number;
+  caffeineLimit?: number;
+  sugarLimit?: number;
+};
 
 const buildImageFormData = (uri: string) => {
   const name = uri.split('/').pop() ?? `profile-${Date.now()}.jpg`;
@@ -43,6 +49,9 @@ export const userApiLayer = {
 
   updateNotificationSettings: (payload: NotificationSettingsRaw) =>
     api.patch<ApiResponse<NotificationSettingsRaw>>('/users/me/notification-settings', payload),
+
+  getGoals: () =>
+    api.get<ApiResponse<GoalsRaw>>('/users/me/goals'),
 
   updateGoals: (payload: { caffeine: number; sugar: number }) =>
     api.patch<ApiResponse<{ caffeine: number; sugar: number }>>('/users/me/goals', payload),

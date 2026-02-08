@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import TextField from '../../../components/common/TextField';
 import Button from '../../../components/common/Button';
-import PreProfileImg from '../../../../assets/ComponentsImage/preProfile.svg';
+import MyPageProflie from "../../../../assets/ComponentsImage/MyPageProfile.svg";
 import { useUserStore } from '../../../app/features/user/user.store';
 
 export default function ProfileSettingScreen() {
@@ -98,7 +98,7 @@ export default function ProfileSettingScreen() {
           {profileImage ? (
             <Image source={{ uri: profileImage }} style={styles.profileImg} />
           ) : (
-            <PreProfileImg width={120} height={120} />
+            <MyPageProflie width={120} height={120} />
           )}
           
           <View style={styles.plusBadge}>

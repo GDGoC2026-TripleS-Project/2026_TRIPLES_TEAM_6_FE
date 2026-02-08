@@ -160,7 +160,7 @@ console.log('[LOGIN TOKENS]', tokens);
         typeof (user as any)?.caffeineLimit === 'number' ||
         typeof (user as any)?.sugarLimit === 'number'
       ) {
-        void useGoalStore.getState().setGoals({
+        void useGoalStore.getState().setGoalsLocal({
           caffeine: (user as any)?.caffeineLimit ?? useGoalStore.getState().caffeine,
           sugar: (user as any)?.sugarLimit ?? useGoalStore.getState().sugar,
         });

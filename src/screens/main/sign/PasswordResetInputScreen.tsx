@@ -1,15 +1,14 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { View, Text, StyleSheet, Alert, Pressable } from "react-native";
 import { colors } from "../../../constants/colors";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import TextField from "../../../components/common/TextField";
 import Button from "../../../components/common/Button";
 import { authApiLayer } from "../../../app/features/auth/auth.api";
 
 const PasswordResetInputScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const route = useRoute<any>();
-  const [loginId, setLoginId] = useState(route.params?.defaultLoginId || "");
+  const [loginId, setLoginId] = useState("");
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordCheck, setNewPasswordCheck] = useState("");
@@ -134,8 +133,8 @@ const PasswordResetInputScreen: React.FC = () => {
           value={loginId}
           onChangeText={(t) => {
             setLoginId(t);
-            if (!t.trim()) {
-              setLoginIdError("로그인 ID를 입력해 주세요.");
+            if (!t) {
+              setLoginIdError("로그인 ID 형식이 올바르지 않습니다.");
             } else if (!isValidLoginId(t.trim())) {
               setLoginIdError("로그인 ID 형식이 올바르지 않습니다.");
             } else {
@@ -158,6 +157,17 @@ const PasswordResetInputScreen: React.FC = () => {
           keyboardType="number-pad"
           error={tokenError}
         />
+        <Pressable
+          onPress={() =>
+            navigation.navigate("FindPasswordScreen", {
+              defaultLoginId: loginId.trim() || undefined,
+            })
+          }
+          hitSlop={8}
+          style={styles.linkButton}
+        >
+          <Text style={styles.linkText}>인증 코드 받기</Text>
+        </Pressable>
 
         <Text style={styles.label}>새 비밀번호</Text>
         <TextField
@@ -252,6 +262,17 @@ const styles = StyleSheet.create({
   submitWrap: {
     width: "100%",
     marginTop: 60,
+  },
+
+  linkButton: {
+    alignSelf: "flex-end",
+    marginTop: 6,
+  },
+
+  linkText: {
+    color: colors.grayscale[500],
+    fontSize: 12,
+    fontFamily: "Pretendard-Regular",
   },
 });
 
