@@ -6,13 +6,28 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList>;
   Record: { selectedDate?: string } | undefined;
   RecordDetail: { brandName: string; brandId: string; selectedDate?: string };
-  RecordDrinkDetail: { drinkName: string; drinkId: string; selectedDate?: string };
+  RecordDrinkDetail: {
+    drinkName: string;
+    drinkId: string;
+    selectedDate?: string;
+    edit?: {
+      intakeId?: number | string;
+      menuSizeId?: number;
+      intakeDate?: string;
+      temperature?: 'HOT' | 'ICED';
+      sizeName?: string;
+      options?: Array<{ optionId: number | string; quantity?: number; count?: number }>;
+    };
+  };
   RecordingDetail: {
     drinkName: string;
     drinkId: string;
     brandName: string;
     brandId?: number;
     selectedDate?: string;
+    edit?: {
+      intakeId?: number | string;
+    };
     temperature: 'hot' | 'ice';
     size: string;
     menuSizeId?: number;

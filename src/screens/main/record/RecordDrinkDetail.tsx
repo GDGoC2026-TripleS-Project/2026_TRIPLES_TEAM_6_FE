@@ -11,7 +11,7 @@ import StepperOptions from "../../../components/common/StepperOptions";
 import ChipOptions from "../../../components/common/ChipOptions";
 import Info from "../../../../assets/info.svg";
 import Button from "../../../components/common/Button";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useOptionStore } from '../../../store/useOptionStore';
 import {
     fetchMenuDetail,
@@ -30,7 +30,7 @@ const INFO_MESSAGE = '커피를 제외한 옵션은 기록용 메모이며, 영�
 const RecordDrinkDetail = () => {
     const route = useRoute<RecordDrinkDetailRouteProp>();
     const navigation = useNavigation<RecordDrinkDetailNavigationProp>();
-    const { drinkId, drinkName, selectedDate } = route.params;
+    const { drinkId, drinkName, selectedDate, edit } = route.params;
 
     const [temperature, setTemperature] = useState<'hot' | 'ice'>('hot');
     const [selectedSize, setSelectedSize] = useState<string>('Tall');
@@ -43,6 +43,8 @@ const RecordDrinkDetail = () => {
 
     const getGroupData = useOptionStore(state => state.getGroupData);
     const resetGroup = useOptionStore(state => state.resetGroup);
+    const setGroupInfo = useOptionStore(state => state.setGroupInfo);
+    const editAppliedRef = useRef(false);
 
     const tempToApi = (t: 'hot' | 'ice'): MenuTemperature => (t === 'hot' ? 'HOT' : 'ICED');
     const apiToTemp = (t: MenuTemperature): 'hot' | 'ice' => (t === 'HOT' ? 'hot' : 'ice');
@@ -141,7 +143,59 @@ const RecordDrinkDetail = () => {
         resetGroup('extra1-option');
         resetGroup('extra2-option');
         resetGroup('extra3-option');
+        editAppliedRef.current = false;
     }, [drinkId, resetGroup]);
+
+    useEffect(() => {
+        if (!edit || editAppliedRef.current) return;
+        if (!menuDetail) return;
+        if (!sizes.length) return;
+
+        if (edit.temperature) {
+            setTemperature(apiToTemp(edit.temperature));
+        }
+
+        if (edit.sizeName) {
+            const exists = sizes.some((s) => s.sizeName === edit.sizeName);
+            if (exists) setSelectedSize(edit.sizeName);
+        } else if (edit.menuSizeId) {
+            const match = sizes.find((s) => s.menuSizeId === edit.menuSizeId);
+            if (match) setSelectedSize(match.sizeName);
+        }
+
+        const hasEditOptions = (edit.options ?? []).length > 0;
+        if (hasEditOptions && brandOptions.length === 0) return;
+
+        if (brandOptions.length > 0 && hasEditOptions) {
+            const coffeeCounts: Record<string, number> = {};
+            const syrupCounts: Record<string, number> = {};
+            const milkSelected = new Set<string>();
+
+            (edit.options ?? []).forEach((opt) => {
+                const id = String(opt.optionId);
+                const count = opt.quantity ?? opt.count ?? 1;
+                const option = brandOptions.find((o) => String(o.id) === id);
+                const category = (option?.category ?? '').toUpperCase();
+                if (category === 'COFFEE' || category === 'SHOT') {
+                    coffeeCounts[id] = count;
+                    return;
+                }
+                if (category === 'SYRUP') {
+                    syrupCounts[id] = count;
+                    return;
+                }
+                if (category === 'MILK') {
+                    milkSelected.add(id);
+                }
+            });
+
+            setGroupInfo('extra1-option', { stepperCounts: coffeeCounts, chipSelected: new Set() });
+            setGroupInfo('extra2-option', { stepperCounts: syrupCounts, chipSelected: new Set() });
+            setGroupInfo('extra3-option', { chipSelected: milkSelected, stepperCounts: {} });
+        }
+
+        editAppliedRef.current = true;
+    }, [edit, menuDetail, sizes, brandOptions, setGroupInfo, apiToTemp]);
 
     const handleTemperatureChange = (next: 'hot' | 'ice') => {
         if (!allowedTemps.has(next)) return;
@@ -186,6 +240,7 @@ const RecordDrinkDetail = () => {
             brandName: menuDetail?.brandName ?? '',
             brandId: menuDetail?.brandId,
             selectedDate,
+            edit: edit?.intakeId ? { intakeId: edit.intakeId } : undefined,
             temperature,
             size: selectedSize,
             menuSizeId: selectedSizeInfo?.menuSizeId,

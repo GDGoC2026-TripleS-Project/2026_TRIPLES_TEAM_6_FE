@@ -41,6 +41,9 @@ export type IntakeDetail = IntakeDrink & {
   brandId?: number | string;
   sizeName?: string;
   temperature?: 'HOT' | 'ICED';
+  menuSizeId?: number;
+  intakeDate?: string;
+  quantity?: number;
   options?: Array<{ optionId: number | string; optionName?: string; count?: number }>;
 };
 
@@ -231,7 +234,16 @@ export const fetchIntakeDetail = async (
           count: toNumber(opt?.quantity ?? opt?.count, 1),
         }))
       : undefined;
-    return { ...normalized, data: { ...base, options } };
+    return {
+      ...normalized,
+      data: {
+        ...base,
+        options,
+        menuSizeId: normalized.data?.menuSizeId ?? normalized.data?.menuSize?.id,
+        intakeDate: toString(normalized.data?.intakeDate ?? normalized.data?.date ?? ''),
+        quantity: toNumber(normalized.data?.quantity ?? normalized.data?.count, 1),
+      },
+    };
   }
   return normalized as ApiResponse<IntakeDetail>;
 };
@@ -247,4 +259,44 @@ export const createIntakeRecord = async (
     cleanPayload
   );
   return normalizeApiResponse(res.data);
+};
+
+export const updateIntakeRecord = async (
+  intakeId: number | string,
+  payload: CreateIntakePayload
+): Promise<ApiResponse<{ id?: number | string }>> => {
+  const cleanPayload = Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined)
+  ) as CreateIntakePayload;
+  const res = await api.put<ApiResponse<{ id?: number | string }>>(
+    `/intakes/${intakeId}`,
+    cleanPayload
+  );
+  return normalizeApiResponse(res.data);
+};
+
+export const deleteIntakeRecord = async (
+  intakeId: number | string
+): Promise<ApiResponse<{ deleted?: boolean }>> => {
+  try {
+    const res = await api.delete<ApiResponse<{ deleted?: boolean }>>(
+      `/intakes/${intakeId}`
+    );
+    const normalized = normalizeApiResponse(res.data);
+    if (normalized.success) {
+      return {
+        success: true,
+        data: normalized.data ?? {},
+        timestamp: normalized.timestamp ?? new Date().toISOString(),
+      };
+    }
+    return normalized;
+  } catch (e: any) {
+    if (__DEV__) {
+      console.log('[API ERR] /intakes/:id DELETE status:', e?.response?.status);
+      console.log('[API ERR] /intakes/:id DELETE data:', e?.response?.data);
+      console.log('[API ERR] /intakes/:id DELETE message:', e?.message);
+    }
+    throw e;
+  }
 };

@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import MenuItemRow from "../../../components/common/MenuItem";
 import DatePickerField from "../../../components/common/DatePickerField";
 import { fetchMenuSizeDetail } from '../../../api/record/menu.api';
-import { createIntakeRecord } from '../../../api/record/intake.api';
+import { createIntakeRecord, updateIntakeRecord } from '../../../api/record/intake.api';
 import {
     buildOptionInfoFromSelections,
     buildOptionPartsFromSelections,
@@ -34,6 +34,7 @@ const RecordingDetail = () => {
         optionNutrition,
         menuSizeId,
         baseNutrition,
+        edit,
     } = route.params;
     const [selectedDate, setSelectedDate] = useState(() => {
         if (!selectedDateParam) return new Date();
@@ -118,12 +119,16 @@ const RecordingDetail = () => {
         const recordDate = `${yyyy}-${mm}-${dd}`;
 
         try {
-            const res = await createIntakeRecord({
+            const payload = {
                 menuSizeId,
                 intakeDate: recordDate,
                 quantity: 1,
                 options: optionPayload,
-            });
+            };
+
+            const res = edit?.intakeId
+                ? await updateIntakeRecord(edit.intakeId, payload)
+                : await createIntakeRecord(payload);
 
             if (!res.success) {
                 Alert.alert('섭취 기록 실패', res.error?.message ?? '기록 저장에 실패했습니다.');

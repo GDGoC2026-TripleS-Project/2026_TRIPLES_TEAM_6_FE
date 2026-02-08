@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { colors } from '../../constants/colors';
 import Coffee from '../../../assets/ComponentsImage/coffeeImg.svg';
@@ -10,221 +10,42 @@ import OptionText from '../../components/common/OptionText';
 import NutritionSummary from '../../components/calendar/NutritionSummary';
 import SkipDrinkCheckbox from '../../components/calendar/SkipDrinkCheckbox';
 import AddRecordButton from '../../components/common/AddRecordButton';
-import DrinkDetailSheet, { type DrinkLike } from '../../components/common/DrinkDetailSheet';
+import DrinkDetailSheet from '../../components/common/DrinkDetailSheet';
 import { Ionicons } from '@expo/vector-icons';
-
-import { useGoalStore } from '../../store/goalStore';
-import {
-  fetchDailyIntake,
-  fetchIntakeDetail,
-  fetchPeriodIntake,
-  type DailyIntake,
-  type IntakeDrink,
-} from '../../api/record/intake.api';
-
-import { useNavigation } from '@react-navigation/native';
-import type { MainTabNavigationProp } from '../../types/navigation';
-import { buildOptionBase } from '../../utils/recordOptions';
-
-const todayString = () => {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-};
+import { useCalendarScreen } from '../../hooks/useCalendarScreen';
 
 const toKoreanDate = (dateString: string) => {
   const [y, m, d] = dateString.split('-');
   return `${y}년 ${Number(m)}월 ${Number(d)}일`;
 };
 
-const toMonthRange = (dateString: string) => {
-  const [yRaw, mRaw] = dateString.split('-');
-  const y = Number(yRaw);
-  const m = Number(mRaw);
-  if (!y || !m) {
-    return { start: dateString, end: dateString };
-  }
-  const start = `${y}-${String(m).padStart(2, '0')}-01`;
-  const endDate = new Date(y, m, 0);
-  const end = `${y}-${String(m).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
-  return { start, end };
-};
-
-type Nav = MainTabNavigationProp<'Calendar'>;
-
 export default function CalendarScreen() {
-  const navigation = useNavigation<Nav>();
-
-  const [selectedDate, setSelectedDate] = useState<string>(todayString());
-  const [skippedByDate, setSkippedByDate] = useState<Record<string, boolean>>({});
-
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [selectedDrink, setSelectedDrink] = useState<DrinkLike | null>(null);
-  const [periodSheetOpen, setPeriodSheetOpen] = useState(false);
-
-  const [daily, setDaily] = useState<DailyIntake | null>(null);
-  const [dailyLoading, setDailyLoading] = useState(false);
-  const [dailyError, setDailyError] = useState<string | null>(null);
-  const [eventDates, setEventDates] = useState<string[]>([]);
-
-  const caffeineGoal = useGoalStore((s) => s.caffeine);
-  const sugarGoal = useGoalStore((s) => s.sugar);
-
-  const calendarEvents = useMemo(() => {
-    const skippedDates = Object.entries(skippedByDate)
-      .filter(([, skipped]) => skipped)
-      .map(([date]) => date);
-
-    return Array.from(new Set([...eventDates, ...skippedDates]));
-  }, [eventDates, skippedByDate]);
-
-  const isSkipped = !!skippedByDate[selectedDate];
-  const drinks: IntakeDrink[] = daily?.drinks ?? [];
-  const summaryDrinks = isSkipped ? [] : drinks;
-
-  const today = todayString();
-  const hasRecord = drinks.length > 0;
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadDaily = async () => {
-      setDailyLoading(true);
-      setDailyError(null);
-      try {
-        const res = await fetchDailyIntake(selectedDate);
-        if (!isMounted) return;
-        if (res.success && res.data) {
-          setDaily(res.data);
-        } else {
-          setDaily({
-            date: selectedDate,
-            totalCaffeineMg: 0,
-            totalSugarG: 0,
-            drinkCount: 0,
-            drinks: [],
-          });
-          setDailyError(res.error?.message ?? '일별 기록을 불러오지 못했습니다.');
-        }
-      } catch {
-        if (!isMounted) return;
-        setDaily({
-          date: selectedDate,
-          totalCaffeineMg: 0,
-          totalSugarG: 0,
-          drinkCount: 0,
-          drinks: [],
-        });
-        setDailyError('일별 기록을 불러오지 못했습니다.');
-      } finally {
-        if (isMounted) setDailyLoading(false);
-      }
-    };
-    loadDaily();
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedDate]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const { start, end } = toMonthRange(selectedDate);
-    const loadEvents = async () => {
-      try {
-        const res = await fetchPeriodIntake(start, end);
-        if (!isMounted) return;
-        if (res.success && res.data) {
-          setEventDates(res.data.dates ?? []);
-        } else {
-          setEventDates([]);
-        }
-      } catch {
-        if (!isMounted) return;
-        setEventDates([]);
-      }
-    };
-    loadEvents();
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedDate]);
-
-  const onToggleSkip = (next: boolean) => {
-    setSkippedByDate((prev) => ({
-      ...prev,
-      [selectedDate]: next,
-    }));
-  };
-
-  const onAddRecord = () => {
-    navigation.navigate('Record', { selectedDate });
-  };
-
-  const onGoPeriodSearch = () => {
-    setPeriodSheetOpen(true);
-  };
-
-  const handlePeriodConfirm = (startDate: string, endDate: string) => {
-    navigation.navigate('PeriodSearchScreen', {
-      startDate,
-      endDate
-    });
-  };
-
-  const openDetail = async (drink: IntakeDrink) => {
-    const base: DrinkLike = {
-      id: drink.id ?? '',
-      brandName: drink.brandName,
-      menuName: drink.menuName,
-      caffeineMg: drink.caffeineMg ?? 0,
-      sugarG: drink.sugarG ?? 0,
-      calorieKcal: drink.calorieKcal,
-      sodiumMg: drink.sodiumMg,
-      proteinG: drink.proteinG,
-      fatG: drink.fatG,
-    };
-
-    setSelectedDrink(base);
-    setDetailOpen(true);
-
-    try {
-      const res = await fetchIntakeDetail(drink.id);
-      if (res.success && res.data) {
-        setSelectedDrink({
-          id: String(res.data.id ?? drink.id),
-          brandName: res.data.brandName ?? drink.brandName,
-          menuName: res.data.menuName ?? drink.menuName,
-          caffeineMg: res.data.caffeineMg ?? 0,
-          sugarG: res.data.sugarG ?? 0,
-          calorieKcal: res.data.calorieKcal,
-          sodiumMg: res.data.sodiumMg,
-          proteinG: res.data.proteinG,
-          fatG: res.data.fatG,
-        });
-      }
-    } catch {
-      // fallback to list data
-    }
-  };
-
-  const closeDetail = () => setDetailOpen(false);
-
-  const renderOptionText = (drink: IntakeDrink) => {
-    const temp = drink.temperature === 'HOT' ? 'hot' : drink.temperature === 'ICED' ? 'ice' : undefined;
-    const base = buildOptionBase(temp, drink.sizeName);
-    const extraText = drink.optionText?.trim();
-    const extras =
-      extraText && extraText !== '옵션 없음'
-        ? extraText.split(' | ').map((s) => s.trim()).filter(Boolean)
-        : [];
-
-    if (base) {
-      return <OptionText base={base} extra={extras} />;
-    }
-
-    return <OptionText text={extraText || '옵션 없음'} />;
-  };
+  const {
+    selectedDate,
+    setSelectedDate,
+    isSkipped,
+    onToggleSkip,
+    detailOpen,
+    selectedDrink,
+    periodSheetOpen,
+    setPeriodSheetOpen,
+    calendarEvents,
+    summaryDrinks,
+    hasRecord,
+    drinks,
+    dailyLoading,
+    dailyError,
+    caffeineGoal,
+    sugarGoal,
+    onAddRecord,
+    onGoPeriodSearch,
+    handlePeriodConfirm,
+    openDetail,
+    closeDetail,
+    handleDelete,
+    handleEdit,
+    renderOptionText,
+  } = useCalendarScreen();
 
   return (
     <ScrollView style={styles.container}>
@@ -286,31 +107,42 @@ export default function CalendarScreen() {
       <View style={styles.list}>
         {hasRecord &&
           !isSkipped &&
-          drinks.map((d) => (
-            <DrinkList
-              key={d.id}
-              brandName={d.brandName}
-              menuName={d.menuName}
-              optionText={renderOptionText(d)}
-              pills={[
-                { label: '카페인', value: d.caffeineMg, unit: 'mg' },
-                { label: '당류', value: d.sugarG, unit: 'g' },
-              ]}
-              onPress={() => openDetail(d)}
-            />
-          ))}
+          drinks.map((d) => {
+            const opt = renderOptionText(d);
+            return (
+              <DrinkList
+                key={d.id}
+                brandName={d.brandName}
+                menuName={d.menuName}
+                optionText={
+                  opt.base ? (
+                    <OptionText base={opt.base} extra={opt.extras} />
+                  ) : (
+                    <OptionText text={opt.extras[0] || '옵션 없음'} />
+                  )
+                }
+                pills={[
+                  { label: '카페인', value: d.caffeineMg, unit: 'mg' },
+                  { label: '당류', value: d.sugarG, unit: 'g' },
+                ]}
+                onPress={() => openDetail(d)}
+              />
+            );
+          })}
       </View>
 
       <DrinkDetailSheet
         visible={detailOpen}
         drink={selectedDrink}
         onClose={closeDetail}
+        onDelete={(drink) => handleDelete(drink.id)}
+        onEdit={handleEdit}
       />
 
       <PeriodSelectBottomSheet
-      visible={periodSheetOpen}
-      onClose={() => setPeriodSheetOpen(false)}
-      onConfirm={handlePeriodConfirm}
+        visible={periodSheetOpen}
+        onClose={() => setPeriodSheetOpen(false)}
+        onConfirm={handlePeriodConfirm}
       />
     </ScrollView>
   );

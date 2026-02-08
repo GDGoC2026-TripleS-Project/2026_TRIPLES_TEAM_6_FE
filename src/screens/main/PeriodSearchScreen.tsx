@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -14,16 +14,8 @@ import { colors } from '../../constants/colors';
 import PeriodSelectBottomSheet from '../../components/common/PeriodSelectBottomSheet';
 import DrinkList from '../../components/common/MenuItem';
 import OptionText from '../../components/common/OptionText';
-import DrinkDetailSheet, { type DrinkLike } from '../../components/common/DrinkDetailSheet';
-
-import {
-  fetchDailyIntake,
-  fetchIntakeDetail,
-  fetchPeriodIntake,
-  type DailyIntake,
-  type IntakeDrink,
-} from '../../api/record/intake.api';
-import { buildOptionBase } from '../../utils/recordOptions';
+import DrinkDetailSheet from '../../components/common/DrinkDetailSheet';
+import { usePeriodSearchScreen, type PeriodRow } from '../../hooks/usePeriodSearchScreen';
 
 type Props = {
   navigation: any;
@@ -36,207 +28,45 @@ const toKoreanDate = (dateString: string) => {
   return `${y}.${String(Number(m)).padStart(2, '0')}.${String(Number(d)).padStart(2, '0')}`;
 };
 
-const toSectionTitle = (dateString: string) => {
-  return toKoreanDate(dateString);
-};
-
-const parseDate = (dateString: string) => {
-  const [y, m, d] = dateString.split('-').map(Number);
-  if (!y || !m || !d) return null;
-  return new Date(y, m - 1, d);
-};
-
-const toDateList = (start: string, end: string) => {
-  const startDate = parseDate(start);
-  const endDate = parseDate(end);
-  if (!startDate || !endDate) return [];
-
-  const dates: string[] = [];
-  const cursor = new Date(startDate);
-  while (cursor <= endDate) {
-    const yyyy = cursor.getFullYear();
-    const mm = String(cursor.getMonth() + 1).padStart(2, '0');
-    const dd = String(cursor.getDate()).padStart(2, '0');
-    dates.push(`${yyyy}-${mm}-${dd}`);
-    cursor.setDate(cursor.getDate() + 1);
-  }
-  return dates;
-};
-
-type SectionRow =
-  | { type: 'header'; id: string; title: string }
-  | { type: 'drink'; id: string; date: string; drink: IntakeDrink };
-
 export default function PeriodSearchScreen({ navigation, route }: Props) {
   const initialStart = route?.params?.startDate ?? '2026-01-07';
   const initialEnd = route?.params?.endDate ?? '2026-01-21';
 
-  const [sheetVisible, setSheetVisible] = useState(false);
-  const [startDate, setStartDate] = useState<string>(initialStart);
-  const [endDate, setEndDate] = useState<string>(initialEnd);
-  const [days, setDays] = useState<DailyIntake[]>([]);
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [selectedDrink, setSelectedDrink] = useState<DrinkLike | null>(null);
-  const [summary, setSummary] = useState({
-    caffeineTotal: 0,
-    sugarTotal: 0,
-    drinkCount: 0,
-  });
-  const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const {
+    sheetVisible,
+    setSheetVisible,
+    normalized,
+    summary,
+    rows,
+    loading,
+    loadError,
+    detailOpen,
+    selectedDrink,
+    handleConfirmPeriod,
+    openDetail,
+    closeDetail,
+    handleDelete,
+    handleEdit,
+    renderOptionText,
+  } = usePeriodSearchScreen(initialStart, initialEnd);
 
-  const normalized = useMemo(() => {
-    if (!startDate || !endDate) return { start: startDate, end: endDate };
-    return startDate <= endDate ? { start: startDate, end: endDate } : { start: endDate, end: startDate };
-  }, [startDate, endDate]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadPeriod = async () => {
-      if (!normalized.start || !normalized.end) {
-        setDays([]);
-        setSummary({ caffeineTotal: 0, sugarTotal: 0, drinkCount: 0 });
-        return;
-      }
-      setLoading(true);
-      setLoadError(null);
-      try {
-        const periodRes = await fetchPeriodIntake(normalized.start, normalized.end);
-        if (isMounted && periodRes.success && periodRes.data) {
-          setSummary({
-            caffeineTotal: periodRes.data.totalCaffeineMg ?? 0,
-            sugarTotal: periodRes.data.totalSugarG ?? 0,
-            drinkCount: periodRes.data.drinkCount ?? 0,
-          });
-        } else if (isMounted) {
-          setSummary({ caffeineTotal: 0, sugarTotal: 0, drinkCount: 0 });
-        }
-
-        const dates = toDateList(normalized.start, normalized.end);
-        const dailyResults = await Promise.all(
-          dates.map(async (date) => {
-            try {
-              return await fetchDailyIntake(date);
-            } catch {
-              return null;
-            }
-          })
-        );
-        if (!isMounted) return;
-
-        const nextDays = dailyResults
-          .filter((res): res is { success: true; data: DailyIntake } =>
-            Boolean(res && (res as any).success && (res as any).data)
-          )
-          .map((res) => res.data)
-          .filter((day) => day.drinks.length > 0)
-          .sort((a, b) => (a.date < b.date ? 1 : -1));
-
-        setDays(nextDays);
-      } catch {
-        if (!isMounted) return;
-        setDays([]);
-        setSummary({ caffeineTotal: 0, sugarTotal: 0, drinkCount: 0 });
-        setLoadError('기간 기록을 불러오지 못했습니다.');
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-    loadPeriod();
-    return () => {
-      isMounted = false;
-    };
-  }, [normalized.start, normalized.end]);
-
-  const rows: SectionRow[] = useMemo(() => {
-    const out: SectionRow[] = [];
-
-    for (const day of days) {
-      out.push({
-        type: 'header',
-        id: `h_${day.date}`,
-        title: toSectionTitle(day.date),
-      });
-
-      for (const drink of day.drinks) {
-        out.push({
-          type: 'drink',
-          id: `d_${day.date}_${drink.id}`,
-          date: day.date,
-          drink,
-        });
-      }
-    }
-
-    return out;
-  }, [days]);
-
-  const handleConfirmPeriod = (s: string, e: string) => {
-    setStartDate(s);
-    setEndDate(e);
-  };
-
-  const openDetail = async (drink: IntakeDrink) => {
-    const base: DrinkLike = {
-      id: drink.id ?? '',
-      brandName: drink.brandName,
-      menuName: drink.menuName,
-      caffeineMg: drink.caffeineMg ?? 0,
-      sugarG: drink.sugarG ?? 0,
-      calorieKcal: drink.calorieKcal,
-      sodiumMg: drink.sodiumMg,
-      proteinG: drink.proteinG,
-      fatG: drink.fatG,
-    };
-
-    setSelectedDrink(base);
-    setDetailOpen(true);
-
-    try {
-      const res = await fetchIntakeDetail(drink.id);
-      if (res.success && res.data) {
-        setSelectedDrink({
-          id: String(res.data.id ?? drink.id),
-          brandName: res.data.brandName ?? drink.brandName,
-          menuName: res.data.menuName ?? drink.menuName,
-          caffeineMg: res.data.caffeineMg ?? 0,
-          sugarG: res.data.sugarG ?? 0,
-          calorieKcal: res.data.calorieKcal,
-          sodiumMg: res.data.sodiumMg,
-          proteinG: res.data.proteinG,
-          fatG: res.data.fatG,
-        });
-      }
-    } catch {
-      // fallback to list data
-    }
-  };
-
-  const closeDetail = () => setDetailOpen(false);
-
-  const renderItem = ({ item }: ListRenderItemInfo<SectionRow>) => {
+  const renderItem = ({ item }: ListRenderItemInfo<PeriodRow>) => {
     if (item.type === 'header') {
       return <Text style={styles.sectionTitle}>{item.title}</Text>;
     }
 
     const d = item.drink;
-    const temp = d.temperature === 'HOT' ? 'hot' : d.temperature === 'ICED' ? 'ice' : undefined;
-    const base = buildOptionBase(temp, d.sizeName);
-    const extraText = d.optionText?.trim();
-    const extras =
-      extraText && extraText !== '옵션 없음'
-        ? extraText.split(' | ').map((s) => s.trim()).filter(Boolean)
-        : [];
+    const opt = renderOptionText(d);
 
     return (
       <DrinkList
         brandName={d.brandName}
         menuName={d.menuName}
         optionText={
-          base ? (
-            <OptionText base={base} extra={extras} />
+          opt.base ? (
+            <OptionText base={opt.base} extra={opt.extras} />
           ) : (
-            <OptionText text={extraText || '옵션 없음'} />
+            <OptionText text={opt.extras[0] || '옵션 없음'} />
           )
         }
         pills={[
@@ -244,14 +74,13 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
           { label: '당류', value: d.sugarG, unit: 'g' },
         ]}
         rightText={d.count ? `${d.count}잔` : undefined}
-        onPress={() => openDetail(d)}
+        onPress={() => openDetail(d, item.date)}
       />
     );
   };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* 헤더 */}
       <View style={styles.header}>
         <Pressable
           onPress={() => navigation.goBack?.()}
@@ -264,7 +93,6 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
         <View style={{ width: 24 }} />
       </View>
 
-      {/* 기간 + 변경하기 */}
       <View style={styles.periodRow}>
         <Text style={styles.periodText}>
           {toKoreanDate(normalized.start)} - {toKoreanDate(normalized.end)}
@@ -274,7 +102,6 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
         </Pressable>
       </View>
 
-      {/* 요약 */}
       <View style={styles.summaryWrap}>
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>섭취한 카페인</Text>
@@ -292,7 +119,6 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
         </View>
       </View>
 
-      {/* 리스트 */}
       <FlatList
         data={rows}
         keyExtractor={(item) => item.id}
@@ -312,9 +138,10 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
         visible={detailOpen}
         drink={selectedDrink}
         onClose={closeDetail}
+        onDelete={(drink) => handleDelete(drink.id)}
+        onEdit={handleEdit}
       />
 
-      {/* 기간 선택 바텀시트 */}
       <PeriodSelectBottomSheet
         visible={sheetVisible}
         onClose={() => setSheetVisible(false)}
