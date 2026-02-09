@@ -22,6 +22,12 @@ export type GoalsRaw = {
   sugarLimit?: number;
 };
 
+export type DevicePlatform = 'ANDROID' | 'IOS';
+export type RegisterDeviceTokenPayload = {
+  fcmToken: string;
+  platform: DevicePlatform;
+};
+
 const buildImageFormData = (uri: string) => {
   const name = uri.split('/').pop() ?? `profile-${Date.now()}.jpg`;
   const ext = name.split('.').pop()?.toLowerCase();
@@ -56,8 +62,8 @@ export const userApiLayer = {
   updateGoals: (payload: { caffeine: number; sugar: number }) =>
     api.patch<ApiResponse<{ caffeine: number; sugar: number }>>('/users/me/goals', payload),
 
-  registerDeviceToken: (token: string) =>
-    api.post<ApiResponse<{ registered: boolean }>>('/users/me/devices', { token }),
+  registerDeviceToken: (payload: RegisterDeviceTokenPayload) =>
+    api.post<ApiResponse<{ success: boolean }>>('/users/me/devices', payload),
 
   deleteMe: () => api.delete<ApiResponse<{ deleted?: boolean }>>('/users/me'),
 };
