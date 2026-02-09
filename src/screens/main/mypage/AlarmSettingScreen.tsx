@@ -13,6 +13,8 @@ import { colors } from '../../../constants/colors';
 import ToggleSwitch from '../../../components/common/ToggleSwitch';
 import Button from '../../../components/common/Button';
 import { useUserStore } from '../../../app/features/user/user.store';
+import { storage } from '../../../utils/storage';
+import { storageKeys } from '../../../constants/storageKeys';
 
 type AlarmKey = 'record' | 'daily';
 
@@ -47,7 +49,6 @@ const toDateFromHHmm = (time: string, fallbackHour: number, fallbackMinute: numb
   if (!match) return d;
   const hour = Number(match[1]);
   const minute = Number(match[2]);
-  if (Number.isNaN(hour) || Number.isNaN(minute)) return d;
   d.setHours(hour, minute, 0, 0);
   return d;
 };
@@ -56,48 +57,74 @@ const toHHmm = (date: Date) =>
   `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 
 export default function AlarmSettingScreen() {
-  const fetchNotificationSettings = useUserStore((s) => s.fetchNotificationSettings);
-  const updateNotificationSettings = useUserStore((s) => s.updateNotificationSettings);
-  const notificationSettings = useUserStore((s) => s.notificationSettings);
-  const isLoading = useUserStore((s) => s.isLoading);
-  const errorMessage = useUserStore((s) => s.errorMessage);
+  const { 
+    fetchNotificationSettings, 
+    updateNotificationSettings, 
+    notificationSettings, 
+    isLoading, 
+    errorMessage 
+  } = useUserStore();
 
-  const initial: AlarmState = useMemo(
-    () => ({
-      recordEnabled: false,
-      recordTime: createTime(14, 0), 
-      dailyEnabled: false,
-      dailyTime: createTime(21, 0), 
-    }),
-    []
-  );
+  const [state, setState] = useState<AlarmState>({
+    recordEnabled: false,
+    recordTime: createTime(14, 0),
+    dailyEnabled: false,
+    dailyTime: createTime(21, 0),
+  });
 
-  const [state, setState] = useState<AlarmState>(initial);
-  const [initialState, setInitialState] = useState<AlarmState>(initial);
+  const [isFirstVisit, setIsFirstVisit] = useState<boolean | null>(null);
 
+  const [initialState, setInitialState] = useState<AlarmState | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [activeKey, setActiveKey] = useState<AlarmKey>('record');
 
-  const activeDate =
-    activeKey === 'record' ? state.recordTime : state.dailyTime;
+  const activeDate = activeKey === 'record' ? state.recordTime : state.dailyTime;
 
+  // 1. 화면 진입 시 데이터 불러오기
   useEffect(() => {
     fetchNotificationSettings();
-  }, [fetchNotificationSettings]);
+    (async () => {
+      const seen = await storage.get(storageKeys.alarmFirstSeen);
+      setIsFirstVisit(seen !== 'true');
+    })();
+  }, []);
 
   useEffect(() => {
-    if (!notificationSettings) return;
-    const next: AlarmState = {
-      recordEnabled: notificationSettings.recordEnabled,
+    if (isFirstVisit === null) return;
+    if (!notificationSettings) {
+      if (!initialState) {
+        setInitialState(state);
+      }
+      return;
+    }
+
+    const synced: AlarmState = {
+      recordEnabled: isFirstVisit ? false : notificationSettings.recordEnabled,
       recordTime: toDateFromHHmm(notificationSettings.recordTime, 14, 0),
-      dailyEnabled: notificationSettings.dailyEnabled,
+      dailyEnabled: isFirstVisit ? false : notificationSettings.dailyEnabled,
       dailyTime: toDateFromHHmm(notificationSettings.dailyTime, 21, 0),
     };
-    setState(next);
-    setInitialState(next);
-  }, [notificationSettings]);
+
+    const shouldUpdate =
+      !initialState ||
+      state.recordEnabled !== synced.recordEnabled ||
+      state.dailyEnabled !== synced.dailyEnabled ||
+      !sameTime(state.recordTime, synced.recordTime) ||
+      !sameTime(state.dailyTime, synced.dailyTime);
+
+    if (shouldUpdate) {
+      setState(synced);
+      setInitialState(synced);
+    }
+
+    if (isFirstVisit) {
+      void storage.set(storageKeys.alarmFirstSeen, 'true');
+      setIsFirstVisit(false);
+    }
+  }, [notificationSettings, isFirstVisit]);
 
   const hasChanges = useMemo(() => {
+    if (!initialState) return false;
     return (
       state.recordEnabled !== initialState.recordEnabled ||
       state.dailyEnabled !== initialState.dailyEnabled ||
@@ -108,56 +135,51 @@ export default function AlarmSettingScreen() {
 
   const openPicker = (key: AlarmKey) => {
     setActiveKey(key);
-    if (Platform.OS === 'android') {
-      setPickerOpen(true);
-    } else {
-      setPickerOpen(true);
-    }
+    setPickerOpen(true);
   };
 
   const closePicker = () => setPickerOpen(false);
 
   const onPick = (_event: DateTimePickerEvent, picked?: Date) => {
-    if (!picked) {
-      if (Platform.OS === 'android') setPickerOpen(false);
-      return;
-    }
-
-    setState((prev) => {
-      if (activeKey === 'record') return { ...prev, recordTime: picked };
-      return { ...prev, dailyTime: picked };
-    });
-
     if (Platform.OS === 'android') setPickerOpen(false);
+    if (picked) {
+      setState((prev) => ({
+        ...prev,
+        [activeKey === 'record' ? 'recordTime' : 'dailyTime']: picked,
+      }));
+    }
   };
 
   const toggleEnabled = (key: AlarmKey, next: boolean) => {
-    setState((prev) => {
-      if (key === 'record') return { ...prev, recordEnabled: next };
-      return { ...prev, dailyEnabled: next };
-    });
+    setState((prev) => ({
+      ...prev,
+      [key === 'record' ? 'recordEnabled' : 'dailyEnabled']: next,
+    }));
   };
 
-  const onSave = async () => {
-    const ok = await updateNotificationSettings({
-      recordEnabled: state.recordEnabled,
-      recordTime: toHHmm(state.recordTime),
-      dailyEnabled: state.dailyEnabled,
-      dailyTime: toHHmm(state.dailyTime),
-    });
+  // 3. 저장 로직 개선
+  // 저장 로직 개선
+const onSave = async () => {
+  const payload = {
+    recordEnabled: state.recordEnabled,
+    recordTime: toHHmm(state.recordTime),
+    dailyEnabled: state.dailyEnabled,
+    dailyTime: toHHmm(state.dailyTime),
+  };
 
-    if (!ok) {
-      Alert.alert('저장 실패', errorMessage ?? '다시 시도해 주세요.');
-      return;
-    }
+  const success = await updateNotificationSettings(payload);
 
+  if (success) {
+    // 저장 성공 시 initialState 업데이트 (버튼 비활성화)
     setInitialState(state);
     Alert.alert('저장 완료', '알림 설정이 업데이트됐어요.');
-  };
+  } else {
+    Alert.alert('저장 실패', errorMessage ?? '다시 시도해 주세요.');
+  }
+};
 
   return (
     <View style={styles.screen}>
-
       <View style={styles.content}>
         <AlarmSection
           title="기록 유도 알림"
@@ -188,44 +210,25 @@ export default function AlarmSettingScreen() {
           disabled={!hasChanges || isLoading}
           onPress={onSave}
           backgroundColor={colors.primary[500]}
-          disabledBackgroundColor={colors.grayscale[700]}
-          pressedBackgroundColor={colors.primary[700]}
         />
       </View>
 
+      {/* DatePicker Modals (기존과 동일) */}
       {Platform.OS === 'android' && pickerOpen && (
-        <DateTimePicker
-          value={activeDate}
-          mode="time"
-          is24Hour={false}
-          display="default"
-          onChange={onPick}
-        />
+        <DateTimePicker value={activeDate} mode="time" onChange={onPick} />
       )}
-
       {Platform.OS === 'ios' && (
-        <Modal
-          visible={pickerOpen}
-          transparent
-          animationType="slide"
-          onRequestClose={closePicker}
-        >
+        <Modal visible={pickerOpen} transparent animationType="slide">
           <Pressable style={styles.modalBackdrop} onPress={closePicker} />
-
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
-
-            <View style={styles.pickerWrap}>
-              <DateTimePicker
-                value={activeDate}
-                mode="time"
-                display="spinner"
-                onChange={onPick}
-                minuteInterval={1}
-                themeVariant="dark"
-              />
-            </View>
-
+            <DateTimePicker
+              value={activeDate}
+              mode="time"
+              display="spinner"
+              onChange={onPick}
+              themeVariant="dark"
+            />
             <View style={styles.sheetButton}>
               <Button title="확인" onPress={closePicker} />
             </View>
@@ -236,6 +239,7 @@ export default function AlarmSettingScreen() {
   );
 }
 
+// AlarmSection 컴포넌트는 기존과 동일
 function AlarmSection({
   title,
   desc,
@@ -262,17 +266,10 @@ function AlarmSection({
         </View>
         <ToggleSwitch value={enabled} onValueChange={onToggle} />
       </View>
-
       {enabled && (
         <View style={styles.timeBlock}>
           <Text style={styles.timeLabel}>알림 시간</Text>
-          <Pressable
-            onPress={onPressTime}
-            style={[
-              styles.timeInput,
-              isPickerActive && styles.timeInputActive,
-            ]}
-          >
+          <Pressable onPress={onPressTime} style={[styles.timeInput, isPickerActive && styles.timeInputActive]}>
             <Text style={styles.timeText}>{timeLabel}</Text>
           </Pressable>
         </View>
@@ -282,125 +279,20 @@ function AlarmSection({
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.grayscale[1000],
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-
-  header: {
-    height: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  back: {
-    color: colors.grayscale[100],
-    fontSize: 28,
-    lineHeight: 28,
-  },
-  headerTitle: {
-    color: colors.grayscale[100],
-    fontSize: 18,
-    fontFamily: 'Pretendard-SemiBold',
-  },
-
-  content: {
-    paddingTop: 18,
-    flex: 1,
-  },
-
-  section: {
-    borderRadius: 14,
-    backgroundColor: colors.grayscale[1000],
-    padding: 16,
-  },
-  sectionTop: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 20,
-  },
-  sectionTitle: {
-    color: colors.grayscale[100],
-    fontSize: 18,
-    fontFamily: 'Pretendard-SemiBold',
-    marginBottom: 5,
-  },
-  sectionDesc: {
-    color: colors.grayscale[500],
-    fontSize: 14,
-    fontFamily: 'Pretendard-Regular',
-    lineHeight: 16,
-    marginBottom: 6,
-  },
-
-  timeBlock: {
-    marginTop: 14,
-    gap: 8,
-  },
-  timeLabel: {
-    color: colors.grayscale[200],
-    fontSize: 12,
-    fontFamily: 'Pretendard-SemiBold',
-  },
-  timeInput: {
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: colors.grayscale[800] ?? colors.grayscale[800],
-    borderWidth: 1,
-    borderColor: colors.grayscale[800],
-    paddingHorizontal: 14,
-    justifyContent: 'center',
-  },
-  timeInputActive: {
-    borderColor: colors.primary[500],
-  },
-  timeText: {
-    color: colors.grayscale[200],
-    fontSize: 16,
-    fontFamily: 'Pretendard-Regular',
-  },
-
-  bottom: {
-    paddingBottom: 38,
-  },
-
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
-  sheet: {
-    backgroundColor: colors.grayscale[900],
-    paddingTop: 10,
-    paddingHorizontal: 18,
-    paddingBottom: 18,
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-  },
-  sheetHandle: {
-    alignSelf: 'center',
-    width: 42,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.grayscale[700],
-    marginBottom: 12,
-  },
-  sheetTitle: {
-    color: colors.grayscale[300],
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  pickerWrap: {
-    borderRadius: 14,
-    overflow: 'hidden',
-    backgroundColor: colors.grayscale[900] ?? colors.grayscale[900],
-    borderWidth: 1,
-    borderColor: colors.grayscale[900],
-  },
-  sheetButton: {
-    marginTop: 14,
-    marginBottom: 16,
-  },
+  screen: { flex: 1, backgroundColor: colors.grayscale[1000], paddingHorizontal: 20, paddingTop: 20 },
+  content: { paddingTop: 18, flex: 1 },
+  section: { borderRadius: 14, backgroundColor: colors.grayscale[1000], padding: 16 },
+  sectionTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 20 },
+  sectionTitle: { color: colors.grayscale[100], fontSize: 18, fontFamily: 'Pretendard-SemiBold', marginBottom: 5 },
+  sectionDesc: { color: colors.grayscale[500], fontSize: 14, fontFamily: 'Pretendard-Regular', lineHeight: 16 },
+  timeBlock: { marginTop: 14, gap: 8 },
+  timeLabel: { color: colors.grayscale[200], fontSize: 12, fontFamily: 'Pretendard-SemiBold' },
+  timeInput: { height: 48, borderRadius: 8, backgroundColor: colors.grayscale[800], borderWidth: 1, borderColor: colors.grayscale[800], paddingHorizontal: 14, justifyContent: 'center' },
+  timeInputActive: { borderColor: colors.primary[500] },
+  timeText: { color: colors.grayscale[200], fontSize: 16, fontFamily: 'Pretendard-Regular' },
+  bottom: { paddingBottom: 38 },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
+  sheet: { backgroundColor: colors.grayscale[900], paddingTop: 10, paddingHorizontal: 18, paddingBottom: 18, borderTopLeftRadius: 18, borderTopRightRadius: 18 },
+  sheetHandle: { alignSelf: 'center', width: 42, height: 4, borderRadius: 2, backgroundColor: colors.grayscale[700], marginBottom: 12 },
+  sheetButton: { marginTop: 14, marginBottom: 16 },
 });

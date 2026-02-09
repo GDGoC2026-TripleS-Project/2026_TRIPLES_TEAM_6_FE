@@ -4,6 +4,9 @@ import {
   UserMe,
   userApiLayer,
 } from './user.api';
+import { storage } from '../../../utils/storage';
+import { storageKeys } from '../../../constants/storageKeys';
+import { useGoalStore } from '../../../store/goalStore';
 
 export type NotificationSettings = {
   recordEnabled: boolean;
@@ -49,10 +52,27 @@ const defaultKeys: NotificationKeyMap = {
   dailyTime: 'dailyTime',
 };
 
+const coerceBool = (v: unknown): boolean | undefined => {
+  if (typeof v === 'boolean') return v;
+
+  if (typeof v === 'number') {
+    if (v === 1) return true;
+    if (v === 0) return false;
+  }
+
+  if (typeof v === 'string') {
+    const s = v.trim().toLowerCase();
+    if (['true', '1', 'y', 'yes', 'on'].includes(s)) return true;
+    if (['false', '0', 'n', 'no', 'off'].includes(s)) return false;
+  }
+
+  return undefined;
+};
+
 const readBool = (raw: NotificationSettingsRaw, keys: string[], fallback: boolean) => {
   for (const key of keys) {
-    const value = raw[key];
-    if (typeof value === 'boolean') return value;
+    const coerced = coerceBool((raw as any)[key]);
+    if (coerced !== undefined) return coerced;
   }
   return fallback;
 };
@@ -85,31 +105,37 @@ const normalizeTime = (value: string, fallback: string) => {
 
 const parseNotification = (raw?: NotificationSettingsRaw) => {
   const source = raw ?? {};
-  const recordEnabledKeys = ['recordEnabled', 'recordNotificationEnabled', 'intakeReminderEnabled'];
-  const recordTimeKeys = ['recordTime', 'recordNotificationTime', 'intakeReminderTime'];
-  const dailyEnabledKeys = ['dailyEnabled', 'dailyNotificationEnabled', 'summaryReminderEnabled'];
-  const dailyTimeKeys = ['dailyTime', 'dailyNotificationTime', 'summaryReminderTime'];
+  
+  // ✅ 서버의 실제 필드명 사용
+  const isEnabled = coerceBool((source as any).isEnabled) ?? true;
+  const recordRemindAt = (source as any).recordRemindAt || '14:00:00';
+  const dailyCloseAt = (source as any).dailyCloseAt || '21:00:00';
 
   return {
     settings: {
-      recordEnabled: readBool(source, recordEnabledKeys, defaultSettings.recordEnabled),
-      recordTime: normalizeTime(
-        readString(source, recordTimeKeys, defaultSettings.recordTime),
-        defaultSettings.recordTime
-      ),
-      dailyEnabled: readBool(source, dailyEnabledKeys, defaultSettings.dailyEnabled),
-      dailyTime: normalizeTime(
-        readString(source, dailyTimeKeys, defaultSettings.dailyTime),
-        defaultSettings.dailyTime
-      ),
+      // isEnabled가 false면 둘 다 꺼진 것으로 처리 (서버 구조에 따라 조정 필요)
+      recordEnabled: isEnabled,
+      recordTime: normalizeTime(recordRemindAt, defaultSettings.recordTime),
+      dailyEnabled: isEnabled, // ⚠️ 개별 enable이 없으면 isEnabled 공유
+      dailyTime: normalizeTime(dailyCloseAt, defaultSettings.dailyTime),
     },
     keys: {
-      recordEnabled: readKey(source, recordEnabledKeys, defaultKeys.recordEnabled),
-      recordTime: readKey(source, recordTimeKeys, defaultKeys.recordTime),
-      dailyEnabled: readKey(source, dailyEnabledKeys, defaultKeys.dailyEnabled),
-      dailyTime: readKey(source, dailyTimeKeys, defaultKeys.dailyTime),
+      recordEnabled: 'isEnabled',
+      recordTime: 'recordRemindAt',
+      dailyEnabled: 'isEnabled', // ⚠️ 서버에 개별 필드가 없으면 공유
+      dailyTime: 'dailyCloseAt',
     },
   };
+};
+
+const parseStoredNotification = (raw: string | null) => {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as NotificationSettingsRaw;
+    return parseNotification(parsed).settings;
+  } catch {
+    return null;
+  }
 };
 
 export const useUserStore = create<UserState>((set, get) => ({
@@ -123,7 +149,17 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ isLoading: true, errorMessage: undefined });
     try {
       const res = await userApiLayer.getMe();
-      set({ me: res.data.data, isLoading: false });
+      const userData = res.data.data;
+      if (
+        typeof userData?.caffeineLimit === 'number' ||
+        typeof userData?.sugarLimit === 'number'
+      ) {
+        void useGoalStore.getState().setGoalsLocal({
+          caffeine: userData?.caffeineLimit ?? useGoalStore.getState().caffeine,
+          sugar: userData?.sugarLimit ?? useGoalStore.getState().sugar,
+        });
+      }
+      set({ me: userData, isLoading: false });
       return true;
     } catch (e: any) {
       set({
@@ -174,57 +210,64 @@ export const useUserStore = create<UserState>((set, get) => ({
   },
 
   fetchNotificationSettings: async () => {
-    set({ isLoading: true, errorMessage: undefined });
-    try {
-      const res = await userApiLayer.getNotificationSettings();
-      const parsed = parseNotification(res.data.data);
-      set({
-        notificationSettings: parsed.settings,
-        notificationKeys: parsed.keys,
-        isLoading: false,
-      });
-      return true;
-    } catch (e: any) {
-      const fallback = parseNotification(undefined);
-      set({
-        notificationSettings: fallback.settings,
-        notificationKeys: fallback.keys,
-        isLoading: false,
-        errorMessage:
-          e?.response?.data?.message ?? e?.message ?? '알림 설정을 불러오지 못했어요.',
-      });
-      return false;
-    }
-  },
+  set({ isLoading: true });
+  try {
+    const res = await userApiLayer.getNotificationSettings();
+    console.log('📥 GET raw response:', JSON.stringify(res.data, null, 2)); // ✅ 원본 확인
+    
+    const parsed = parseNotification(res.data.data);
+    console.log('📦 Parsed settings:', parsed.settings);
+    console.log('🔑 Detected keys:', parsed.keys);
+    
+    set({
+      notificationSettings: parsed.settings,
+      notificationKeys: parsed.keys,
+      isLoading: false,
+    });
+    return true;
+  } catch (e) {
+    if (__DEV__) console.error('fetchNotificationSettings error:', e);
+    set({ 
+      isLoading: false,
+      errorMessage: '알림 설정을 불러오지 못했어요.' 
+    });
+    return false;
+  }
+},
 
   updateNotificationSettings: async (next) => {
-    set({ isLoading: true, errorMessage: undefined });
-    const keys = get().notificationKeys;
-    const payload: NotificationSettingsRaw = {
-      [keys.recordEnabled]: next.recordEnabled,
-      [keys.recordTime]: next.recordTime,
-      [keys.dailyEnabled]: next.dailyEnabled,
-      [keys.dailyTime]: next.dailyTime,
-    };
+  set({ isLoading: true, errorMessage: undefined });
+  
+  // ✅ 서버가 기대하는 필드명으로 전송
+  const payload = {
+    isEnabled: next.recordEnabled || next.dailyEnabled, // 하나라도 켜져있으면 true
+    recordRemindAt: next.recordTime,
+    dailyCloseAt: next.dailyTime,
+  };
 
-    try {
-      const res = await userApiLayer.updateNotificationSettings(payload);
-      const parsed = parseNotification((res.data.data ?? payload) as NotificationSettingsRaw);
-      set({
-        notificationSettings: parsed.settings,
-        notificationKeys: parsed.keys,
-        isLoading: false,
-      });
+  try {
+    console.log('🔵 PATCH payload:', payload);
+    const res = await userApiLayer.updateNotificationSettings(payload);
+    console.log('🟢 PATCH response:', JSON.stringify(res.data, null, 2));
+    
+    if (res.data?.success === true) {
+      console.log('✅ Update success, refetching...');
+      await get().fetchNotificationSettings();
+      set({ isLoading: false });
       return true;
-    } catch (e: any) {
-      set({
-        isLoading: false,
-        errorMessage:
-          e?.response?.data?.message ?? e?.message ?? '알림 설정 저장에 실패했어요.',
-      });
-      return false;
     }
-  },
+    
+    set({ isLoading: false, errorMessage: '저장에 실패했습니다.' });
+    return false;
+  } catch (e: any) {
+    console.log('🔴 PATCH error:', e.response?.data);
+    set({ 
+      isLoading: false, 
+      errorMessage: e?.response?.data?.message ?? '알림 설정 저장에 실패했어요.' 
+    });
+    return false;
+  }
+},
 
   deleteMe: async () => {
     set({ isLoading: true, errorMessage: undefined });

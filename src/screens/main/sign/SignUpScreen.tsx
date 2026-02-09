@@ -1,5 +1,11 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, Pressable, Alert, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Alert,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { colors } from "../../../constants/colors";
 import TextField from "../../../components/common/TextField";
@@ -26,7 +32,8 @@ const SignUpScreen: React.FC = () => {
 
   const [userNameError, setUserNameError] = useState<string | undefined>();
   const [passwordError, setPasswordError] = useState<string | undefined>();
-  const [passwordCheckError, setPasswordCheckError] = useState<string | undefined>();
+  const [passwordCheckError, setPasswordCheckError] =
+    useState<string | undefined>();
   const [nicknameError, setNicknameError] = useState<string | undefined>();
   const [emailError, setEmailError] = useState<string | undefined>();
 
@@ -177,7 +184,9 @@ const SignUpScreen: React.FC = () => {
         isValidEmail(email.trim()) &&
         !isCheckingLoginId &&
         !isCheckingNickname &&
-        agree
+        agree &&
+        loginIdChecked &&
+        nicknameChecked
     );
   }, [
     userName,
@@ -188,6 +197,8 @@ const SignUpScreen: React.FC = () => {
     isCheckingLoginId,
     isCheckingNickname,
     agree,
+    loginIdChecked,
+    nicknameChecked,
   ]);
 
   const onSubmit = async () => {
@@ -216,16 +227,12 @@ const SignUpScreen: React.FC = () => {
       return;
     }
 
-    Alert.alert("가입 완료", "회원가입이 완료되었어요!");
+    Alert.alert("가입 완료", "회원가입이 완료되었습니다.");
   };
 
   return (
-    <View 
-      style={styles.container}
-    >
-      <View 
-        style={styles.scrollView}
-      >
+    <View style={styles.container}>
+      <View style={styles.scrollView}>
         <View style={styles.form}>
           <Text style={styles.label}>아이디</Text>
           <TextField
@@ -323,9 +330,19 @@ const SignUpScreen: React.FC = () => {
 
       <View style={styles.bottomSection}>
         <View style={styles.agreeRow}>
-          <Pressable style={styles.agreeLeft} onPress={() => setAgree((p) => !p)} hitSlop={10}>
-            {agree ? <CheckboxOut width={20} height={20} /> : <CheckboxIn width={20} height={20} /> }
-            <Text style={styles.agreeText}>개인정보 수집 및 이용 동의 (필수)</Text>
+          <Pressable
+            style={styles.agreeLeft}
+            onPress={() => setAgree((p) => !p)}
+            hitSlop={10}
+          >
+            {agree ? (
+              <CheckboxOut width={20} height={20} />
+            ) : (
+              <CheckboxIn width={20} height={20} />
+            )}
+            <Text style={styles.agreeText}>
+              개인정보 수집 및 이용 동의 (필수)
+            </Text>
           </Pressable>
 
           <Pressable hitSlop={10} onPress={() => navigation.navigate("TermsScreen")}>
@@ -335,7 +352,7 @@ const SignUpScreen: React.FC = () => {
 
         <View style={styles.submitWrap}>
           <Button
-            title={isLoading ? "가입하기" : "가입하기"}
+            title={isLoading ? "가입 중..." : "가입하기"}
             disabled={!canSubmit || isLoading || isCheckingLoginId || isCheckingNickname}
             onPress={onSubmit}
             variant="primary"
@@ -357,19 +374,6 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingHorizontal: 16,
     paddingBottom: 20,
-  },
-
-  back: {
-    color: colors.grayscale[100],
-    fontSize: 18,
-    fontFamily: "Pretendard-Medium",
-    width: 24,
-  },
-
-  title: {
-    color: colors.grayscale[100],
-    fontSize: 16,
-    fontFamily: "Pretendard-SemiBold",
   },
 
   form: {

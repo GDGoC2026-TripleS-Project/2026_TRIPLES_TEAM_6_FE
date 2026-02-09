@@ -12,6 +12,7 @@ import LoginScreen from './src/screens/main/sign/LoginScreen';
 import OnBoardingScreen from './src/screens/main/onBoarding/OnBoardingScreen';
 import SignUpScreen from './src/screens/main/sign/SignUpScreen';
 import FindPasswordScreen from './src/screens/main/sign/FindPasswordScreen';
+import PasswordResetInputScreen from './src/screens/main/sign/PasswordResetInputScreen';
 import TermsScreen from './src/screens/main/sign/TermsScreen';
 import { useAuthStore } from './src/app/features/auth/auth.store';
 import { storage } from './src/utils/storage';
@@ -24,7 +25,7 @@ const FORCE_ONBOARDING_PREVIEW = false;
 
 export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);
-  const [onboardingDone, setOnboardingDone] = useState(false);
+  const [onboardingPending, setOnboardingPending] = useState(false);
   const hydrate = useAuthStore((s) => s.hydrate);
   const hydrateGoals = useGoalStore((s) => s.hydrate);
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -37,34 +38,34 @@ export default function App() {
   });
 
   useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      try {
-        const [, done] = await Promise.all([
-          hydrate(),
-          hydrateGoals(),
-          storage.get(storageKeys.onboardingDone),
-        ]);
-        if (isMounted) {
-          setOnboardingDone(done === 'true');
-        }
-      } finally {
-        if (isMounted) setIsHydrating(false);
+  let isMounted = true;
+  (async () => {
+    try {
+      const [,, pending] = await Promise.all([
+        hydrate(),
+        hydrateGoals(),
+        storage.get(storageKeys.onboardingPending),
+      ]);
+      
+      if (isMounted) {
+        // pending이 'true'인 경우에만 온보딩으로 진입하게 됨
+        setOnboardingPending(pending === 'true');
       }
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, [hydrate, hydrateGoals]);
+    } finally {
+      if (isMounted) setIsHydrating(false);
+    }
+  })();
+  return () => { isMounted = false; };
+}, [hydrate, hydrateGoals]);
 
   if (!loaded || isHydrating) return null;
   const shouldBypassAuth = FORCE_ONBOARDING_PREVIEW;
   const showAppFlow = Boolean(accessToken) || shouldBypassAuth;
-  const shouldShowOnboarding = !onboardingDone;
-
+  const shouldShowOnboarding = shouldBypassAuth || onboardingPending;
+  
   const initialRouteName = showAppFlow
-    ? (shouldBypassAuth ? 'OnBoardingScreen' : (shouldShowOnboarding ? 'OnBoardingScreen' : 'Main'))
-    : 'Login';
+  ? (shouldShowOnboarding ? 'OnBoardingScreen' : 'Main')
+  : 'Login';
 
   return (
     <View style={styles.container}>
@@ -101,11 +102,28 @@ export default function App() {
                 }}
               />
               <Stack.Screen
-                name="PasswordResetInputScreen"
+                name="FindPasswordScreen"
                 component={FindPasswordScreen}
                 options={{
                   headerShown: true,
                   title: '비밀번호 찾기',
+                  headerTitleAlign: 'center',
+                  headerStyle: { backgroundColor: colors.grayscale[1000] },
+                  headerShadowVisible: false,
+                  headerTintColor: '#FFFFFF',
+                  headerTitleStyle: {
+                    fontSize: 16,
+                    fontFamily: 'Pretendard-SemiBold',
+                  },
+                  headerBackButtonDisplayMode: 'minimal',
+                }}
+              />
+              <Stack.Screen
+                name="PasswordResetInputScreen"
+                component={PasswordResetInputScreen}
+                options={{
+                  headerShown: true,
+                  title: '비밀번호 변경',
                   headerTitleAlign: 'center',
                   headerStyle: { backgroundColor: colors.grayscale[1000] },
                   headerShadowVisible: false,

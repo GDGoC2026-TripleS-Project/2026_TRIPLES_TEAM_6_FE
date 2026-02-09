@@ -51,6 +51,7 @@ export type RootStackParamList = {
   GoalEditScreen: undefined;
   PasswordResetScreen: undefined;
   PasswordResetInputScreen: undefined;
+  FindPasswordScreen: undefined;
   ProfileSettingScreen: undefined;
   AlarmSettingScreen: undefined;
 };

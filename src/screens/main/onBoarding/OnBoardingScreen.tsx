@@ -93,20 +93,26 @@ function OnboardingScreen({ navigation }: { navigation: any }) {
   };
 
   const handleNext = async () => {
-    if (currentIndex < slides.length - 1) goTo(currentIndex + 1);
-    else {
-      setGoals({
-        caffeine: caffeineValue,
-        sugar: sugarValue,
-      });
-      await storage.set(storageKeys.onboardingDone, 'true');
+  if (currentIndex < slides.length - 1) {
+    goTo(currentIndex + 1);
+  } else {
+    // 1. 목표치 저장
+    setGoals({
+      caffeine: caffeineValue,
+      sugar: sugarValue,
+    });
 
-      navigation.replace('Main', {
-        screen: 'MainTabs',
-        params: { screen: 'Home' },
-      });
-    }
-  };
+   await Promise.all([
+      storage.set(storageKeys.onboardingDone, 'true'),
+      storage.set(storageKeys.onboardingPending, 'false'), // 이제 온보딩이 대기 중이 아님을 명시
+    ]);
+
+    navigation.replace('Main', {
+      screen: 'MainTabs',
+      params: { screen: 'Home' },
+    });
+  }
+};
 
   const handlePrev = () => {
     if (currentIndex > 0) goTo(currentIndex - 1);
@@ -146,6 +152,7 @@ function OnboardingScreen({ navigation }: { navigation: any }) {
           useNativeDriver: false,
           listener: handleScroll,
         })}
+        scrollEnabled={false}
       />
 
       {!isDoneSlide && (

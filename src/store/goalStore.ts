@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { storage } from '../utils/storage';
 import { storageKeys } from '../constants/storageKeys';
+import { userApiLayer } from '../app/features/user/user.api';
 
 type GoalState = {
   caffeine: number;
@@ -14,16 +15,17 @@ export const useGoalStore = create<GoalState>((set) => ({
   caffeine: 400,
   sugar: 25,
 
-  setGoals: ({ caffeine, sugar }) => {
+  setGoals: async ({ caffeine, sugar }) => {
     set({
       caffeine,
       sugar,
     });
-    void Promise.all([
+    await Promise.all([
       storage.set(storageKeys.goalCaffeine, String(caffeine)),
       storage.set(storageKeys.goalSugar, String(sugar)),
     ]);
   },
+  
 
   hydrate: async () => {
     const [cRaw, sRaw] = await Promise.all([

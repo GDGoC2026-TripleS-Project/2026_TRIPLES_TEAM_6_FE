@@ -3,6 +3,7 @@ import { storage } from '../../../utils/storage';
 import { storageKeys } from '../../../constants/storageKeys';
 import { authApiLayer, SocialLoginPayload } from './auth.api';
 import { useUserStore } from '../user/user.store';
+import { useGoalStore } from '../../../store/goalStore';
 
 const hasText = (value?: string) => Boolean(value?.trim());
 
@@ -155,6 +156,16 @@ console.log('[LOGIN TOKENS]', tokens);
         isLoading: false,
       });
 
+      if (
+        typeof (user as any)?.caffeineLimit === 'number' ||
+        typeof (user as any)?.sugarLimit === 'number'
+      ) {
+        void useGoalStore.getState().setGoalsLocal({
+          caffeine: (user as any)?.caffeineLimit ?? useGoalStore.getState().caffeine,
+          sugar: (user as any)?.sugarLimit ?? useGoalStore.getState().sugar,
+        });
+      }
+
       return true;
     } catch (e: any) {
       const msg =
@@ -191,6 +202,8 @@ console.log('[LOGIN TOKENS]', tokens);
       await Promise.all([
         storage.set(storageKeys.accessToken, tokens.accessToken),
         storage.set(storageKeys.refreshToken, tokens.refreshToken),
+        storage.set(storageKeys.onboardingPending, 'true'),
+        storage.remove(storageKeys.onboardingDone),
       ]);
       if (autoLogin) {
         await storage.set(storageKeys.autoLogin, 'true');

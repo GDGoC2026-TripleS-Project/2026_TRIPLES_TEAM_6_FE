@@ -82,7 +82,7 @@ const LoginScreen: React.FC = () => {
           <Text style={styles.linkDivider}>|</Text>
           <Pressable
             hitSlop={8}
-            onPress={() => navigation.navigate("PasswordResetInputScreen")}
+            onPress={() => navigation.navigate("FindPasswordScreen")}
           >
             <Text style={styles.linkText}>비밀번호 찾기</Text>
           </Pressable>
