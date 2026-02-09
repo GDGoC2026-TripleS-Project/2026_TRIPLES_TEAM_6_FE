@@ -1,6 +1,7 @@
 import { FlatList, StyleSheet, View, Text } from 'react-native';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RouteProp } from '@react-navigation/native';
 import SearchField from '../../../components/common/SearchField';
 import List from '../../../components/common/List';
 import { RootStackParamList } from '../../../types/navigation';
@@ -14,27 +15,22 @@ import {
 import { useBrands } from '../../../hooks/useBrands';
 
 type RecordScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Record'>;
-type RecordRouteProp = RouteProp<RootStackParamList, 'Record'>;
-
-const todayString = () => {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-};
-
+type RecordScreenRouteProp = RouteProp<RootStackParamList, 'Record'>;
 
 const RecordScreen = () => {
   const navigation = useNavigation<RecordScreenNavigationProp>();
-  const route = useRoute<RecordRouteProp>();
+  const route = useRoute<RecordScreenRouteProp>();
+  const selectedDate = route.params?.selectedDate;
   const [searchQuery, setSearchQuery] = useState('');
-  const selectedDate = route.params?.date ?? todayString();
 
   const { brands, setBrands, isLoading, error: loadError } = useBrands();
 
   const handleBrandPress = (brandId: number, brandName: string) => {
-    navigation.navigate('RecordDetail', { brandId: String(brandId), brandName });
+    navigation.navigate('RecordDetail', {
+      brandId: String(brandId),
+      brandName,
+      selectedDate,
+    });
   };
 
   const handleFavoriteToggle = async (brandId: number, nextLiked: boolean) => {
@@ -62,16 +58,15 @@ const RecordScreen = () => {
     }
   };
 
-
   const filteredCafeList = brands.filter((cafe) =>
     cafe.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
   return (
     <View style={styles.container}>
       <View style={{ paddingVertical: 16 }}>
-        <SearchField
-          placeholder="Search brands"
-          variant="default"
+        <SearchField 
+          placeholder="브랜드 검색" 
+          variant="default" 
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -126,12 +121,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.grayscale[500],
     fontFamily: 'Pretendard-SemiBold',
-  },
-  dateText: {
-    fontSize: 14,
-    color: colors.grayscale[500],
-    fontFamily: 'Pretendard-Medium',
-    marginBottom: 8,
   },
 });
 

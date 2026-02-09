@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View, Text, ScrollView } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -8,31 +8,80 @@ import { colors } from '../../../constants/colors';
 import Chip from '../../../components/common/Chip';
 import { RootStackParamList } from '../../../types/navigation';
 import { useBrandMenus } from '../../../hooks/useBrandMenus';
+import { fetchBrandMenus } from '../../../api/record/menu.api';
+import { useFavoriteMenus } from '../../../hooks/useFavoriteMenus';
 
 type RecordDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecordDetail'>;
 type RecordDetailRouteProp = RouteProp<RootStackParamList, 'RecordDetail'>;
 
-const CATEGORIES = [
-  { id: 'all', label: 'ALL' },
-  { id: 'espresso', label: '에스프레소' },
-  { id: 'frappuccino', label: '프라푸치노' },
-  { id: 'refresher', label: '리프레셔' },
-  { id: 'tea', label: '티' },
-];
-
-const CATEGORY_TO_API: Record<string, string> = {
-  espresso: 'COFFEE',
-  frappuccino: 'FRAPPUCCINO',
-  refresher: 'REFRESHER',
-  tea: 'TEA',
+const API_CATEGORY_LABELS: Record<string, string> = {
+  COFFEE: '커피',
+  NON_COFFEE: '논커피',
+  ADE: '에이드',
+  SMOOTHIE: '스무디',
+  TEA: '티',
 };
+
+const CATEGORY_ORDER = ['COFFEE', 'NON_COFFEE', 'ADE', 'SMOOTHIE', 'TEA'];
 
 const RecordDetailScreen = () => {
   const navigation = useNavigation<RecordDetailNavigationProp>();
   const route = useRoute<RecordDetailRouteProp>();
-  const { brandId } = route.params;
+  const { brandId, brandName, selectedDate } = route.params;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const { isFavorite, toggleFavorite } = useFavoriteMenus();
+  const [categories, setCategories] = useState<string[]>([]);
+
+  const apiCategory = useMemo(() => {
+    if (selectedCategory === 'all') return undefined;
+    return selectedCategory;
+  }, [selectedCategory]);
+  useEffect(() => {
+    let isMounted = true;
+    const loadCategories = async () => {
+      try {
+        const res = await fetchBrandMenus(brandId, { page: 0, size: 200 });
+        if (!isMounted) return;
+        if (res.success && res.data) {
+          const uniq = new Set<string>();
+          res.data.content.forEach((menu) => {
+            if (menu.category) uniq.add(menu.category);
+          });
+          setCategories(Array.from(uniq));
+        } else {
+          setCategories([]);
+        }
+      } catch {
+        if (!isMounted) return;
+        setCategories([]);
+      }
+    };
+    loadCategories();
+    return () => {
+      isMounted = false;
+    };
+  }, [brandId]);
+
+  const categoryOptions = useMemo(() => {
+    const ordered = [...categories].sort((a, b) => {
+      const ai = CATEGORY_ORDER.indexOf(a);
+      const bi = CATEGORY_ORDER.indexOf(b);
+      const aRank = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
+      const bRank = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
+      if (aRank !== bRank) return aRank - bRank;
+      return (API_CATEGORY_LABELS[a] ?? a).localeCompare(API_CATEGORY_LABELS[b] ?? b);
+    });
+
+    return [
+      { id: 'all', label: 'ALL' },
+      ...ordered.map((cat) => ({
+        id: cat,
+        label: API_CATEGORY_LABELS[cat] ?? cat,
+      })),
+    ];
+  }, [categories]);
+
   const { menus, isLoading, error: loadError } = useBrandMenus({
     brandId,
     category: apiCategory,
@@ -42,13 +91,12 @@ const RecordDetailScreen = () => {
     debounceMs: 250,
   });
 
-  const apiCategory = useMemo(() => {
-    if (selectedCategory === 'all') return undefined;
-    return CATEGORY_TO_API[selectedCategory] ?? selectedCategory;
-  }, [selectedCategory]);
-
   const handleDrinkPress = (drinkId: number, drinkName: string) => {
-    navigation.navigate('RecordDrinkDetail', { drinkId: String(drinkId), drinkName });
+    navigation.navigate('RecordDrinkDetail', {
+      drinkId: String(drinkId),
+      drinkName,
+      selectedDate,
+    });
   };
 
   return (
@@ -65,7 +113,7 @@ const RecordDetailScreen = () => {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          {CATEGORIES.map((category) => (
+          {categoryOptions.map((category) => (
             <Chip
               key={category.id}
               groupId="category"
@@ -84,7 +132,20 @@ const RecordDetailScreen = () => {
           renderItem={({ item }) => (
             <List 
               title={item.name}
-              showToggle={false}
+              liked={isFavorite(item.id)}
+              onToggle={(nextLiked) =>
+                toggleFavorite(
+                  {
+                    id: item.id,
+                    name: item.name,
+                    brandId: Number(brandId),
+                    brandName,
+                    imageUrl: item.imageUrl,
+                    category: item.category,
+                  },
+                  nextLiked
+                )
+              }
               onPress={() => handleDrinkPress(item.id, item.name)}
             />
           )}

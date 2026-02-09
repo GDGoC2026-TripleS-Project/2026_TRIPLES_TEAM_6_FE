@@ -11,7 +11,7 @@ import StepperOptions from "../../../components/common/StepperOptions";
 import ChipOptions from "../../../components/common/ChipOptions";
 import Info from "../../../../assets/info.svg";
 import Button from "../../../components/common/Button";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useOptionStore } from '../../../store/useOptionStore';
 import {
     fetchMenuDetail,
@@ -25,37 +25,26 @@ import { fetchBrandOptions, type BrandOption } from '../../../api/record/brand.a
 type RecordDrinkDetailRouteProp = RouteProp<RootStackParamList, 'RecordDrinkDetail'>;
 type RecordDrinkDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecordDrinkDetail'>;
 
-const INFO_MESSAGE = 'Extra options except coffee are not included in nutrition totals.';
-
-type StepperOption = { id: string; title: string };
-type ChipOption = { id: string; label: string };
-
-const normalizeOptionType = (value: string) => {
-    const normalized = value.trim().toUpperCase();
-
-    if (normalized.includes('MILK')) return 'milk';
-    if (normalized.includes('SYRUP')) return 'syrup';
-    if (normalized.includes('COFFEE') || normalized.includes('SHOT')) return 'coffee';
-
-    return 'coffee';
-};
+const INFO_MESSAGE = '커피를 제외한 옵션은 기록용 메모이며, 영양정보 계산에는 포함되지 않아요.';
 
 const RecordDrinkDetail = () => {
     const route = useRoute<RecordDrinkDetailRouteProp>();
     const navigation = useNavigation<RecordDrinkDetailNavigationProp>();
-    const { drinkId, drinkName } = route.params;
+    const { drinkId, drinkName, selectedDate, edit } = route.params;
 
     const [temperature, setTemperature] = useState<'hot' | 'ice'>('hot');
     const [selectedSize, setSelectedSize] = useState<string>('Tall');
     const [menuDetail, setMenuDetail] = useState<MenuDetail | null>(null);
     const [sizes, setSizes] = useState<MenuSize[]>([]);
-    const [brandOptions, setBrandOptions] = useState<BrandOption[]>([]);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [sizeLoadError, setSizeLoadError] = useState<string | null>(null);
+    const [brandOptions, setBrandOptions] = useState<BrandOption[]>([]);
     const [optionsLoadError, setOptionsLoadError] = useState<string | null>(null);
 
     const getGroupData = useOptionStore(state => state.getGroupData);
     const resetGroup = useOptionStore(state => state.resetGroup);
+    const setGroupInfo = useOptionStore(state => state.setGroupInfo);
+    const editAppliedRef = useRef(false);
 
     const tempToApi = (t: 'hot' | 'ice'): MenuTemperature => (t === 'hot' ? 'HOT' : 'ICED');
     const apiToTemp = (t: MenuTemperature): 'hot' | 'ice' => (t === 'HOT' ? 'hot' : 'ice');
@@ -106,7 +95,11 @@ const RecordDrinkDetail = () => {
                     setSizes(res.data);
                     if (res.data.length > 0) {
                         const next = res.data[0].sizeName;
-                        setSelectedSize((prev) => (prev ? prev : next));
+                        setSelectedSize((prev) => {
+                            if (!prev) return next;
+                            const exists = res.data.some((s) => s.sizeName === prev);
+                            return exists ? prev : next;
+                        });
                     }
                 } else {
                     setSizeLoadError(res.error?.message ?? '사이즈 정보를 불러오지 못했어요.');
@@ -150,7 +143,59 @@ const RecordDrinkDetail = () => {
         resetGroup('extra1-option');
         resetGroup('extra2-option');
         resetGroup('extra3-option');
+        editAppliedRef.current = false;
     }, [drinkId, resetGroup]);
+
+    useEffect(() => {
+        if (!edit || editAppliedRef.current) return;
+        if (!menuDetail) return;
+        if (!sizes.length) return;
+
+        if (edit.temperature) {
+            setTemperature(apiToTemp(edit.temperature));
+        }
+
+        if (edit.sizeName) {
+            const exists = sizes.some((s) => s.sizeName === edit.sizeName);
+            if (exists) setSelectedSize(edit.sizeName);
+        } else if (edit.menuSizeId) {
+            const match = sizes.find((s) => s.menuSizeId === edit.menuSizeId);
+            if (match) setSelectedSize(match.sizeName);
+        }
+
+        const hasEditOptions = (edit.options ?? []).length > 0;
+        if (hasEditOptions && brandOptions.length === 0) return;
+
+        if (brandOptions.length > 0 && hasEditOptions) {
+            const coffeeCounts: Record<string, number> = {};
+            const syrupCounts: Record<string, number> = {};
+            const milkSelected = new Set<string>();
+
+            (edit.options ?? []).forEach((opt) => {
+                const id = String(opt.optionId);
+                const count = opt.quantity ?? opt.count ?? 1;
+                const option = brandOptions.find((o) => String(o.id) === id);
+                const category = (option?.category ?? '').toUpperCase();
+                if (category === 'COFFEE' || category === 'SHOT') {
+                    coffeeCounts[id] = count;
+                    return;
+                }
+                if (category === 'SYRUP') {
+                    syrupCounts[id] = count;
+                    return;
+                }
+                if (category === 'MILK') {
+                    milkSelected.add(id);
+                }
+            });
+
+            setGroupInfo('extra1-option', { stepperCounts: coffeeCounts, chipSelected: new Set() });
+            setGroupInfo('extra2-option', { stepperCounts: syrupCounts, chipSelected: new Set() });
+            setGroupInfo('extra3-option', { chipSelected: milkSelected, stepperCounts: {} });
+        }
+
+        editAppliedRef.current = true;
+    }, [edit, menuDetail, sizes, brandOptions, setGroupInfo, apiToTemp]);
 
     const handleTemperatureChange = (next: 'hot' | 'ice') => {
         if (!allowedTemps.has(next)) return;
@@ -194,6 +239,8 @@ const RecordDrinkDetail = () => {
             drinkId,
             brandName: menuDetail?.brandName ?? '',
             brandId: menuDetail?.brandId,
+            selectedDate,
+            edit: edit?.intakeId ? { intakeId: edit.intakeId } : undefined,
             temperature,
             size: selectedSize,
             menuSizeId: selectedSizeInfo?.menuSizeId,
@@ -244,7 +291,7 @@ const RecordDrinkDetail = () => {
                 contentContainerStyle={styles.scrollContent}
             >
                     <View style={styles.container}>
-                    <List title={drinkName} showToggle={false} />
+                    <List title={drinkName} />
                     <View style={styles.requiredOptionsSection}>
                         <TemperatureSection 
                             temperature={temperature}
@@ -258,12 +305,9 @@ const RecordDrinkDetail = () => {
                         {!!sizeLoadError && (
                             <Text style={styles.errorText}>{sizeLoadError}</Text>
                         )}
-                        <Text style={styles.subTitle}>Options</Text>
+                        <Text style={styles.subTitle}>옵션</Text>
                         {!!loadError && (
                             <Text style={styles.errorText}>{loadError}</Text>
-                        )}
-                        {!!optionsLoadError && (
-                            <Text style={styles.errorText}>{optionsLoadError}</Text>
                         )}
                     </View>
                     
@@ -294,7 +338,7 @@ const TemperatureSection = ({
 }) => {
     return (
         <View style={styles.optionGroup}>
-            <SectionTitle title="Temperature" required />
+            <SectionTitle title="온도" required />
             <TemperatureButton value={temperature} onChange={onTemperatureChange} />
         </View>
     );
@@ -311,7 +355,7 @@ const SizeSection = ({
 }) => {
     return (
         <View style={styles.optionGroup}>
-            <SectionTitle title="Size" required />
+            <SectionTitle title="사이즈" required />
             <View style={styles.sizeButtonGroup}>
                 {sizes.map(size => (
                     <SizeButton
@@ -345,7 +389,7 @@ const AdditionalOptionsSection = ({
 }) => (
     <View>
         {coffeeOptions.length > 0 && (
-            <AccordionItem id="extra1-option" title="Coffee">
+            <AccordionItem id="extra1-option" title="커피">
                 <StepperOptions
                     groupId="extra1-option"
                     options={coffeeOptions}
@@ -354,7 +398,7 @@ const AdditionalOptionsSection = ({
         )}
         
         {syrupOptions.length > 0 && (
-            <AccordionItem id="extra2-option" title="Syrup">
+            <AccordionItem id="extra2-option" title="시럽">
                 <StepperOptions
                     groupId="extra2-option"
                     options={syrupOptions}
@@ -363,7 +407,7 @@ const AdditionalOptionsSection = ({
         )}
         
         {milkOptions.length > 0 && (
-            <AccordionItem id="extra3-option" title="Milk">
+            <AccordionItem id="extra3-option" title="우유">
                 <ChipOptions 
                     groupId="extra3-option"
                     options={milkOptions}
@@ -382,7 +426,7 @@ const InfoMessage = () => (
 
 const FloatingButton = ({ onPress }: { onPress: () => void }) => (
     <View style={styles.floatingButtonContainer}>
-        <Button title="Next" onPress={onPress} />
+        <Button title="다음" onPress={onPress} />
     </View>
 );
 

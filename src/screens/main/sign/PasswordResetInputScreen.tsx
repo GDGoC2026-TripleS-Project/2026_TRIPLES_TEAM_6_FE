@@ -1,21 +1,50 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Alert, Pressable } from "react-native";
 import { colors } from "../../../constants/colors";
+import { useNavigation } from "@react-navigation/native";
 import TextField from "../../../components/common/TextField";
 import Button from "../../../components/common/Button";
+import { authApiLayer } from "../../../app/features/auth/auth.api";
 
 const PasswordResetInputScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
+  const [loginId, setLoginId] = useState("");
+  const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordCheck, setNewPasswordCheck] = useState("");
 
+  const [loginIdError, setLoginIdError] = useState<string | undefined>();
+  const [tokenError, setTokenError] = useState<string | undefined>();
   const [newPasswordError, setNewPasswordError] = useState<string | undefined>();
-  const [newPasswordCheckError, setNewPasswordCheckError] = useState<string | undefined>();
+  const [newPasswordCheckError, setNewPasswordCheckError] =
+    useState<string | undefined>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isValidLoginId = (v: string) =>
+    /^[a-zA-Z0-9]+$/.test(v) && /[a-zA-Z]/.test(v) && /[0-9]/.test(v);
 
   const isValidPassword = (v: string) =>
     v.length >= 8 && /[a-zA-Z]/.test(v) && /[0-9]/.test(v);
 
   const validateAll = () => {
     let ok = true;
+
+    if (!loginId.trim()) {
+      setLoginIdError("로그인 ID를 입력해 주세요.");
+      ok = false;
+    } else if (!isValidLoginId(loginId.trim())) {
+      setLoginIdError("로그인 ID 형식이 올바르지 않습니다.");
+      ok = false;
+    } else {
+      setLoginIdError(undefined);
+    }
+
+    if (!token.trim()) {
+      setTokenError("인증 코드를 입력해 주세요.");
+      ok = false;
+    } else {
+      setTokenError(undefined);
+    }
 
     if (!newPassword) {
       setNewPasswordError("새 비밀번호를 입력해 주세요.");
@@ -42,19 +71,52 @@ const PasswordResetInputScreen: React.FC = () => {
 
   const canSubmit = useMemo(() => {
     return (
+      loginId.trim() &&
+      token.trim() &&
       newPassword &&
       newPasswordCheck &&
+      isValidLoginId(loginId.trim()) &&
       isValidPassword(newPassword) &&
       newPassword === newPasswordCheck
     );
-  }, [newPassword, newPasswordCheck]);
+  }, [loginId, token, newPassword, newPasswordCheck]);
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     const ok = validateAll();
     if (!ok) return;
 
-    console.log("비밀번호 재설정하기");
-    // api
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const res = await authApiLayer.confirmPasswordReset({
+        loginId: loginId.trim(),
+        token: token.trim(),
+        newPassword,
+      });
+      if (res?.data?.data?.reset === false) {
+        Alert.alert("재설정 실패", "비밀번호 재설정에 실패했습니다.");
+        return;
+      }
+      navigation.navigate("PasswordResetScreen");
+    } catch (e: any) {
+      if (__DEV__) {
+        console.log("[PW RESET CONFIRM ERR] status:", e?.response?.status);
+        console.log("[PW RESET CONFIRM ERR] data:", e?.response?.data);
+        console.log(
+          "[PW RESET CONFIRM ERR] fieldErrors:",
+          JSON.stringify(e?.response?.data?.error?.fieldErrors)
+        );
+        console.log("[PW RESET CONFIRM ERR] message:", e?.message);
+      }
+      Alert.alert(
+        "재설정 실패",
+        e?.response?.data?.message ??
+          e?.message ??
+          "비밀번호 재설정에 실패했습니다."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -65,6 +127,48 @@ const PasswordResetInputScreen: React.FC = () => {
       </View>
 
       <View style={styles.form}>
+        <Text style={styles.label}>로그인 ID</Text>
+        <TextField
+          placeholder="로그인 ID 입력"
+          value={loginId}
+          onChangeText={(t) => {
+            setLoginId(t);
+            if (!t) {
+              setLoginIdError("로그인 ID 형식이 올바르지 않습니다.");
+            } else if (!isValidLoginId(t.trim())) {
+              setLoginIdError("로그인 ID 형식이 올바르지 않습니다.");
+            } else {
+              setLoginIdError(undefined);
+            }
+          }}
+          autoCapitalize="none"
+          error={loginIdError}
+        />
+
+        <Text style={styles.label}>인증 코드</Text>
+        <TextField
+          placeholder="메일로 받은 코드 입력"
+          value={token}
+          onChangeText={(t) => {
+            setToken(t);
+            if (tokenError) setTokenError(undefined);
+          }}
+          autoCapitalize="none"
+          keyboardType="number-pad"
+          error={tokenError}
+        />
+        <Pressable
+          onPress={() =>
+            navigation.navigate("FindPasswordScreen", {
+              defaultLoginId: loginId.trim() || undefined,
+            })
+          }
+          hitSlop={8}
+          style={styles.linkButton}
+        >
+          <Text style={styles.linkText}>인증 코드 받기</Text>
+        </Pressable>
+
         <Text style={styles.label}>새 비밀번호</Text>
         <TextField
           placeholder="영문, 숫자 포함 8자 이상"
@@ -72,9 +176,9 @@ const PasswordResetInputScreen: React.FC = () => {
           onChangeText={(t) => {
             setNewPassword(t);
             if (!t) {
-              setNewPasswordError("아이디 형식이 올바르지 않습니다.");
+              setNewPasswordError("비밀번호 형식이 올바르지 않습니다.");
             } else if (!isValidPassword(t)) {
-              setNewPasswordError("아이디 형식이 올바르지 않습니다.");
+              setNewPasswordError("비밀번호 형식이 올바르지 않습니다.");
             } else {
               setNewPasswordError(undefined);
             }
@@ -103,7 +207,11 @@ const PasswordResetInputScreen: React.FC = () => {
       </View>
 
       <View style={styles.submitWrap}>
-        <Button title="재설정하기" disabled={!canSubmit} onPress={onSubmit} />
+        <Button
+          title="재설정하기"
+          disabled={!canSubmit || isSubmitting}
+          onPress={onSubmit}
+        />
       </View>
     </View>
   );
@@ -119,7 +227,7 @@ const styles = StyleSheet.create({
   },
 
   headerArea: {
-    width: '100%',
+    width: "100%",
     marginBottom: 22,
   },
 
@@ -139,7 +247,7 @@ const styles = StyleSheet.create({
   },
 
   form: {
-    width: '100%',
+    width: "100%",
     gap: 10,
   },
 
@@ -152,8 +260,19 @@ const styles = StyleSheet.create({
   },
 
   submitWrap: {
-    width: '100%',
+    width: "100%",
     marginTop: 60,
+  },
+
+  linkButton: {
+    alignSelf: "flex-end",
+    marginTop: 6,
+  },
+
+  linkText: {
+    color: colors.grayscale[500],
+    fontSize: 12,
+    fontFamily: "Pretendard-Regular",
   },
 });
 

@@ -1,20 +1,20 @@
-import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, Image, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../../constants/colors';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { MainTabNavigationProp, RootStackParamList } from '../../../types/navigation';
-import { useAuthStore } from '../../../app/features/auth/auth.store';
-import { useUserStore } from '../../../app/features/user/user.store';
-import { useGoalStore } from '../../../store/goalStore';
+import React, { useCallback, useState } from "react";
+import { View, Text, StyleSheet, Pressable, Modal, Image, Alert } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { colors } from "../../../constants/colors";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { MainTabNavigationProp, RootStackParamList } from "../../../types/navigation";
+import { useAuthStore } from "../../../app/features/auth/auth.store";
+import { useUserStore } from "../../../app/features/user/user.store";
+import { useGoalStore } from "../../../store/goalStore";
 
-import GoogleLogin from '../../../../assets/ComponentsImage/GoogleLogin.svg';
-import KakaoLogin from '../../../../assets/ComponentsImage/KakaoLogin.svg';
-import AppleLogin from '../../../../assets/ComponentsImage/AppleLogin.svg';
-import MyPageProflie from '../../../../assets/ComponentsImage/MyPageProfile.svg';
+import GoogleLogin from "../../../../assets/ComponentsImage/GoogleLogin.svg";
+import KakaoLogin from "../../../../assets/ComponentsImage/KakaoLogin.svg";
+import AppleLogin from "../../../../assets/ComponentsImage/AppleLogin.svg";
+import MyPageProflie from "../../../../assets/ComponentsImage/MyPageProfile.svg";
 
-type LoginProvider = 'google' | 'kakao' | 'apple';
+type LoginProvider = "google" | "kakao" | "apple";
 
 type RowItem = {
   label: string;
@@ -30,9 +30,6 @@ const ProviderIconMap = {
   apple: AppleLogin,
 } as const;
 
-const isLoginProvider = (value: string): value is LoginProvider =>
-  value === 'google' || value === 'kakao' || value === 'apple';
-
 function SettingRow({ label, subLabel, onPress, danger, hideIcon }: RowItem) {
   return (
     <Pressable onPress={onPress} style={styles.row}>
@@ -42,20 +39,15 @@ function SettingRow({ label, subLabel, onPress, danger, hideIcon }: RowItem) {
       </View>
 
       {!hideIcon && (
-        <Ionicons
-          name="chevron-forward"
-          size={20}
-          color={colors.grayscale[100]}
-        />
+        <Ionicons name="chevron-forward" size={20} color={colors.grayscale[100]} />
       )}
     </Pressable>
   );
 }
 
 export default function MyPageScreen() {
-  const navigation = useNavigation<MainTabNavigationProp<'Profile'>>();
+  const navigation = useNavigation<MainTabNavigationProp<"Profile">>();
   const logout = useAuthStore((s) => s.logout);
-  const authUser = useAuthStore((s) => s.user);
   const fetchMe = useUserStore((s) => s.fetchMe);
   const deleteMe = useUserStore((s) => s.deleteMe);
   const me = useUserStore((s) => s.me);
@@ -95,53 +87,54 @@ export default function MyPageScreen() {
     setDeleteModalVisible(false);
     const ok = await deleteMe();
     if (!ok) {
-      Alert.alert('회원 탈퇴 실패', userError ?? '다시 시도해 주세요.');
+      Alert.alert("회원 탈퇴 실패", userError ?? "다시 시도해 주세요.");
       return;
     }
-    await logout();
-    goRoot('DropCompleteScreen');
+    goRoot("DropCompleteScreen");
   };
 
   const providerRaw =
-    (me?.socialProvider ??
-      me?.loginProvider ??
-      me?.provider ??
-      '').toLowerCase();
-  const provider = isLoginProvider(providerRaw) ? providerRaw : undefined;
+    me?.socialProvider ??
+    me?.loginProvider ??
+    me?.provider;
+  const provider =
+    typeof providerRaw === "string"
+      ? (providerRaw.toLowerCase() as LoginProvider)
+      : undefined;
 
   const user = {
-    name: me?.nickname ?? authUser?.nickname ?? '라스트컵',
+    name: me?.nickname ?? "캡스터",
     provider,
     profileImageUrl: me?.profileImageUrl,
     criteriaText: `카페인 ${caffeine}mg, 당류 ${sugar}g`,
   };
 
-  const ProviderIcon = user.provider ? ProviderIconMap[user.provider] : undefined;
+  const ProviderIcon = provider ? ProviderIconMap[provider] : undefined;
 
   const rows: RowItem[] = [
     {
-      label: '기준 수정',
+      label: "기준 수정",
       subLabel: user.criteriaText,
-      onPress: () => goRoot('GoalEditScreen'),
+      onPress: () => goRoot("GoalEditScreen"),
     },
     {
-      label: '비밀번호 변경',
-      onPress: () => goRoot('PasswordResetInputScreen'),
+      label: "비밀번호 변경",
+      onPress: () => goRoot("PasswordResetInputScreen"),
     },
     {
-      label: '알림 설정',
-      onPress: () => goRoot('AlarmSettingScreen'),
+      label: "알림 설정",
+      onPress: () => goRoot("AlarmSettingScreen"),
     },
     {
-      label: '로그아웃',
+      label: "로그아웃",
       onPress: () => setLogoutModalVisible(true),
-      hideIcon: true, 
+      hideIcon: true,
     },
     {
-      label: '회원 탈퇴',
+      label: "회원 탈퇴",
       onPress: () => setDeleteModalVisible(true),
       danger: true,
-      hideIcon: true, 
+      hideIcon: true,
     },
   ];
 
@@ -149,17 +142,19 @@ export default function MyPageScreen() {
     <View style={styles.container}>
       <Pressable
         style={styles.profileRow}
-        onPress={() => goRoot('ProfileSettingScreen')}
+        onPress={() => goRoot("ProfileSettingScreen")}
       >
         {user.profileImageUrl ? (
           <Image source={{ uri: user.profileImageUrl }} style={styles.avatar} />
         ) : (
-          <MyPageProflie width={53} height={53} />
+          <MyPageProflie width={57} height={57} />
         )}
 
         <View style={styles.nameRow}>
           <Text style={styles.profileName}>{user.name}</Text>
-          {ProviderIcon ? <ProviderIcon width={20} height={20} style={styles.providerIcon} /> : null}
+          {ProviderIcon ? (
+            <ProviderIcon width={20} height={20} style={styles.providerIcon} />
+          ) : null}
         </View>
 
         <Ionicons name="chevron-forward" size={20} color={colors.grayscale[100]} />
@@ -182,31 +177,31 @@ export default function MyPageScreen() {
         animationType="fade"
         onRequestClose={() => setLogoutModalVisible(false)}
       >
-        <Pressable 
+        <Pressable
           style={styles.modalOverlay}
           onPress={() => setLogoutModalVisible(false)}
         >
           <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>로그아웃 하시겠습니까?</Text>
+              <Text style={styles.modalTitle}>로그아웃 하시겠어요?</Text>
             </View>
             <View style={styles.modalButtonContainer}>
               <View style={styles.modalButtonDivider} />
-              <Pressable 
+              <Pressable
                 style={({ pressed }) => [
                   styles.modalHalfButton,
                   styles.modalConfirmButton,
-                  pressed && styles.modalConfirmButtonPressed
+                  pressed && styles.modalConfirmButtonPressed,
                 ]}
                 onPress={handleLogout}
               >
                 <Text style={styles.modalConfirmButtonText}>로그아웃</Text>
               </Pressable>
-              <Pressable 
+              <Pressable
                 style={({ pressed }) => [
                   styles.modalHalfButton,
                   styles.modalCancelButton,
-                  pressed && styles.modalCancelButtonPressed
+                  pressed && styles.modalCancelButtonPressed,
                 ]}
                 onPress={() => setLogoutModalVisible(false)}
               >
@@ -223,23 +218,23 @@ export default function MyPageScreen() {
         animationType="fade"
         onRequestClose={() => setDeleteModalVisible(false)}
       >
-        <Pressable 
+        <Pressable
           style={styles.modalOverlay}
           onPress={() => setDeleteModalVisible(false)}
         >
           <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>탈퇴하시겠습니까?</Text>
+              <Text style={styles.modalTitle}>탈퇴하시겠어요?</Text>
               <Text style={styles.modalSubtitle}>
-                탈퇴 시 기록은 복구할 수 없어요.
+                탈퇴 후 기록은 복구할 수 없어요.
               </Text>
             </View>
             <View style={styles.modalButtonContainer}>
-              <Pressable 
+              <Pressable
                 style={({ pressed }) => [
                   styles.modalHalfButton,
                   styles.modalConfirmButton,
-                  pressed && styles.modalConfirmButtonPressed
+                  pressed && styles.modalConfirmButtonPressed,
                 ]}
                 onPress={handleDelete}
               >
@@ -248,17 +243,16 @@ export default function MyPageScreen() {
 
               <View style={styles.modalButtonDivider} />
 
-              <Pressable 
+              <Pressable
                 style={({ pressed }) => [
                   styles.modalHalfButton,
                   styles.modalCancelButton,
-                  pressed && styles.modalCancelButtonPressed
+                  pressed && styles.modalCancelButtonPressed,
                 ]}
                 onPress={() => setDeleteModalVisible(false)}
               >
                 <Text style={styles.modalCancelButtonText}>취소</Text>
               </Pressable>
-              
             </View>
           </Pressable>
         </Pressable>
@@ -272,7 +266,7 @@ const styles = StyleSheet.create({
 
   topBar: {
     height: 56,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.grayscale[800],
@@ -280,31 +274,31 @@ const styles = StyleSheet.create({
   topBarTitle: {
     color: colors.grayscale[600],
     fontSize: 14,
-    fontFamily: 'Pretendard-Medium',
+    fontFamily: "Pretendard-Medium",
   },
 
   profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 12,
   },
   avatar: {
-    width: 50,
-    height: 50,
+    width: 44,
+    height: 44,
     borderRadius: 22,
     backgroundColor: colors.grayscale[700],
     marginRight: 12,
   },
   nameRow: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   profileName: {
     color: colors.grayscale[100],
     fontSize: 17,
-    fontFamily: 'Pretendard-SemiBold',
+    fontFamily: "Pretendard-SemiBold",
     marginLeft: 8,
   },
   providerIcon: {
@@ -321,8 +315,8 @@ const styles = StyleSheet.create({
   },
 
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 18,
   },
@@ -330,13 +324,13 @@ const styles = StyleSheet.create({
   rowLabel: {
     color: colors.grayscale[100],
     fontSize: 16,
-    fontFamily: 'Pretendard-Medium',
+    fontFamily: "Pretendard-Medium",
     marginBottom: 5,
   },
   rowSub: {
     color: colors.grayscale[500],
     fontSize: 14,
-    fontFamily: 'Pretendard-Regular',
+    fontFamily: "Pretendard-Regular",
   },
   dividerInset: {
     height: 1,
@@ -344,25 +338,25 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   dangerText: {
-    color: colors.grayscale[100], 
+    color: colors.grayscale[100],
   },
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 32,
   },
   modalContent: {
     backgroundColor: colors.grayscale[900],
     borderRadius: 15,
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   modalHeader: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingTop: 32,
     paddingBottom: 28,
     paddingHorizontal: 24,
@@ -370,24 +364,24 @@ const styles = StyleSheet.create({
   modalTitle: {
     color: colors.grayscale[100],
     fontSize: 18,
-    fontFamily: 'Pretendard-SemiBold',
+    fontFamily: "Pretendard-SemiBold",
     marginBottom: 5,
   },
   modalSubtitle: {
     color: colors.grayscale[400],
     fontSize: 14,
-    fontFamily: 'Pretendard-Regular',
-    textAlign: 'center',
+    fontFamily: "Pretendard-Regular",
+    textAlign: "center",
     lineHeight: 20,
   },
   modalButtonContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     height: 56,
   },
   modalHalfButton: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalCancelButton: {
     backgroundColor: colors.grayscale[800],
@@ -416,11 +410,11 @@ const styles = StyleSheet.create({
   modalCancelButtonText: {
     color: colors.grayscale[100],
     fontSize: 16,
-    fontFamily: 'Pretendard-SemiBold',
+    fontFamily: "Pretendard-SemiBold",
   },
   modalConfirmButtonText: {
     color: colors.grayscale[1000],
     fontSize: 16,
-    fontFamily: 'Pretendard-SemiBold',
+    fontFamily: "Pretendard-SemiBold",
   },
 });

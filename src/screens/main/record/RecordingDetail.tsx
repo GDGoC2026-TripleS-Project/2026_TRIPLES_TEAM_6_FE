@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Alert } from "react-native";
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../types/navigation';
@@ -7,8 +7,8 @@ import Button from '../../../components/common/Button';
 import { useEffect, useMemo, useState } from 'react';
 import MenuItemRow from "../../../components/common/MenuItem";
 import DatePickerField from "../../../components/common/DatePickerField";
-import { useOptionStore } from '../../../store/useOptionStore';
 import { fetchMenuSizeDetail } from '../../../api/record/menu.api';
+import { createIntakeRecord, updateIntakeRecord } from '../../../api/record/intake.api';
 import {
     buildOptionInfoFromSelections,
     buildOptionPartsFromSelections,
@@ -22,28 +22,33 @@ const RecordingDetail = () => {
     const route = useRoute<RecordingDetailRouteProp>();
     const navigation = useNavigation<RecordingDetailNavigationProp>();
     const {
+        drinkId,
         drinkName,
         brandName,
         brandId,
+        selectedDate: selectedDateParam,
         temperature,
         size,
         options,
         optionNames,
         optionNutrition,
-        optionLabelMap,
         menuSizeId,
         baseNutrition,
+        edit,
     } = route.params;
-    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedDate, setSelectedDate] = useState(() => {
+        if (!selectedDateParam) return new Date();
+        const parsed = new Date(selectedDateParam);
+        return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+    });
     const [baseCaffeine, setBaseCaffeine] = useState(baseNutrition?.caffeineMg ?? 150);
     const [baseSugar, setBaseSugar] = useState(baseNutrition?.sugarG ?? 3);
     
-    const setGroupInfo = useOptionStore(state => state.setGroupInfo);
-    const resolvedOptionNames = { ...(optionNames ?? {}), ...(optionLabelMap ?? {}) };
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const optionInfo = useMemo(
-        () => buildOptionInfoFromSelections(options, resolvedOptionNames, temperature, size),
-        [options, resolvedOptionNames, temperature, size]
+        () => buildOptionInfoFromSelections(options, optionNames, temperature, size),
+        [options, optionNames, temperature, size]
     );
     const totals = useMemo(
         () =>
@@ -75,54 +80,80 @@ const RecordingDetail = () => {
         };
     }, [menuSizeId]);
 
-    const handleComplete = () => {
-        const groupId = `drink_${Date.now()}`;
-        
-        const stepperCounts: Record<string, number> = {};
-        Object.entries(options.coffee ?? {}).forEach(([key, count]) => {
-            if (count > 0) stepperCounts[key] = count;
-        });
-        Object.entries(options.syrup ?? {}).forEach(([key, count]) => {
-            if (count > 0) stepperCounts[key] = count;
-        });
+    const handleComplete = async () => {
+        if (isSubmitting) return;
+        if (!menuSizeId) {
+            Alert.alert('섭취 기록 실패', '사이즈 정보를 불러오지 못했어요. 다시 시도해주세요.');
+            return;
+        }
+        setIsSubmitting(true);
 
-        const chipSelected = new Set<string>(options.milk ?? []);
+        const toNumericId = (value: string) => {
+            const parsed = Number(value);
+            return Number.isNaN(parsed) ? null : parsed;
+        };
 
-        setGroupInfo(groupId, {
-            brandName,
-            brandId,
-            menuName: drinkName,
-            temperature,
-            size,
-            date: selectedDate,
-            chipSelected,
-            stepperCounts,
-            optionNames: resolvedOptionNames,
-            caffeine: totals.caffeine,
-            sugar: totals.sugar,
-        });
+        const toQuantityPayload = (entries: Record<string, number>) =>
+            Object.entries(entries)
+                .filter(([, count]) => count > 0)
+                .map(([optionId, count]) => {
+                    const id = toNumericId(optionId);
+                    return id === null ? null : { optionId: id, quantity: count };
+                })
+                .filter((v): v is { optionId: number; quantity: number } => v !== null);
 
-        console.log('Recording complete:', {
-            groupId,
-            drinkName,
-            brandName,
-            temperature,
-            size,
-            options,
-            date: selectedDate,
-            caffeine: totals.caffeine,
-            sugar: totals.sugar,
-        });
-        
-        navigation.navigate('Send');
+        const optionPayload = [
+            ...toQuantityPayload(options.coffee ?? {}),
+            ...toQuantityPayload(options.syrup ?? {}),
+            ...(options.milk ?? [])
+                .map((optionId) => {
+                    const id = toNumericId(optionId);
+                    return id === null ? null : { optionId: id, quantity: 1 };
+                })
+                .filter((v): v is { optionId: number; quantity: number } => v !== null),
+        ];
+
+        const yyyy = selectedDate.getFullYear();
+        const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(selectedDate.getDate()).padStart(2, '0');
+        const recordDate = `${yyyy}-${mm}-${dd}`;
+
+        try {
+            const payload = {
+                menuSizeId,
+                intakeDate: recordDate,
+                quantity: 1,
+                options: optionPayload,
+            };
+
+            const res = edit?.intakeId
+                ? await updateIntakeRecord(edit.intakeId, payload)
+                : await createIntakeRecord(payload);
+
+            if (!res.success) {
+                Alert.alert('섭취 기록 실패', res.error?.message ?? '기록 저장에 실패했습니다.');
+                return;
+            }
+
+            navigation.navigate('Send');
+        } catch (e: any) {
+            if (__DEV__) {
+                console.log('[API ERR] /intakes status:', e?.response?.status);
+                console.log('[API ERR] /intakes data:', e?.response?.data);
+                console.log('[API ERR] /intakes message:', e?.message);
+            }
+            Alert.alert('섭취 기록 실패', '기록 저장에 실패했습니다.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const formatAdditionalOptions = () => {
         const parts: string[] = [];
 
-        parts.push(...buildOptionPartsFromSelections(options, resolvedOptionNames));
+        parts.push(...buildOptionPartsFromSelections(options, optionNames));
 
-        return parts.length > 0 ? parts.join(' | ') : 'No options selected';
+        return parts.length > 0 ? parts.join(' | ') : '선택한 옵션이 없습니다';
     };
 
     return (
@@ -144,29 +175,29 @@ const RecordingDetail = () => {
                             </View>
                         }
                         pills={[
-                            { label: 'Caffeine', value: totals.caffeine, unit: 'mg' },
-                            { label: 'Sugar', value: totals.sugar, unit: 'g' },
+                            { label: '카페인', value: totals.caffeine, unit: 'mg' },
+                            { label: '당류', value: totals.sugar, unit: 'g' },
                         ]}
                     />
 
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Additional options</Text>
+                        <Text style={styles.sectionTitle}>추가 옵션</Text>
                         <Text style={styles.optionDetail}>{formatAdditionalOptions()}</Text>
                     </View>
 
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Intake date</Text>
+                        <Text style={styles.sectionTitle}>섭취 날짜</Text>
                         <DatePickerField
                             value={selectedDate}
                             onChange={setSelectedDate}
-                            placeholder="Select date"
+                            placeholder="날짜를 선택하세요"
                         />
                     </View>
                 </View>
             </ScrollView>
 
             <View style={styles.floatingButtonContainer}>
-                <Button title="Save" onPress={handleComplete} />
+                <Button title="등록하기" onPress={handleComplete} disabled={isSubmitting} />
             </View>
         </View>
     );

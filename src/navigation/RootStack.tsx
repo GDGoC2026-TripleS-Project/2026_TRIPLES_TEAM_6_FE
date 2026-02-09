@@ -1,21 +1,23 @@
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import AppNavigator from './AppNavigator';
-import RecordScreen from '../screens/main/record/RecordScreen';
-import RecordDetailScreen from '../screens/main/record/RecordDetail';
-import RecordDrinkDetail from '../screens/main/record/RecordDrinkDetail';
-import RecordingDetail from '../screens/main/record/RecordingDetail';
-import SendScreen from '../screens/main/record/SendScreen';
-import HeaderDetail from '../components/common/HeaderDetail';
-import { RootStackParamList } from '../types/navigation';
-import { colors } from '../constants/colors';
-import DropCompleteScreen from '../screens/main/mypage/DropCompleteScreen';
-import PeriodSearchScreen from '../screens/main/PeriodSearchScreen';
-import GoalEditScreen from '../screens/main/mypage/GoalEditScreen';
-import PasswordResetScreen from '../screens/main/sign/PasswordResetScreen';
-import PasswordResetInputScreen from '../screens/main/sign/PasswordResetInputScreen';
-import ProfileSettingScreen from '../screens/main/mypage/ProfileSettingScreen';
-import AlarmSettingScreen from '../screens/main/mypage/AlarmSettingScreen';
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { SafeAreaView } from "react-native-safe-area-context";
+import AppNavigator from "./AppNavigator";
+import RecordScreen from "../screens/main/record/ReocrdScreen";
+import RecordDetailScreen from "../screens/main/record/RecordDetail";
+import RecordDrinkDetail from "../screens/main/record/RecordDrinkDetail";
+import RecordingDetail from "../screens/main/record/RecordingDetail";
+import IntakeDetailScreen from "../screens/main/record/IntakeDetailScreen";
+import SendScreen from "../screens/main/record/SendScreen";
+import HeaderDetail from "../components/common/HeaderDetail";
+import { RootStackParamList } from "../types/navigation";
+import { colors } from "../constants/colors";
+import DropCompleteScreen from "../screens/main/mypage/DropCompleteScreen";
+import PeriodSearchScreen from "../screens/main/PeriodSearchScreen";
+import GoalEditScreen from "../screens/main/mypage/GoalEditScreen";
+import PasswordResetScreen from "../screens/main/sign/PasswordResetScreen";
+import PasswordResetInputScreen from "../screens/main/sign/PasswordResetInputScreen";
+import FindPasswordScreen from "../screens/main/sign/FindPasswordScreen";
+import ProfileSettingScreen from "../screens/main/mypage/ProfileSettingScreen";
+import AlarmSettingScreen from "../screens/main/mypage/AlarmSettingScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -38,7 +40,7 @@ export default function RootNavigator() {
         options={({ navigation }) => ({
           headerShown: true,
           header: () => (
-            <SafeAreaView edges={['top']} style={{ backgroundColor: colors.grayscale[1000] }}>
+            <SafeAreaView edges={["top"]} style={{ backgroundColor: colors.grayscale[1000] }}>
               <HeaderDetail
                 title="음료 기록하기"
                 onBack={() => navigation.goBack()}
@@ -55,11 +57,14 @@ export default function RootNavigator() {
         options={({ navigation, route }) => ({
           headerShown: true,
           header: () => (
-            <SafeAreaView edges={['top']} style={{ backgroundColor: colors.grayscale[1000] }}>
+            <SafeAreaView edges={["top"]} style={{ backgroundColor: colors.grayscale[1000] }}>
               <HeaderDetail
                 title={route.params.brandName}
                 onBack={() => navigation.goBack()}
                 initialRightType="heart"
+                onRightPress={() =>
+                  navigation.navigate("MainTabs", { screen: "Heart" } as any)
+                }
               />
             </SafeAreaView>
           ),
@@ -72,7 +77,7 @@ export default function RootNavigator() {
         options={({ navigation }) => ({
           headerShown: true,
           header: () => (
-            <SafeAreaView edges={['top']} style={{ backgroundColor: colors.grayscale[1000] }}>
+            <SafeAreaView edges={["top"]} style={{ backgroundColor: colors.grayscale[1000] }}>
               <HeaderDetail
                 title="음료 기록하기"
                 onBack={() => navigation.goBack()}
@@ -89,7 +94,7 @@ export default function RootNavigator() {
         options={({ navigation }) => ({
           headerShown: true,
           header: () => (
-            <SafeAreaView edges={['top']} style={{ backgroundColor: colors.grayscale[1000] }}>
+            <SafeAreaView edges={["top"]} style={{ backgroundColor: colors.grayscale[1000] }}>
               <HeaderDetail
                 title="음료 기록하기"
                 onBack={() => navigation.goBack()}
@@ -100,52 +105,50 @@ export default function RootNavigator() {
         })}
       />
 
-      <Stack.Screen
-        name="Send"
-        component={SendScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
+      <Stack.Screen name="IntakeDetail" component={IntakeDetailScreen} options={{ headerShown: false }} />
 
-      <Stack.Screen
-        name="DropCompleteScreen"
-        component={DropCompleteScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
+      <Stack.Screen name="Send" component={SendScreen} options={{ headerShown: false }} />
 
-      <Stack.Screen
-        name="PeriodSearchScreen"
-        component={PeriodSearchScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
+      <Stack.Screen name="DropCompleteScreen" component={DropCompleteScreen} options={{ headerShown: false }} />
+
+      <Stack.Screen name="PeriodSearchScreen" component={PeriodSearchScreen} options={{ headerShown: false }} />
 
       <Stack.Screen
         name="GoalEditScreen"
         component={GoalEditScreen}
         options={{
           headerShown: true,
-          title: '기준 수정',
-          headerTitleAlign: 'center',
+          title: "기준 수정",
+          headerTitleAlign: "center",
           headerStyle: { backgroundColor: colors.grayscale[1000] },
           headerShadowVisible: false,
           headerTintColor: colors.grayscale[100],
           headerTitleStyle: {
             fontSize: 14,
-            fontFamily: 'Pretendard-SemiBold',
+            fontFamily: "Pretendard-SemiBold",
           },
-          headerBackButtonDisplayMode: 'minimal',
+          headerBackButtonDisplayMode: "minimal",
         }}
       />
 
+      <Stack.Screen name="PasswordResetScreen" component={PasswordResetScreen} options={{ headerShown: true, title: "" }} />
+
       <Stack.Screen
-        name="PasswordResetScreen"
-        component={PasswordResetScreen}
-        options={{ headerShown: true, title: '' }}
+        name="FindPasswordScreen"
+        component={FindPasswordScreen}
+        options={{
+          headerShown: true,
+          title: "비밀번호 찾기",
+          headerTitleAlign: "center",
+          headerStyle: { backgroundColor: colors.grayscale[1000] },
+          headerShadowVisible: false,
+          headerTintColor: colors.grayscale[100],
+          headerTitleStyle: {
+            fontSize: 14,
+            fontFamily: "Pretendard-SemiBold",
+          },
+          headerBackButtonDisplayMode: "minimal",
+        }}
       />
 
       <Stack.Screen
@@ -153,16 +156,16 @@ export default function RootNavigator() {
         component={PasswordResetInputScreen}
         options={{
           headerShown: true,
-          title: '비밀번호 변경',
-          headerTitleAlign: 'center',
+          title: "비밀번호 변경",
+          headerTitleAlign: "center",
           headerStyle: { backgroundColor: colors.grayscale[1000] },
           headerShadowVisible: false,
           headerTintColor: colors.grayscale[100],
           headerTitleStyle: {
             fontSize: 14,
-            fontFamily: 'Pretendard-SemiBold',
+            fontFamily: "Pretendard-SemiBold",
           },
-          headerBackButtonDisplayMode: 'minimal',
+          headerBackButtonDisplayMode: "minimal",
         }}
       />
 
@@ -171,16 +174,16 @@ export default function RootNavigator() {
         component={ProfileSettingScreen}
         options={{
           headerShown: true,
-          title: '프로필 설정',
-          headerTitleAlign: 'center',
+          title: "프로필 설정",
+          headerTitleAlign: "center",
           headerStyle: { backgroundColor: colors.grayscale[1000] },
           headerShadowVisible: false,
           headerTintColor: colors.grayscale[100],
           headerTitleStyle: {
             fontSize: 14,
-            fontFamily: 'Pretendard-SemiBold',
+            fontFamily: "Pretendard-SemiBold",
           },
-          headerBackButtonDisplayMode: 'minimal',
+          headerBackButtonDisplayMode: "minimal",
         }}
       />
 
@@ -189,16 +192,16 @@ export default function RootNavigator() {
         component={AlarmSettingScreen}
         options={{
           headerShown: true,
-          title: '알림 설정',
-          headerTitleAlign: 'center',
+          title: "알림 설정",
+          headerTitleAlign: "center",
           headerStyle: { backgroundColor: colors.grayscale[1000] },
           headerShadowVisible: false,
           headerTintColor: colors.grayscale[100],
           headerTitleStyle: {
             fontSize: 14,
-            fontFamily: 'Pretendard-SemiBold',
+            fontFamily: "Pretendard-SemiBold",
           },
-          headerBackButtonDisplayMode: 'minimal',
+          headerBackButtonDisplayMode: "minimal",
         }}
       />
     </Stack.Navigator>

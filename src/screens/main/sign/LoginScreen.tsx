@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
+import React from "react";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import { colors } from "../../../constants/colors";
 import { useNavigation } from "@react-navigation/native";
 import TextField from "../../../components/common/TextField";
@@ -10,176 +10,27 @@ import AppleLogin from "../../../../assets/ComponentsImage/AppleLogin.svg";
 
 import CheckboxOut from '../../../../assets/ComponentsImage/checkboxOut.svg';
 import CheckboxIn from '../../../../assets/ComponentsImage/checkboxIn.svg';
-
-import * as WebBrowser from "expo-web-browser";
-import * as Google from "expo-auth-session/providers/google";
-import * as AppleAuthentication from "expo-apple-authentication";
-import { login as kakaoSdkLogin } from "@react-native-seoul/kakao-login";
-     
-import { useAuthStore } from "../../../app/features/auth/auth.store";
-
-WebBrowser.maybeCompleteAuthSession();
+import { useLoginScreen } from "../../../hooks/useLoginScreen";
 
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const [userName, setUserName] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [autoLogin, setAutoLogin] = useState<boolean>(false);
-
-  const [userNameError, setUserNameError] = useState<string | undefined>();
-  const [passwordError, setPasswordError] = useState<string | undefined>();
-
-  // zustand store
-  const login = useAuthStore((s) => s.login);
-  const socialLogin = useAuthStore((s) => s.socialLogin);
-  const isLoading = useAuthStore((s) => s.isLoading);
-  const errorMessage = useAuthStore((s) => s.errorMessage);
-
-  const googleClientId =
-    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ??
-    "1073477248905-mei7dih847gegd2vh3ovf78m0oib4eds.apps.googleusercontent.com";
-  // Google AuthSession (Expo)
-  const [, response, promptAsync] = Google.useAuthRequest({
-  iosClientId: googleClientId,
-  androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-  });
-
-  // Google 로그인 완료 후 서버로 토큰 전달
-  
-  useEffect(() => {
-    const run = async () => {
-      if (response?.type !== "success") return;
-
-      const providerToken = response.authentication?.idToken;
-
-      if (!providerToken) {
-        Alert.alert("구글 로그인 실패", "토큰을 가져오지 못했어요.");
-        return;
-      }
-
-      const ok = await socialLogin({
-        provider: "GOOGLE",
-        providerToken,
-        autoLogin: true,
-      });
-
-      if (!ok) {
-        Alert.alert("로그인 실패", useAuthStore.getState().errorMessage ?? "다시 시도해 주세요.");
-      }
-    };
-
-    run();
-  }, [response]);
-
-  // Google 버튼 클릭 → 구글 로그인 창 열기
-  const onGooglePress = async () => {
-    try {
-      await promptAsync();
-    } catch (e) {
-      Alert.alert("구글 로그인 실패", "다시 시도해 주세요.");
-    }
-  };
-  // 카카오 로그인
-  const onKakaoPress = async () => {
-    try {
-      const token = await kakaoSdkLogin();
-      const providerToken = token?.accessToken;
-
-      if (!providerToken) {
-        Alert.alert("카카오 로그인 실패", "accessToken을 가져오지 못했어요.");
-        return;
-      }
-
-      const ok = await socialLogin({
-        provider: 'KAKAO',
-        providerToken,
-        autoLogin: true,
-      });
-
-      if (!ok) {
-        Alert.alert("로그인 실패", useAuthStore.getState().errorMessage ?? "다시 시도해 주세요.");
-      }
-    } catch (e: any) {
-      if (e?.code === "E_CANCELLED_OPERATION" || e?.message?.includes("cancel")) return;
-      Alert.alert("카카오 로그인 실패", "다시 시도해 주세요.");
-    }
-  };
-
-  // 애플 로그인
-  const onApplePress = async () => {
-  try {
-    const available = await AppleAuthentication.isAvailableAsync();
-    if (!available) {
-      Alert.alert(
-        "Apple 로그인 불가",
-        "이 기기에서는 Apple 로그인을 사용할 수 없어요."
-      );
-      return;
-    }
-
-    const credential = await AppleAuthentication.signInAsync({
-      requestedScopes: [
-        AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-      ],
-    });
-
-    const providerToken = credential.identityToken;
-
-    if (!providerToken) {
-      Alert.alert("Apple 로그인 실패", "ID Token을 가져오지 못했어요.");
-      return;
-    }
-
-    const ok = await socialLogin({
-      provider: "APPLE",
-      providerToken,
-      email: credential.email ?? undefined, // 최초 로그인 시에만 내려옴
-      autoLogin: true,
-    });
-
-    if (!ok) {
-      Alert.alert(
-        "로그인 실패",
-        useAuthStore.getState().errorMessage ?? "다시 시도해 주세요."
-      );
-    }
-  } catch (e: any) {
-    if (e?.code === "ERR_REQUEST_CANCELED") return;
-    Alert.alert("Apple 로그인 실패", "다시 시도해 주세요.");
-  }
-};
-
-
-  // 로컬 로그인
-  const handleLogin = async () => {
-    let valid = true;
-
-    if (!userName.trim()) {
-      setUserNameError("아이디를 입력해 주세요.");
-      valid = false;
-    } else setUserNameError(undefined);
-
-    if (!password.trim()) {
-      setPasswordError("비밀번호를 입력해 주세요.");
-      valid = false;
-    } else setPasswordError(undefined);
-
-    if (!valid) return;
-
-    const ok = await login({
-      loginId: userName.trim(),
-      password: password.trim(),
-      autoLogin,
-    });
-
-    if (!ok) {
-      Alert.alert("로그인 실패", errorMessage ?? "다시 시도해 주세요.");
-      return;
-    }
-
-    // TODO: 성공 시 이동
-  };
+  const {
+    userName,
+    setUserName,
+    password,
+    setPassword,
+    autoLogin,
+    setAutoLogin,
+    userNameError,
+    passwordError,
+    isLoading,
+    onGooglePress,
+    onKakaoPress,
+    onApplePress,
+    handleLogin,
+    setUserNameError,
+    setPasswordError,
+  } = useLoginScreen();
 
   return (
     <View style={styles.container}>
@@ -190,39 +41,39 @@ const LoginScreen: React.FC = () => {
 
       <View style={styles.form}>
         <TextField
-  placeholder="아이디"
-  value={userName}
-  onChangeText={(text) => {
-    setUserName(text);
-    if (userNameError) setUserNameError(undefined);
-  }}
-  error={userNameError}
-/>
+          placeholder="아이디"
+          value={userName}
+          onChangeText={(text) => {
+            setUserName(text);
+            if (userNameError) setUserNameError(undefined);
+          }}
+          error={userNameError}
+        />
 
-<View style={{ height: 12 }} />
+        <View style={{ height: 12 }} />
 
-<TextField
-  placeholder="비밀번호"
-  value={password}
-  onChangeText={(text) => {
-    setPassword(text);
-    if (passwordError) setPasswordError(undefined);
-  }}
-  secureTextEntry
-  error={passwordError}
-/>
+        <TextField
+          placeholder="비밀번호"
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (passwordError) setPasswordError(undefined);
+          }}
+          secureTextEntry
+          error={passwordError}
+        />
 
       </View>
 
       <View style={styles.rowBetween}>
         <Pressable
-  onPress={() => setAutoLogin((prev) => !prev)}
-  hitSlop={8}
-  style={styles.autoRow}
->
-  {autoLogin ? <CheckboxIn width={20} height={20} /> : <CheckboxOut width={20} height={20} />}
-  <Text style={styles.autoText}>자동 로그인</Text>
-</Pressable>
+          onPress={() => setAutoLogin((prev) => !prev)}
+          hitSlop={8}
+          style={styles.autoRow}
+        >
+          {autoLogin ? <CheckboxIn width={20} height={20} /> : <CheckboxOut width={20} height={20} />}
+          <Text style={styles.autoText}>자동 로그인</Text>
+        </Pressable>
 
         <View style={styles.linkRow}>
           <Pressable hitSlop={8} onPress={() => navigation.navigate("SignUpScreen")}>
@@ -231,7 +82,7 @@ const LoginScreen: React.FC = () => {
           <Text style={styles.linkDivider}>|</Text>
           <Pressable
             hitSlop={8}
-            onPress={() => navigation.navigate("PasswordResetInputScreen")}
+            onPress={() => navigation.navigate("FindPasswordScreen")}
           >
             <Text style={styles.linkText}>비밀번호 찾기</Text>
           </Pressable>
@@ -240,9 +91,9 @@ const LoginScreen: React.FC = () => {
 
       <View style={styles.loginBtnWrap}>
         <Button 
-        title={isLoading ? '로그인' : '로그인'} 
-        onPress={handleLogin}
-        disabled={isLoading} 
+          title={isLoading ? '로그인' : '로그인'} 
+          onPress={handleLogin}
+          disabled={isLoading} 
         />
       </View>
 

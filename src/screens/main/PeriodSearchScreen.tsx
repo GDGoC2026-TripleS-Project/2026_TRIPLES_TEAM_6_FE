@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -13,8 +13,9 @@ import { colors } from '../../constants/colors';
 
 import PeriodSelectBottomSheet from '../../components/common/PeriodSelectBottomSheet';
 import DrinkList from '../../components/common/MenuItem';
-
-import { findDrinksByRange, type Drink, MOCK_DAY_DRINKS } from '../../data/drinksData';
+import OptionText from '../../components/common/OptionText';
+import DrinkDetailSheet from '../../components/common/DrinkDetailSheet';
+import { usePeriodSearchScreen, type PeriodRow } from '../../hooks/usePeriodSearchScreen';
 
 type Props = {
   navigation: any;
@@ -27,105 +28,59 @@ const toKoreanDate = (dateString: string) => {
   return `${y}.${String(Number(m)).padStart(2, '0')}.${String(Number(d)).padStart(2, '0')}`;
 };
 
-const toSectionTitle = (dateString: string) => {
-  return toKoreanDate(dateString);
-};
-
-type SectionRow =
-  | { type: 'header'; id: string; title: string }
-  | { type: 'drink'; id: string; date: string; drink: Drink };
-
 export default function PeriodSearchScreen({ navigation, route }: Props) {
   const initialStart = route?.params?.startDate ?? '2026-01-07';
   const initialEnd = route?.params?.endDate ?? '2026-01-21';
 
-  const [sheetVisible, setSheetVisible] = useState(false);
-  const [startDate, setStartDate] = useState<string>(initialStart);
-  const [endDate, setEndDate] = useState<string>(initialEnd);
+  const {
+    sheetVisible,
+    setSheetVisible,
+    normalized,
+    summary,
+    rows,
+    loading,
+    loadError,
+    detailOpen,
+    selectedDrink,
+    handleConfirmPeriod,
+    openDetail,
+    closeDetail,
+    handleDelete,
+    handleEdit,
+    renderOptionText,
+  } = usePeriodSearchScreen(initialStart, initialEnd);
 
-  const normalized = useMemo(() => {
-    if (!startDate || !endDate) return { start: startDate, end: endDate };
-    return startDate <= endDate ? { start: startDate, end: endDate } : { start: endDate, end: startDate };
-  }, [startDate, endDate]);
-
-  const rangeDrinks = useMemo(() => {
-    if (!normalized.start || !normalized.end) return [];
-    return findDrinksByRange(normalized.start, normalized.end);
-  }, [normalized.start, normalized.end]);
-
-  const dayGroups = useMemo(() => {
-    const daysInRange = MOCK_DAY_DRINKS
-      .filter((d) => d.date >= normalized.start && d.date <= normalized.end)
-      .slice()
-      .sort((a, b) => (a.date < b.date ? 1 : -1));
-
-    return daysInRange;
-  }, [normalized.start, normalized.end]);
-
-  const rows: SectionRow[] = useMemo(() => {
-    const out: SectionRow[] = [];
-
-    for (const day of dayGroups) {
-      out.push({
-        type: 'header',
-        id: `h_${day.date}`,
-        title: toSectionTitle(day.date),
-      });
-
-      for (const drink of day.drinks) {
-        out.push({
-          type: 'drink',
-          id: `d_${day.date}_${drink.id}`,
-          date: day.date,
-          drink,
-        });
-      }
-    }
-
-    return out;
-  }, [dayGroups]);
-
-  const summary = useMemo(() => {
-    const caffeineTotal = rangeDrinks.reduce((acc, cur) => acc + (cur.caffeineMg ?? 0), 0);
-    const sugarTotal = rangeDrinks.reduce((acc, cur) => acc + (cur.sugarG ?? 0), 0);
-
-    const drinkCount = rangeDrinks.reduce((acc, cur) => acc + (cur.count ?? 1), 0);
-
-    return { caffeineTotal, sugarTotal, drinkCount };
-  }, [rangeDrinks]);
-
-  const handleConfirmPeriod = (s: string, e: string) => {
-    setStartDate(s);
-    setEndDate(e);
-  };
-
-  const renderItem = ({ item }: ListRenderItemInfo<SectionRow>) => {
+  const renderItem = ({ item }: ListRenderItemInfo<PeriodRow>) => {
     if (item.type === 'header') {
       return <Text style={styles.sectionTitle}>{item.title}</Text>;
     }
 
     const d = item.drink;
+    const opt = renderOptionText(d);
 
     return (
       <DrinkList
         brandName={d.brandName}
         menuName={d.menuName}
-        optionText={d.optionText}
+        optionText={
+          opt.base ? (
+            <OptionText base={opt.base} extra={opt.extras} />
+          ) : (
+            <OptionText text={opt.extras[0] || '옵션 없음'} />
+          )
+        }
         pills={[
           { label: '카페인', value: d.caffeineMg, unit: 'mg' },
           { label: '당류', value: d.sugarG, unit: 'g' },
         ]}
         rightText={d.count ? `${d.count}잔` : undefined}
-        onPress={() => {
-          // TODO: 상세 화면 이동 필요 시 여기서 navigate
-        }}
+        onPress={() => openDetail(d, item.date)}
       />
     );
   };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      
       <View style={styles.header}>
         <Pressable
           onPress={() => navigation.goBack?.()}
@@ -172,9 +127,19 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>조회된 음료가 없습니다.</Text>
+            <Text style={styles.emptyText}>
+              {loading ? '불러오는 중...' : loadError ?? '조회된 음료가 없습니다.'}
+            </Text>
           </View>
         }
+      />
+
+      <DrinkDetailSheet
+        visible={detailOpen}
+        drink={selectedDrink}
+        onClose={closeDetail}
+        onDelete={(drink) => handleDelete(drink.id)}
+        onEdit={handleEdit}
       />
 
       <PeriodSelectBottomSheet

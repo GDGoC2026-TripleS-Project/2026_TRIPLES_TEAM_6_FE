@@ -18,9 +18,12 @@ const Chart = ({
   const displayUnit = title === "당류" ? "g" : unit;
   
   const intakePercent = Math.min(((currentIntake) / maxValue) * 100, 100);
-  const limitPercent = currentIntake > 0 
-    ? Math.max(Math.min((dailyLimit / currentIntake) * intakePercent, 100), 4)
-    : Math.max(Math.min(((dailyLimit) / maxValue) * 100, 100), 4);
+  const limitPercent =
+    currentIntake < dailyLimit
+      ? 50
+      : currentIntake > 0
+      ? Math.max(Math.min((dailyLimit / currentIntake) * intakePercent, 100), 4)
+      : Math.max(Math.min((dailyLimit / maxValue) * 100, 100), 4);
 
   const getScaleValues = () => {
     if (title === "당류") {
