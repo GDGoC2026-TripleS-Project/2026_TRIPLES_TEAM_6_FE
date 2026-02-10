@@ -15,7 +15,6 @@ const ResetLinkScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-
       <View style={styles.center}>
         <View style={styles.iconWrap}>
           <Check width={44} height={44} style={styles.checkButton} />
@@ -24,8 +23,8 @@ const ResetLinkScreen: React.FC = () => {
         <Text style={styles.title}>재설정 링크 발송 완료</Text>
 
         <Text style={styles.desc}>
-          입력하신 이메일 주소로{"\n"}
-          비밀번호 재설정 링크를 보냈습니다.
+          입력하신 이메일 주소로
+비밀번호 재설정 링크를 보냈습니다.
         </Text>
       </View>
 
@@ -70,31 +69,31 @@ const styles = StyleSheet.create({
 
   title: {
     color: colors.grayscale[100],
-        fontFamily: 'Pretendard-SemiBold',
-        fontSize: 24,
-        justifyContent: 'center',
-        marginTop: 24,
-        marginBottom: 16,
+    fontFamily: "Pretendard-SemiBold",
+    fontSize: 24,
+    justifyContent: "center",
+    marginTop: 24,
+    marginBottom: 16,
   },
 
   desc: {
-        color: colors.grayscale[500],
-        fontSize: 17,
-        fontFamily: 'Pretendard-Regular',
-        textAlign: 'center',
-        lineHeight: 28,
-        marginBottom: 100,
+    color: colors.grayscale[500],
+    fontSize: 17,
+    fontFamily: "Pretendard-Regular",
+    textAlign: "center",
+    lineHeight: 28,
+    marginBottom: 100,
   },
 
   bottom: {
-    width: '100%',
-    marginBottom: '60%',
+    width: "100%",
+    marginBottom: "60%",
   },
 
   checkButton: {
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
 
 export default ResetLinkScreen;

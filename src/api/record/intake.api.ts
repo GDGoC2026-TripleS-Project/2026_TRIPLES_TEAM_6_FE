@@ -218,6 +218,13 @@ const normalizePeriodIntake = (raw: any, fallbackStart?: string, fallbackEnd?: s
   };
 };
 
+const normalizePeriodDates = (raw: any): string[] => {
+  if (Array.isArray(raw)) return raw.filter(Boolean);
+  if (!raw) return [];
+  return normalizePeriodIntake(raw).dates ?? [];
+};
+
+
 export const fetchDailyIntake = async (date: string): Promise<ApiResponse<DailyIntake>> => {
   const res = await api.get<ApiResponse<any>>('/intakes/daily', { params: { date } });
   const normalized = normalizeApiResponse(res.data);
@@ -243,6 +250,24 @@ export const fetchPeriodIntake = async (
   }
   return normalized as ApiResponse<PeriodIntake>;
 };
+
+export const fetchPeriodIntakeDates = async (
+  startDate: string,
+  endDate: string
+): Promise<ApiResponse<string[]>> => {
+  const res = await api.get<ApiResponse<any>>('/intakes/period/dates', {
+    params: { startDate, endDate },
+  });
+  const normalized = normalizeApiResponse(res.data);
+  if (normalized.success && normalized.data) {
+    return {
+      ...normalized,
+      data: normalizePeriodDates(normalized.data),
+    };
+  }
+  return normalized as ApiResponse<string[]>;
+};
+
 
 export const fetchIntakeDetail = async (
   recordId: number | string
@@ -272,6 +297,7 @@ export const fetchIntakeDetail = async (
         quantity: toNumber(normalized.data?.quantity ?? normalized.data?.count, 1),
       },
     };
+
   }
   return normalized as ApiResponse<IntakeDetail>;
 };

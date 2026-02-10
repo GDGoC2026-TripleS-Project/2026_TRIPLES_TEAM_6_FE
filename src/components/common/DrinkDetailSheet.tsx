@@ -14,6 +14,11 @@ import Button from './Button';
 const { height: SCREEN_H } = Dimensions.get('window');
 const SHEET_H = Math.min(520, SCREEN_H * 0.62);
 
+const ESPRESSO_MG = 75;
+const SUGAR_CUBE_G = 3;
+
+const formatUnits = (value: number) => String(Math.round(value));
+
 type NutritionRow = { label: string; value: number; unit: string; note?: string };
 
 export type DrinkLike = {

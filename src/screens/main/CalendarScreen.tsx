@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.grayscale[1000],
-    paddingHorizontal: 16,
+    paddingHorizontal: 3,
     paddingTop: 4,
   },
 
@@ -171,6 +171,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-SemiBold',
     lineHeight: 24,
     flexShrink: 1,
+    marginLeft: 8,
   },
 
   list: {

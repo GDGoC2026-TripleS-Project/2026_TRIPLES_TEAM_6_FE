@@ -11,7 +11,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../../../constants/colors";
+import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import HeaderDetail from "../../../components/common/HeaderDetail";
 
 if (Platform.OS === "android") {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
@@ -24,6 +26,7 @@ type Section = {
 };
 
 const TermsScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
   const sections: Section[] = useMemo(
     () => [
       {
@@ -264,7 +267,7 @@ const styles = StyleSheet.create({
     paddingTop: -50,
   },
   content: {
-    paddingTop: 22,
+    paddingTop: 12,
     paddingHorizontal: 20,
     paddingBottom: 32,
   },

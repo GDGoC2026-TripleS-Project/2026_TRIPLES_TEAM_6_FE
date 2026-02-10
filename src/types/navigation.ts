@@ -81,6 +81,16 @@ export type RootStackParamList = {
   AlarmSettingScreen: undefined;
 };
 
+export type AppStackParamList = {
+  Login: undefined;
+  SignUpScreen: undefined;
+  FindPasswordScreen: undefined;
+  PasswordResetInputScreen: undefined;
+  TermsScreen: undefined;
+  OnBoardingScreen: undefined;
+  Main: NavigatorScreenParams<RootStackParamList>;
+};
+
 export type MainTabParamList = {
   Home: undefined;
   Calendar: undefined;

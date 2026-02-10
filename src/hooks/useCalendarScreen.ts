@@ -7,7 +7,7 @@ import {
   fetchDailyIntake,
   fetchIntakeDetail,
   deleteIntakeRecord,
-  fetchPeriodIntake,
+  fetchPeriodIntakeDates,
   type DailyIntake,
   type IntakeDrink,
 } from '../api/record/intake.api';
@@ -125,10 +125,10 @@ export const useCalendarScreen = () => {
     const { start, end } = toMonthRange(selectedDate);
     const loadEvents = async () => {
       try {
-        const res = await fetchPeriodIntake(start, end);
+        const res = await fetchPeriodIntakeDates(start, end);
         if (!isMounted) return;
         if (res.success && res.data) {
-          setEventDates(res.data.dates ?? []);
+          setEventDates(res.data ?? []);
         } else {
           setEventDates([]);
         }

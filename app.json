@@ -30,6 +30,17 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "lastcup"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.triples.lastcup"
@@ -54,9 +65,9 @@
             "useFrameworks": "dynamic"
           }
         }
-      ],
-      "@react-native-firebase/app",
-      "@react-native-firebase/messaging"
+      ]
+      /* , "@react-native-firebase/app",
+      "@react-native-firebase/messaging" */
     ],
     "extra": {
       "eas": {
