@@ -31,15 +31,13 @@ export default function NutritionSummary({
     <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.header}>
-          <View style={styles.labelRow}>
-            <Text style={styles.label}>카페인</Text>
+          <Text style={styles.label}>
+            카페인{' '}
             <Text style={styles.amountText}>{totalCaffeine}mg</Text>
+          </Text>
+          <View style={[styles.warningBadge, !isCaffeineOver && styles.hidden]}>
+            <Text style={styles.warningIcon}>!</Text>
           </View>
-          {isCaffeineOver && (
-            <View style={styles.warningBadge}>
-              <Text style={styles.warningIcon}>!</Text>
-            </View>
-          )}
         </View>
         <Text style={styles.maxText}>
           에스프레소 {formatUnits(totalCaffeine / ESPRESSO_MG)}/
@@ -60,15 +58,13 @@ export default function NutritionSummary({
 
       <View style={styles.card}>
         <View style={styles.header}>
-          <View style={styles.labelRow}>
-            <Text style={styles.label}>당류</Text>
+          <Text style={styles.label}>
+            당류{' '}
             <Text style={styles.amountText}>{totalSugar}g</Text>
+          </Text>
+          <View style={[styles.warningBadge, !isSugarOver && styles.hidden]}>
+            <Text style={styles.warningIcon}>!</Text>
           </View>
-          {isSugarOver && (
-            <View style={styles.warningBadge}>
-              <Text style={styles.warningIcon}>!</Text>
-            </View>
-          )}
         </View>
         <Text style={styles.maxText}>
           각설탕 {formatUnits(totalSugar / SUGAR_CUBE_G)}/
@@ -95,6 +91,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     marginTop: 16,
+    marginHorizontal: 4,
   },
   card: {
     flex: 1,
@@ -108,17 +105,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    minHeight: 22,
-  },
-  labelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    minHeight: 22, 
+    marginBottom: 3,
   },
   label: {
     color: colors.grayscale[100],
     fontSize: 15,
     fontFamily: 'Pretendard-Medium',
+    lineHeight: 22, 
   },
   amountText: {
     color: colors.primary[500],
@@ -135,28 +129,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FF0000',
   },
+  hidden: {
+    opacity: 0,
+  },
   warningIcon: {
     color: '#FF0000',
     fontSize: 13,
     fontFamily: 'Pretendard-Bold',
+  },
+  maxText: {
+    color: colors.grayscale[600],
+    fontSize: 12,
+    fontFamily: 'Pretendard-Regular',
+    lineHeight: 16, 
+    marginBottom: 8,
+    marginTop: 3,
   },
   progressBar: {
     height: 6,
     backgroundColor: colors.grayscale[800],
     borderRadius: 3,
     overflow: 'hidden',
-    marginTop: 7,
-    marginBottom: 5,
+    marginBottom: 4,
   },
   progressFill: {
     height: '100%',
     borderRadius: 2,
-  },
-  maxText: {
-    color: colors.grayscale[600],
-    fontSize: 12,
-    fontFamily: 'Pretendard-Regular',
-    marginTop: 2,
-    marginBottom: 5,
   },
 });
