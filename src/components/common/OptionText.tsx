@@ -28,11 +28,8 @@ export default function OptionText({ text, base, extra }: OptionTextProps) {
 const styles = StyleSheet.create({
   optionWrap: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    columnGap: 8,
-    rowGap: 4,
-    marginBottom: 8,
+    gap: 16,
+    marginBottom: 15,
   },
   optionBase: {
     color: colors.grayscale[600],
@@ -44,7 +41,7 @@ const styles = StyleSheet.create({
     color: colors.grayscale[200],
     fontSize: 14,
     fontFamily: 'Pretendard-Regular',
-    flexShrink: 1,  
-    flex: 1,       
+    flexShrink: 1, 
+    flex: 1,
   },
 });
