@@ -10,7 +10,7 @@ import OptionText from '../../components/common/OptionText';
 import NutritionSummary from '../../components/calendar/NutritionSummary';
 import SkipDrinkCheckbox from '../../components/calendar/SkipDrinkCheckbox';
 import AddRecordButton from '../../components/common/AddRecordButton';
-import DrinkDetailSheet from '../../components/common/DrinkDetailSheet';
+import DrinkDetailSheet, { DrinkLike } from '../../components/common/DrinkDetailSheet';
 import { Ionicons } from '@expo/vector-icons';
 import { useCalendarScreen } from '../../hooks/useCalendarScreen';
 
@@ -136,8 +136,8 @@ export default function CalendarScreen() {
         visible={detailOpen}
         drink={selectedDrink}
         onClose={closeDetail}
-        onDelete={(drink) => handleDelete(drink.id)}
-        onEdit={(drink) => handleEdit(drink.id)}
+        onDelete={(drink: DrinkLike) => handleDelete(drink.id)}
+        onEdit={(drink: DrinkLike) => handleEdit(drink.id)}
       />
 
       <PeriodSelectBottomSheet
