@@ -39,6 +39,7 @@ export type PeriodIntake = {
 };
 
 export type IntakeDetail = IntakeDrink & {
+  id?: number | string;
   menuId?: number | string;
   brandId?: number | string;
   sizeName?: string;
@@ -46,7 +47,23 @@ export type IntakeDetail = IntakeDrink & {
   menuSizeId?: number;
   intakeDate?: string;
   quantity?: number;
-  options?: Array<{ optionId: number | string; optionName?: string; count?: number }>;
+  createdAt?: string;
+  caffeineSnapshot?: number;
+  sugarSnapshot?: number;
+  caloriesSnapshot?: number;
+  sodiumSnapshot?: number;
+  proteinSnapshot?: number;
+  fatSnapshot?: number;
+  goalCaffeineTargetSnapshot?: number;
+  goalSugarTargetSnapshot?: number;
+  espressoShotCount?: number;
+  sugarCubeCount?: number;
+  options?: Array<{
+    optionId: number | string;
+    optionName?: string;
+    count?: number;
+    quantity?: number;
+  }>;
 };
 
 export type CreateIntakePayload = {
@@ -285,6 +302,7 @@ export const fetchIntakeDetail = async (
           optionId: opt?.optionId ?? opt?.id,
           optionName: opt?.optionName ?? opt?.name,
           count: toNumber(opt?.quantity ?? opt?.count, 1),
+          quantity: toNumber(opt?.quantity ?? opt?.count, 1),
         }))
       : undefined;
     return {
@@ -292,9 +310,43 @@ export const fetchIntakeDetail = async (
       data: {
         ...base,
         options,
+        id: normalized.data?.id ?? normalized.data?.recordId ?? normalized.data?.intakeId,
+        menuId: normalized.data?.menuId ?? normalized.data?.menu?.id,
+        brandId: normalized.data?.brandId ?? normalized.data?.brand?.id,
         menuSizeId: normalized.data?.menuSizeId ?? normalized.data?.menuSize?.id,
         intakeDate: toString(normalized.data?.intakeDate ?? normalized.data?.date ?? ''),
         quantity: toNumber(normalized.data?.quantity ?? normalized.data?.count, 1),
+        createdAt: toString(normalized.data?.createdAt ?? ''),
+        caffeineSnapshot: toNumber(
+          normalized.data?.caffeineSnapshot ?? normalized.data?.caffeineMg ?? normalized.data?.caffeine
+        ),
+        sugarSnapshot: toNumber(
+          normalized.data?.sugarSnapshot ?? normalized.data?.sugarG ?? normalized.data?.sugar
+        ),
+        caloriesSnapshot: toNumber(
+          normalized.data?.caloriesSnapshot ?? normalized.data?.calorieKcal ?? normalized.data?.calories
+        ),
+        sodiumSnapshot: toNumber(
+          normalized.data?.sodiumSnapshot ?? normalized.data?.sodiumMg
+        ),
+        proteinSnapshot: toNumber(
+          normalized.data?.proteinSnapshot ?? normalized.data?.proteinG
+        ),
+        fatSnapshot: toNumber(
+          normalized.data?.fatSnapshot ?? normalized.data?.fatG
+        ),
+        goalCaffeineTargetSnapshot: toNumber(
+          normalized.data?.goalCaffeineTargetSnapshot ?? normalized.data?.goalCaffeineTarget
+        ),
+        goalSugarTargetSnapshot: toNumber(
+          normalized.data?.goalSugarTargetSnapshot ?? normalized.data?.goalSugarTarget
+        ),
+        espressoShotCount: toNumber(
+          normalized.data?.espressoShotCount ?? normalized.data?.shotCount
+        ),
+        sugarCubeCount: toNumber(
+          normalized.data?.sugarCubeCount ?? normalized.data?.cubeCount
+        ),
       },
     };
 
