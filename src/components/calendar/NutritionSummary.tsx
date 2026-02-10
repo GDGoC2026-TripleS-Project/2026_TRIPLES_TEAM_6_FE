@@ -11,10 +11,7 @@ interface NutritionSummaryProps {
 const ESPRESSO_MG = 75;
 const SUGAR_CUBE_G = 3;
 
-const formatUnits = (value: number) => {
-  const rounded = Math.round(value * 10) / 10;
-  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
-};
+const formatUnits = (value: number) => String(Math.round(value));
 
 export default function NutritionSummary({
   drinks,
