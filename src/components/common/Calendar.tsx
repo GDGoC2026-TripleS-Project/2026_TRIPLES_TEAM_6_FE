@@ -114,7 +114,7 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                     selectedDayBackgroundColor: colors.grayscale[600],
                     selectedDayTextColor: colors.grayscale[100],
                     todayTextColor: '#0B0B0B',
-                    todayBackgroundColor: colors.primary[500],
+                    todayBackgroundColor: colors.primary[300],
                     dayTextColor: colors.grayscale[100],
                     textDisabledColor: colors.grayscale[600],
                     monthTextColor: colors.grayscale[100],
@@ -133,7 +133,7 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                             height: 28,
                         },
                         today: {
-                            backgroundColor: colors.primary[500],
+                            backgroundColor: colors.primary[300],
                             borderRadius: 14,
                             width: 28,
                             height: 28,
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.primary[500],
     },
     dayCircleToday: {
-        backgroundColor: colors.primary[500],
+        backgroundColor: colors.primary[200],
     },
     dayText: {
         color: colors.grayscale[200],
