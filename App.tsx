@@ -20,8 +20,18 @@ import { storageKeys } from './src/constants/storageKeys';
 import { colors } from './src/constants/colors';
 import { useGoalStore } from './src/store/goalStore';
 
+// import messaging from '@react-native-firebase/messaging';
+
 const Stack = createNativeStackNavigator();
 const FORCE_ONBOARDING_PREVIEW = false; 
+
+/* =======================
+   FCM ?? ??
+======================= */
+const registerFcm = async () => {
+  // Firebase FCM disabled for Expo Go compatibility.
+  return;
+};
 
 export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);

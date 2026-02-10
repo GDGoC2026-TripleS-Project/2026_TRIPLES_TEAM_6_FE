@@ -236,152 +236,135 @@ const SignUpScreen: React.FC = () => {
   };
 
   return (
-  <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+  <View style={styles.container}>
     <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.form}>
-          <Text style={styles.label}>아이디</Text>
-          <TextField
-            placeholder="영문, 숫자 조합"
-            value={userName}
-            hideBorder
-            onChangeText={(t) => {
-              setUserName(t);
-              setLoginIdChecked(false);
-              if (userNameError) setUserNameError(undefined);
-            }}
-            onBlur={async () => {
-              setTouched((p) => ({ ...p, userName: true }));
-              await validateLoginIdDuplicate();
-            }}
-            autoCapitalize="none"
-            error={touched.userName ? userNameError : undefined}
-            returnKeyType="next"
-          />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.form}>
+            <Text style={styles.label}>아이디</Text>
+            <TextField
+              value={userName}
+              onChangeText={(t) => {
+                setUserName(t);
+                setLoginIdChecked(false);
+                if (userNameError) setUserNameError(undefined);
+              }}
+              onBlur={async () => {
+                setTouched((p) => ({ ...p, userName: true }));
+                await validateLoginIdDuplicate();
+              }}
+              autoCapitalize="none"
+              error={touched.userName ? userNameError : undefined}
+              returnKeyType="next"
+            />
 
-          <Text style={styles.label}>비밀번호</Text>
-          <TextField
-            placeholder="영문, 숫자 포함 8자 이상"
-            value={password}
-            hideBorder
-            onChangeText={(t) => {
-              setPassword(t);
-              if (passwordError) setPasswordError(undefined);
-            }}
-            onBlur={() => {
-              setTouched((p) => ({ ...p, password: true }));
-              setPasswordError(validatePassword(password));
-            }}
-            secureTextEntry
-            error={touched.password ? passwordError : undefined}
-            returnKeyType="next"
-          />
+            <Text style={styles.label}>비밀번호</Text>
+            <TextField
+              value={password}
+              onChangeText={(t) => {
+                setPassword(t);
+                if (passwordError) setPasswordError(undefined);
+              }}
+              onBlur={() => {
+                setTouched((p) => ({ ...p, password: true }));
+                setPasswordError(validatePassword(password));
+              }}
+              secureTextEntry
+              error={touched.password ? passwordError : undefined}
+              returnKeyType="next"
+            />
 
-          <Text style={styles.label}>비밀번호 확인</Text>
-          <TextField
-            placeholder="비밀번호 확인"
-            value={passwordCheck}
-            hideBorder
-            onChangeText={(t) => {
-              setPasswordCheck(t);
-              if (passwordCheckError) setPasswordCheckError(undefined);
-            }}
-            onBlur={() => {
-              setTouched((p) => ({ ...p, passwordCheck: true }));
-              setPasswordCheckError(validatePasswordCheck(passwordCheck));
-            }}
-            secureTextEntry
-            error={touched.passwordCheck ? passwordCheckError : undefined}
-            returnKeyType="next"
-          />
+            <Text style={styles.label}>비밀번호 확인</Text>
+            <TextField
+              value={passwordCheck}
+              onChangeText={(t) => {
+                setPasswordCheck(t);
+                if (passwordCheckError) setPasswordCheckError(undefined);
+              }}
+              onBlur={() => {
+                setTouched((p) => ({ ...p, passwordCheck: true }));
+                setPasswordCheckError(validatePasswordCheck(passwordCheck));
+              }}
+              secureTextEntry
+              error={touched.passwordCheck ? passwordCheckError : undefined}
+              returnKeyType="next"
+            />
 
-          <Text style={styles.label}>닉네임</Text>
-          <TextField
-            placeholder="2~10자 이내"
-            value={nickname}
-            hideBorder
-            onChangeText={(t) => {
-              setNickname(t);
-              setNicknameChecked(false);
-              if (nicknameError) setNicknameError(undefined);
-            }}
-            onBlur={async () => {
-              setTouched((p) => ({ ...p, nickname: true }));
-              await validateNicknameDuplicate();
-            }}
-            error={touched.nickname ? nicknameError : undefined}
-            returnKeyType="next"
-          />
+            <Text style={styles.label}>닉네임</Text>
+            <TextField
+              value={nickname}
+              onChangeText={(t) => {
+                setNickname(t);
+                setNicknameChecked(false);
+                if (nicknameError) setNicknameError(undefined);
+              }}
+              onBlur={async () => {
+                setTouched((p) => ({ ...p, nickname: true }));
+                await validateNicknameDuplicate();
+              }}
+              error={touched.nickname ? nicknameError : undefined}
+              returnKeyType="next"
+            />
 
-          <Text style={styles.label}>이메일</Text>
-          <TextField
-            placeholder="이메일 주소 입력"
-            value={email}
-            hideBorder
-            onChangeText={(t) => {
-              setEmail(t);
-              if (emailError) setEmailError(undefined);
-            }}
-            onBlur={() => {
-              setTouched((p) => ({ ...p, email: true }));
-              setEmailError(validateEmail(email));
-            }}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            error={touched.email ? emailError : undefined}
-            returnKeyType="done"
-          />
-        </View>
-      </ScrollView>
-
-      {/* ✅ 하단 고정 영역은 여기 (KAV 내부) */}
-      <View style={styles.bottomSection}>
-        <View style={styles.agreeRow}>
-          <Pressable
-            style={styles.agreeLeft}
-            onPress={() => setAgree((p) => !p)}
-            hitSlop={10}
-          >
-            {agree ? (
-              <CheckboxOut width={20} height={20} />
-            ) : (
-              <CheckboxIn width={20} height={20} />
-            )}
-            <Text style={styles.agreeText}>
-              개인정보 수집 및 이용 동의 (필수)
-            </Text>
-          </Pressable>
-
-          <Pressable
-            hitSlop={10}
-            onPress={() => navigation.navigate("TermsScreen")}
-          >
-            <Text style={styles.detailText}>자세히 보기</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.submitWrap}>
-          <Button
-            title={isLoading ? "가입 중..." : "가입하기"}
-            disabled={
-              !canSubmit || isLoading || isCheckingLoginId || isCheckingNickname
-            }
-            onPress={onSubmit}
-            variant="primary"
-          />
-        </View>
-      </View>
+            <Text style={styles.label}>이메일</Text>
+            <TextField
+              value={email}
+              onChangeText={(t) => {
+                setEmail(t);
+                if (emailError) setEmailError(undefined);
+              }}
+              onBlur={() => {
+                setTouched((p) => ({ ...p, email: true }));
+                setEmailError(validateEmail(email));
+              }}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              error={touched.email ? emailError : undefined}
+              returnKeyType="done"
+            />
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
-  </TouchableWithoutFeedback>
+
+    <View style={styles.bottomSection}>
+      <Pressable
+        style={styles.agreeRow}
+        onPress={() => setAgree((p) => !p)}
+        hitSlop={10}
+      >
+        <View style={styles.agreeLeft}>
+          {agree ? (
+            <CheckboxIn width={20} height={20} />
+          ) : (
+            <CheckboxOut width={20} height={20} />
+          )}
+          <Text style={styles.agreeText}>
+            개인정보 수집 및 이용 동의 (필수)
+          </Text>
+        </View>
+        <Pressable onPress={() => navigation.navigate("TermsScreen")}>
+          <Text style={styles.detailText}>자세히 보기</Text>
+        </Pressable>
+      </Pressable>
+
+      <View style={styles.submitWrap}>
+        <Button
+          title="가입하기"
+          onPress={onSubmit}
+          disabled={!canSubmit || isLoading}
+        />
+      </View>
+    </View>
+  </View>
 );
 
 };
