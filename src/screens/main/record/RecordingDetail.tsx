@@ -82,6 +82,17 @@ const RecordingDetail = () => {
 
     const handleComplete = async () => {
         if (isSubmitting) return;
+        const today = new Date();
+        const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const startOfSelected = new Date(
+            selectedDate.getFullYear(),
+            selectedDate.getMonth(),
+            selectedDate.getDate()
+        );
+        if (startOfSelected > startOfToday) {
+            Alert.alert('알림', '미래 날짜에는 음료를 등록할 수 없어요.');
+            return;
+        }
         if (!menuSizeId) {
             Alert.alert('섭취 기록 실패', '사이즈 정보를 불러오지 못했어요. 다시 시도해주세요.');
             return;

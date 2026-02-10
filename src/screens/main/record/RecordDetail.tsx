@@ -27,7 +27,7 @@ const CATEGORY_ORDER = ['COFFEE', 'NON_COFFEE', 'ADE', 'SMOOTHIE', 'TEA'];
 const RecordDetailScreen = () => {
   const navigation = useNavigation<RecordDetailNavigationProp>();
   const route = useRoute<RecordDetailRouteProp>();
-  const { brandId, brandName, selectedDate } = route.params;
+  const { brandId, brandName, selectedDate, edit } = route.params;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -95,6 +95,7 @@ const RecordDetailScreen = () => {
       drinkId: String(drinkId),
       drinkName,
       selectedDate,
+      edit,
     });
   };
 

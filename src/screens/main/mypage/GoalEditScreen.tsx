@@ -137,7 +137,11 @@ export default function GoalEditScreen({ navigation }: { navigation?: any }) {
     sugar !== initialGoalsRef.current.sugar;
 
   const onSave = () => {
-    setGoals({ caffeine, sugar });
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    setGoals({ caffeine, sugar, effectiveDate: `${yyyy}-${mm}-${dd}` });
     navigation?.goBack?.();
   };
 

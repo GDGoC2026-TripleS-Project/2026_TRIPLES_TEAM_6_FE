@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { MainTabNavigationProp, RootStackParamList } from '../types/navigation';
+import type { MainTabNavigationProp } from '../types/navigation';
 import { useGoalStore } from '../store/goalStore';
 import {
   fetchDailyIntake,
@@ -51,8 +50,10 @@ export const useCalendarScreen = () => {
   const [dailyError, setDailyError] = useState<string | null>(null);
   const [eventDates, setEventDates] = useState<string[]>([]);
 
-  const caffeineGoal = useGoalStore((s) => s.caffeine);
-  const sugarGoal = useGoalStore((s) => s.sugar);
+  const fallbackCaffeine = useGoalStore((s) => s.caffeine);
+  const fallbackSugar = useGoalStore((s) => s.sugar);
+  const goalByDate = useGoalStore((s) => s.goalByDate);
+  const getGoalsForDate = useGoalStore((s) => s.getGoalsForDate);
 
   const calendarEvents = useMemo(() => {
     const skippedDates = Object.entries(skippedByDate)
@@ -61,6 +62,19 @@ export const useCalendarScreen = () => {
 
     return Array.from(new Set([...eventDates, ...skippedDates]));
   }, [eventDates, skippedByDate]);
+
+  const isFutureDate = useMemo(() => {
+    const today = todayString();
+    return selectedDate > today;
+  }, [selectedDate]);
+
+  useEffect(() => {
+    void getGoalsForDate(selectedDate);
+  }, [selectedDate, getGoalsForDate]);
+
+  const dateGoals = goalByDate[selectedDate];
+  const caffeineGoal = dateGoals?.caffeine ?? fallbackCaffeine;
+  const sugarGoal = dateGoals?.sugar ?? fallbackSugar;
 
   const isSkipped = !!skippedByDate[selectedDate];
   const drinks: IntakeDrink[] = daily?.drinks ?? [];
@@ -137,6 +151,10 @@ export const useCalendarScreen = () => {
   };
 
   const onAddRecord = () => {
+    if (isFutureDate) {
+      Alert.alert('알림', '미래 날짜에는 음료를 등록할 수 없어요.');
+      return;
+    }
     navigation.navigate('Record', { selectedDate });
   };
 
@@ -223,8 +241,8 @@ export const useCalendarScreen = () => {
     ]);
   };
 
-  const handleEdit = async () => {
-    const targetId = selectedDrink?.id;
+  const handleEdit = async (drinkId?: string | number) => {
+    const targetId = selectedIntakeId ?? drinkId ?? selectedDrink?.id;
     if (!targetId) return;
     try {
       const detailRes = await fetchIntakeDetail(targetId);
@@ -236,8 +254,6 @@ export const useCalendarScreen = () => {
         throw new Error('메뉴 정보를 불러오지 못했습니다.');
       }
 
-      const rootNavigation =
-        navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
       const targetDate = detailRes.data.intakeDate || selectedDate;
       closeDetail();
       const edit = {
@@ -251,12 +267,7 @@ export const useCalendarScreen = () => {
           quantity: opt.count ?? 1,
         })),
       };
-      const nav =
-        rootNavigation ??
-        (navigation as unknown as NativeStackNavigationProp<RootStackParamList>);
-      nav.navigate('RecordDrinkDetail', {
-        drinkId: String(sizeRes.data.menuId),
-        drinkName: sizeRes.data.menuName,
+      navigation.navigate('Record', {
         selectedDate: targetDate,
         edit,
       });
@@ -296,6 +307,7 @@ export const useCalendarScreen = () => {
     dailyError,
     caffeineGoal,
     sugarGoal,
+    isFutureDate,
     onAddRecord,
     onGoPeriodSearch,
     handlePeriodConfirm,
