@@ -35,9 +35,11 @@ export default function NutritionSummary({
             카페인{' '}
             <Text style={styles.amountText}>{totalCaffeine}mg</Text>
           </Text>
-          <View style={[styles.warningBadge, !isCaffeineOver && styles.hidden]}>
-            <Text style={styles.warningIcon}>!</Text>
-          </View>
+          {isCaffeineOver && (
+            <View style={styles.warningBadge}>
+              <Text style={styles.warningIcon}>!</Text>
+            </View>
+          )}
         </View>
         <Text style={styles.maxText}>
           에스프레소 {formatUnits(totalCaffeine / ESPRESSO_MG)}/
@@ -47,9 +49,9 @@ export default function NutritionSummary({
           <View
             style={[
               styles.progressFill,
-              {
+              { 
                 width: `${caffeinePercent}%`,
-                backgroundColor: isCaffeineOver ? '#FF0000' : colors.grayscale[100],
+                backgroundColor: isCaffeineOver ? '#EF4444' : colors.primary[500]
               },
             ]}
           />
@@ -62,9 +64,11 @@ export default function NutritionSummary({
             당류{' '}
             <Text style={styles.amountText}>{totalSugar}g</Text>
           </Text>
-          <View style={[styles.warningBadge, !isSugarOver && styles.hidden]}>
-            <Text style={styles.warningIcon}>!</Text>
-          </View>
+          {isSugarOver && (
+            <View style={styles.warningBadge}>
+              <Text style={styles.warningIcon}>!</Text>
+            </View>
+          )}
         </View>
         <Text style={styles.maxText}>
           각설탕 {formatUnits(totalSugar / SUGAR_CUBE_G)}/
@@ -74,9 +78,9 @@ export default function NutritionSummary({
           <View
             style={[
               styles.progressFill,
-              {
+              { 
                 width: `${sugarPercent}%`,
-                backgroundColor: isSugarOver ? '#FF0000' : colors.primary[500],
+                backgroundColor: isSugarOver ? '#EF4444' : colors.primary[500]
               },
             ]}
           />
@@ -91,7 +95,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     marginTop: 16,
-    marginHorizontal: 4,
   },
   card: {
     flex: 1,
@@ -105,14 +108,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    minHeight: 22, 
-    marginBottom: 3,
+    marginBottom: 6,
   },
   label: {
     color: colors.grayscale[100],
     fontSize: 15,
     fontFamily: 'Pretendard-Medium',
-    lineHeight: 22, 
   },
   amountText: {
     color: colors.primary[500],
@@ -123,37 +124,31 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#222527',
+    backgroundColor: '#EF4444',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#FF0000',
-  },
-  hidden: {
-    opacity: 0,
   },
   warningIcon: {
-    color: '#FF0000',
+    color: colors.grayscale[1000],
     fontSize: 13,
     fontFamily: 'Pretendard-Bold',
-  },
-  maxText: {
-    color: colors.grayscale[600],
-    fontSize: 12,
-    fontFamily: 'Pretendard-Regular',
-    lineHeight: 16, 
-    marginBottom: 8,
-    marginTop: 3,
   },
   progressBar: {
     height: 6,
     backgroundColor: colors.grayscale[800],
     borderRadius: 3,
     overflow: 'hidden',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   progressFill: {
     height: '100%',
     borderRadius: 2,
+  },
+  maxText: {
+    color: colors.grayscale[600],
+    fontSize: 12,
+    fontFamily: 'Pretendard-Regular',
+    marginBottom: 8,
+    marginTop: 3,
   },
 });

@@ -9,7 +9,6 @@ import {
   Dimensions,
 } from 'react-native';
 import { colors } from '../../constants/colors';
-import { useGoalStore } from '../../store/goalStore';
 import Button from './Button';
 
 const { height: SCREEN_H } = Dimensions.get('window');
@@ -17,6 +16,7 @@ const SHEET_H = Math.min(520, SCREEN_H * 0.62);
 
 const ESPRESSO_MG = 75;
 const SUGAR_CUBE_G = 3;
+
 const formatUnits = (value: number) => String(Math.round(value));
 
 type NutritionRow = { label: string; value: number; unit: string; note?: string };
@@ -33,7 +33,7 @@ export type DrinkLike = {
   fatG?: number;
 };
 
-export type DrinkDetailSheetProps = {
+type Props = {
   visible: boolean;
   drink: DrinkLike | null;
   onClose: () => void;
@@ -49,10 +49,8 @@ export default function DrinkDetailSheet({
   onClose,
   onEdit,
   onDelete,
-}: DrinkDetailSheetProps) {
-  const anim = useRef(new Animated.Value(0)).current;
-  const caffeineGoal = useGoalStore((s) => s.caffeine);
-  const sugarGoal = useGoalStore((s) => s.sugar);
+}: Props) {
+  const anim = useRef(new Animated.Value(0)).current; 
 
   useEffect(() => {
     if (!visible) return;
@@ -73,23 +71,23 @@ export default function DrinkDetailSheet({
     if (!drink) return [];
     return [
       {
-        label: '???',
+        label: '카페인',
         value: formatNumber(drink.caffeineMg),
         unit: 'mg',
-        note: `????? ${formatUnits(formatNumber(drink.caffeineMg) / ESPRESSO_MG)}/${formatUnits(caffeineGoal / ESPRESSO_MG)}?`,
+        note: '에스프레소 약 2잔',
       },
       {
-        label: '??',
+        label: '당류',
         value: formatNumber(drink.sugarG),
         unit: 'g',
-        note: `??? ${formatUnits(formatNumber(drink.sugarG) / SUGAR_CUBE_G)}/${formatUnits(sugarGoal / SUGAR_CUBE_G)}?`,
+        note: '각설탕 약 1개',
       },
-      { label: '???', value: formatNumber(drink.calorieKcal), unit: 'kcal' },
-      { label: '???', value: formatNumber(drink.sodiumMg), unit: 'mg' },
-      { label: '???', value: formatNumber(drink.proteinG), unit: 'g' },
-      { label: '??', value: formatNumber(drink.fatG), unit: 'g' },
+      { label: '칼로리', value: formatNumber(drink.calorieKcal), unit: 'kcal' },
+      { label: '나트륨', value: formatNumber(drink.sodiumMg), unit: 'mg' },
+      { label: '단백질', value: formatNumber(drink.proteinG), unit: 'g' },
+      { label: '지방', value: formatNumber(drink.fatG), unit: 'g' },
     ];
-  }, [drink, caffeineGoal, sugarGoal]);
+  }, [drink]);
 
   const handleClose = () => {
     Animated.timing(anim, {
@@ -105,7 +103,9 @@ export default function DrinkDetailSheet({
 
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>
+
       <Pressable style={styles.backdrop} onPress={handleClose} />
+
 
       <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
         <View style={styles.handle} />
@@ -139,16 +139,16 @@ export default function DrinkDetailSheet({
         <View style={styles.bottomBtns}>
           <View style={{ flex: 1 }}>
             <Button
-              title="??"
+              title="수정"
               onPress={() => onEdit?.(drink)}
               backgroundColor={colors.primary[500]}
               pressedBackgroundColor={colors.primary[500]}
             />
           </View>
           <View style={{ width: 12 }} />
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, }}>
             <Button
-              title="??"
+              title="삭제"
               onPress={() => onDelete?.(drink)}
               variant="dark"
               backgroundColor={colors.grayscale[800] ?? colors.grayscale[800]}
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   table: {
     gap: 14,
     paddingTop: 6,
-    marginBottom: 24,
+    marginBottom: 24
   },
   row: {
     flexDirection: 'row',
