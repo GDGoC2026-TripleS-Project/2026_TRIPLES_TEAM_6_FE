@@ -5,6 +5,8 @@ import {
   StyleSheet,
   Pressable,
   Alert,
+  KeyboardAvoidingView,
+  Keyboard
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { colors } from "../../../constants/colors";
@@ -231,7 +233,8 @@ const SignUpScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView style={styles.container}>
+      <Pressable style={styles.container} onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.scrollView}>
         <View style={styles.form}>
           <Text style={styles.label}>아이디</Text>
@@ -359,7 +362,8 @@ const SignUpScreen: React.FC = () => {
           />
         </View>
       </View>
-    </View>
+      </Pressable>
+    </KeyboardAvoidingView>
   );
 };
 

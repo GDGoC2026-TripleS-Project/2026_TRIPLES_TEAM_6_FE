@@ -22,7 +22,7 @@ import { colors } from './src/constants/colors';
 import { useGoalStore } from './src/store/goalStore';
 import { userApiLayer } from './src/app/features/user/user.api';
 
-import messaging from '@react-native-firebase/messaging';
+// import messaging from '@react-native-firebase/messaging';
 
 const Stack = createNativeStackNavigator();
 const FORCE_ONBOARDING_PREVIEW = false;
@@ -59,27 +59,27 @@ const linking = {
 /* =======================
    FCM 등록 함수
 ======================= */
-const registerFcm = async () => {
-  const authStatus = await messaging().requestPermission();
-  const enabled =
-    authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-    authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-  if (!enabled) {
-    console.log('푸시 권한 거부됨');
-    return;
-  }
-
-  const token = await messaging().getToken();
-  if (!token) return;
-
-  console.log('📱 FCM TOKEN:', token);
-
-  await userApiLayer.registerDeviceToken({
-    fcmToken: token,
-    platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
-  });
-};
+// const registerFcm = async () => {
+//   const authStatus = await messaging().requestPermission();
+//   const enabled =
+//     authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+//     authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+//
+//   if (!enabled) {
+//     console.log('푸시 권한 거부됨');
+//     return;
+//   }
+//
+//   const token = await messaging().getToken();
+//   if (!token) return;
+//
+//   console.log('📱 FCM TOKEN:', token);
+//
+//   await userApiLayer.registerDeviceToken({
+//     fcmToken: token,
+//     platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
+//   });
+// };
 
 export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);
@@ -100,17 +100,17 @@ export default function App() {
      앱 시작 시 FCM 등록
   ======================= */
   useEffect(() => {
-    registerFcm().catch(console.error);
+    // registerFcm().catch(console.error);
 
     // 포그라운드 알림 처리 (iOS 필수)
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-      Alert.alert(
-        remoteMessage.notification?.title ?? '알림',
-        remoteMessage.notification?.body ?? ''
-      );
-    });
-
-    return unsubscribe;
+        // const unsubscribe = messaging().onMessage(async remoteMessage => {
+    // Alert.alert(
+    // remoteMessage.notification?.title ?? '알림',
+    // remoteMessage.notification?.body ?? ''
+    // );
+    // });
+    //
+    // return unsubscribe;
   }, []);
 
   /* =======================
