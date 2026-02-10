@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, Image } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 
@@ -12,17 +12,21 @@ import Logo from '../../assets/logo/defaultLogo.svg';
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const HeaderLogo = () => {
-  return <Logo width={147} height={24} />;
+  return (
+      <Logo width={147} height={24} />
+  )
 };
 
 const TAB_BAR_CONFIG = {
   headerShown: true,
   headerTitle: () => <HeaderLogo />, 
   headerStyle: {
-    paddingVertical: 12,
     backgroundColor: colors.grayscale[1000],
     borderBottomColor: colors.grayscale[800],
     borderBottomWidth: 1,
+  },
+  headerTitleContainerStyle: {
+    paddingBottom: 16,
   },
   headerTintColor: colors.grayscale[100],
   headerTitleStyle: {
