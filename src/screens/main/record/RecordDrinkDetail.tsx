@@ -296,6 +296,8 @@ const RecordDrinkDetail = () => {
                         <TemperatureSection 
                             temperature={temperature}
                             onTemperatureChange={handleTemperatureChange}
+                            hotEnabled={allowedTemps.has('hot')}
+                            iceEnabled={allowedTemps.has('ice')}
                         />
                         <SizeSection 
                             sizes={sizes}
@@ -331,15 +333,24 @@ const RecordDrinkDetail = () => {
 
 const TemperatureSection = ({ 
     temperature, 
-    onTemperatureChange 
+    onTemperatureChange,
+    hotEnabled,
+    iceEnabled,
 }: { 
     temperature: 'hot' | 'ice'; 
     onTemperatureChange: (temp: 'hot' | 'ice') => void;
+    hotEnabled: boolean;
+    iceEnabled: boolean;
 }) => {
     return (
         <View style={styles.optionGroup}>
             <SectionTitle title="온도" required />
-            <TemperatureButton value={temperature} onChange={onTemperatureChange} />
+            <TemperatureButton
+                value={temperature}
+                onChange={onTemperatureChange}
+                hotEnabled={hotEnabled}
+                iceEnabled={iceEnabled}
+            />
         </View>
     );
 };

@@ -4,8 +4,9 @@ import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
 
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import * as Linking from 'expo-linking';
 
 import RootNavigator from './src/navigation/RootStack';
 import LoginScreen from './src/screens/main/sign/LoginScreen';
@@ -22,6 +23,7 @@ import { useGoalStore } from './src/store/goalStore';
 import { storage } from './src/utils/storage';
 import { storageKeys } from './src/constants/storageKeys';
 import { colors } from './src/constants/colors';
+import { AppStackParamList } from './src/types/navigation';
 
 import { syncNotifications } from './src/notifications/syncNotifications';
 import { cancelNotification } from './src/notifications/notificationScheduler';
@@ -39,6 +41,27 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
+
+const linking: LinkingOptions<AppStackParamList> = {
+  prefixes: [Linking.createURL('/'), 'lastcup://'],
+  config: {
+    screens: {
+      PasswordResetInputScreen: {
+        path: 'auth/password-reset',
+        parse: {
+          token: (t: string) => decodeURIComponent(t),
+          loginId: (v: string) => decodeURIComponent(v),
+        },
+      },
+      Main: {
+        screens: {
+          AlarmSettingScreen: 'alarm-setting',
+        },
+      },
+    },
+  },
+};
+
 
 export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);

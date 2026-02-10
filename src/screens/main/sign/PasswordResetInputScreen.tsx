@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, Alert, Pressable } from "react-native";
 import { colors } from "../../../constants/colors";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -10,6 +10,8 @@ const PasswordResetInputScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const defaultLoginId = route?.params?.defaultLoginId as string | undefined;
+  const deepLinkLoginId = route?.params?.loginId as string | undefined;
+  const deepLinkToken = route?.params?.token as string | undefined;
 
   const [loginId, setLoginId] = useState(defaultLoginId ?? "");
   const [token, setToken] = useState("");
@@ -22,6 +24,11 @@ const PasswordResetInputScreen: React.FC = () => {
   const [newPasswordCheckError, setNewPasswordCheckError] =
     useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (deepLinkLoginId) setLoginId(deepLinkLoginId);
+    if (deepLinkToken) setToken(deepLinkToken);
+  }, [deepLinkLoginId, deepLinkToken]);
 
   const isValidLoginId = (v: string) =>
     /^[a-zA-Z0-9]+$/.test(v) && /[a-zA-Z]/.test(v) && /[0-9]/.test(v);

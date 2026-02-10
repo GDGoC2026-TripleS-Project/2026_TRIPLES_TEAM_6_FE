@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
         color: colors.grayscale[100],
     },
     textDisabled: {
-        color: '#33393C',
+        color: colors.grayscale[800],
     },
 });
 
