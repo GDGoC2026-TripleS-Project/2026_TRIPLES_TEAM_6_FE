@@ -7,6 +7,7 @@ import Button from "../../../components/common/Button";
 import GoogleLogin from "../../../../assets/ComponentsImage/GoogleLogin.svg";
 import KakaoLogin from "../../../../assets/ComponentsImage/KakaoLogin.svg";
 import AppleLogin from "../../../../assets/ComponentsImage/AppleLogin.svg";
+import Logo from "../../../../assets/logo/LoginLogo.svg";
 
 import CheckboxOut from '../../../../assets/ComponentsImage/checkboxOut.svg';
 import CheckboxIn from '../../../../assets/ComponentsImage/checkboxIn.svg';
@@ -36,9 +37,8 @@ const LoginScreen: React.FC = () => {
     <View style={styles.container}>
 
       <View style={styles.logoWrap}>
-        <Text style={styles.logoText}>라스트컵 로고</Text>
+        <Logo width={202} height={32}/>
       </View>
-
       <View style={styles.form}>
         <TextField
           placeholder="아이디"
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.grayscale[1000],
     alignItems: "center",
-    paddingTop: 64,
+    justifyContent: 'center',
     paddingHorizontal: 16,
   },
 
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
 
   form: {
     width: '100%',
-    marginBottom: 30
+    marginBottom: 30,
   },
 
   gap12: {

@@ -27,15 +27,12 @@ const Chart = ({
     safeLimit > 0
       ? (() => {
           if (safeIntake > safeLimit) {
-            // 섭취량이 기준량을 초과한 경우
             if (safeIntake >= safeLimit * 2) {
-              // 섭취량이 기준량의 2배 이상인 경우
               return {
                 intakePercent: 50,
                 limitPercent: clampPercentWithMin((safeLimit / safeIntake) * 50),
               };
             } else {
-              // 섭취량이 기준량보다 크지만 2배 미만인 경우
               return {
                 intakePercent: clampPercentWithMin((safeIntake / safeLimit) * 50),
                 limitPercent: clampPercentWithMin((safeLimit / safeIntake) * 50),

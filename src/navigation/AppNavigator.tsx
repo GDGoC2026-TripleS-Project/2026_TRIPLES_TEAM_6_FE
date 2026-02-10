@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 
@@ -7,12 +7,19 @@ import { tabs } from './config/tabs';
 import { MainTabParamList } from '../types/navigation';
 import { colors } from '../constants/colors';
 
+import Logo from '../../assets/logo/defaultLogo.svg';
+
 const Tab = createBottomTabNavigator<MainTabParamList>();
+
+const HeaderLogo = () => {
+  return <Logo width={147} height={24} />;
+};
 
 const TAB_BAR_CONFIG = {
   headerShown: true,
-  headerTitle: '로고',
+  headerTitle: () => <HeaderLogo />, 
   headerStyle: {
+    paddingVertical: 12,
     backgroundColor: colors.grayscale[1000],
     borderBottomColor: colors.grayscale[800],
     borderBottomWidth: 1,
