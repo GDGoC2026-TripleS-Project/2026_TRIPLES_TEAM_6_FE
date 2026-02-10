@@ -41,11 +41,11 @@ const RecordDetailScreen = () => {
     let isMounted = true;
     const loadCategories = async () => {
       try {
-        const res = await fetchBrandMenus(brandId, { page: 0, size: 200 });
+        const res = await fetchBrandMenus(brandId);
         if (!isMounted) return;
         if (res.success && res.data) {
           const uniq = new Set<string>();
-          res.data.content.forEach((menu) => {
+          res.data.forEach((menu) => {
             if (menu.category) uniq.add(menu.category);
           });
           setCategories(Array.from(uniq));
@@ -86,8 +86,6 @@ const RecordDetailScreen = () => {
     brandId,
     category: apiCategory,
     keyword: searchQuery,
-    page: 0,
-    size: 50,
     debounceMs: 250,
   });
 

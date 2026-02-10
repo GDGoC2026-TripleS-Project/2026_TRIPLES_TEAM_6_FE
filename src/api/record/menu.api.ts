@@ -49,12 +49,7 @@ export type MenuSearchItem = {
   brandName: string;
   name: string;
   imageUrl: string;
-};
-
-export type MenuSearchResponse = {
-  content: MenuSearchItem[];
-  page: number;
-  hasNext: boolean;
+  isFavorite: boolean;
 };
 
 export type BrandMenuItem = {
@@ -62,12 +57,25 @@ export type BrandMenuItem = {
   name: string;
   category: string;
   imageUrl: string;
+  isFavorite: boolean;
 };
 
-export type BrandMenuResponse = {
-  content: BrandMenuItem[];
+type PaginatedResponse<T> = {
+  content: T[];
   page: number;
   hasNext: boolean;
+};
+
+type ListResponse<T> = T[] | PaginatedResponse<T>;
+
+const isPaginatedResponse = <T>(data: ListResponse<T>): data is PaginatedResponse<T> => {
+  return !!data && Array.isArray((data as PaginatedResponse<T>).content);
+};
+
+const extractList = <T>(data: ListResponse<T>): T[] => {
+  if (Array.isArray(data)) return data;
+  if (isPaginatedResponse<T>(data)) return data.content;
+  return [];
 };
 
 export type MenuFavoriteResponse = {
@@ -104,8 +112,44 @@ export const searchMenus = async (params: {
   page?: number;
   size?: number;
 }) => {
-  const res = await api.get<ApiResponse<MenuSearchResponse>>('/menus/search', { params });
-  return normalizeApiResponse(res.data);
+  const res = await api.get<ApiResponse<ListResponse<MenuSearchItem>>>('/menus/search', {
+    params: { keyword: params.keyword },
+  });
+  const normalized = normalizeApiResponse(res.data);
+  if (!normalized.success || !normalized.data) {
+    return normalized as ApiResponse<MenuSearchItem[]>;
+  }
+
+  if (!isPaginatedResponse<MenuSearchItem>(normalized.data)) {
+    return { ...normalized, data: extractList(normalized.data) };
+  }
+
+  let items = extractList(normalized.data);
+  let page = normalized.data.page;
+  let hasNext = normalized.data.hasNext;
+
+  while (hasNext) {
+    page += 1;
+    const size = params.size;
+    const nextRes = await api.get<ApiResponse<ListResponse<MenuSearchItem>>>('/menus/search', {
+      params: {
+        keyword: params.keyword,
+        page,
+        ...(size ? { size } : {}),
+      },
+    });
+    const nextNormalized = normalizeApiResponse(nextRes.data);
+    if (!nextNormalized.success || !nextNormalized.data) break;
+    if (isPaginatedResponse<MenuSearchItem>(nextNormalized.data)) {
+      items = items.concat(nextNormalized.data.content);
+      hasNext = nextNormalized.data.hasNext;
+    } else {
+      items = items.concat(extractList(nextNormalized.data));
+      break;
+    }
+  }
+
+  return { ...normalized, data: items };
 };
 
 export const fetchBrandMenus = async (
@@ -117,10 +161,49 @@ export const fetchBrandMenus = async (
     size?: number;
   }
 ) => {
-  const res = await api.get<ApiResponse<BrandMenuResponse>>(`/brands/${brandId}/menus`, {
-    params,
-  });
-  return normalizeApiResponse(res.data);
+  const res = await api.get<ApiResponse<ListResponse<BrandMenuItem>>>(
+    `/brands/${brandId}/menus`,
+    { params: { category: params?.category, keyword: params?.keyword } }
+  );
+  const normalized = normalizeApiResponse(res.data);
+  if (!normalized.success || !normalized.data) {
+    return normalized as ApiResponse<BrandMenuItem[]>;
+  }
+
+  if (!isPaginatedResponse<BrandMenuItem>(normalized.data)) {
+    return { ...normalized, data: extractList(normalized.data) };
+  }
+
+  let items = extractList(normalized.data);
+  let page = normalized.data.page;
+  let hasNext = normalized.data.hasNext;
+
+  while (hasNext) {
+    page += 1;
+    const size = params?.size;
+    const nextRes = await api.get<ApiResponse<ListResponse<BrandMenuItem>>>(
+      `/brands/${brandId}/menus`,
+      {
+        params: {
+          category: params?.category,
+          keyword: params?.keyword,
+          page,
+          ...(size ? { size } : {}),
+        },
+      }
+    );
+    const nextNormalized = normalizeApiResponse(nextRes.data);
+    if (!nextNormalized.success || !nextNormalized.data) break;
+    if (isPaginatedResponse<BrandMenuItem>(nextNormalized.data)) {
+      items = items.concat(nextNormalized.data.content);
+      hasNext = nextNormalized.data.hasNext;
+    } else {
+      items = items.concat(extractList(nextNormalized.data));
+      break;
+    }
+  }
+
+  return { ...normalized, data: items };
 };
 
 export const addMenuFavorite = async (menuId: number | string) => {
