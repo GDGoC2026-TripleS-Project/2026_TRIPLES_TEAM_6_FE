@@ -1,6 +1,8 @@
 import { Text, View, StyleSheet } from 'react-native';
 import Chip from './Chip';
 import { colors } from '../../constants/colors';
+import { useOptionGroup } from '../../hooks/useOptionGroup';
+import { useOptionStore } from '../../store/useOptionStore';
 
 type ChipOption = {
   id: string;
@@ -11,13 +13,26 @@ type ChipOptionsProps = {
   groupId: string;  
   options: ChipOption[];
   optionText?: string;
+  singleSelect?: boolean;
 };
 
 const ChipOptions = ({
   groupId,
   options,
   optionText = '(기본 or 추가 옵션 텍스트)',
+  singleSelect = false,
 }: ChipOptionsProps) => {
+  const group = useOptionGroup(groupId);
+  const setGroupInfo = useOptionStore(state => state.setGroupInfo);
+
+  const handleSingleSelect = (id: string) => {
+    const next = new Set<string>();
+    if (!group.chipSelected.has(id)) {
+      next.add(id);
+    }
+    setGroupInfo(groupId, { chipSelected: next });
+  };
+
   return (
     <>
       <Text style={styles.optionText}>{optionText}</Text>
@@ -28,6 +43,8 @@ const ChipOptions = ({
             groupId={groupId}
             id={option.id}
             label={option.label}
+            selected={singleSelect ? group.chipSelected.has(option.id) : undefined}
+            onPress={singleSelect ? () => handleSingleSelect(option.id) : undefined}
           />
         ))}
       </View>

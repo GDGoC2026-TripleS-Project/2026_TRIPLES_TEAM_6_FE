@@ -27,9 +27,10 @@ const CATEGORY_ORDER = ['COFFEE', 'NON_COFFEE', 'ADE', 'SMOOTHIE', 'TEA'];
 const RecordDetailScreen = () => {
   const navigation = useNavigation<RecordDetailNavigationProp>();
   const route = useRoute<RecordDetailRouteProp>();
-  const { brandId, brandName, selectedDate } = route.params;
+  const { brandId, brandName, selectedDate, edit } = route.params;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const { isFavorite, toggleFavorite } = useFavoriteMenus();
   const [categories, setCategories] = useState<string[]>([]);
 
@@ -41,11 +42,11 @@ const RecordDetailScreen = () => {
     let isMounted = true;
     const loadCategories = async () => {
       try {
-        const res = await fetchBrandMenus(brandId, { page: 0, size: 200 });
+        const res = await fetchBrandMenus(brandId);
         if (!isMounted) return;
         if (res.success && res.data) {
           const uniq = new Set<string>();
-          res.data.content.forEach((menu) => {
+          res.data.forEach((menu) => {
             if (menu.category) uniq.add(menu.category);
           });
           setCategories(Array.from(uniq));
@@ -86,8 +87,6 @@ const RecordDetailScreen = () => {
     brandId,
     category: apiCategory,
     keyword: searchQuery,
-    page: 0,
-    size: 50,
     debounceMs: 250,
   });
 
@@ -96,6 +95,7 @@ const RecordDetailScreen = () => {
       drinkId: String(drinkId),
       drinkName,
       selectedDate,
+      edit,
     });
   };
 
@@ -112,17 +112,20 @@ const RecordDetailScreen = () => {
             variant="animated"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
           />
-          {categoryOptions.map((category) => (
-            <Chip
-              key={category.id}
-              groupId="category"
-              id={category.id}
-              label={category.label}
-              selected={selectedCategory === category.id}
-              onPress={() => setSelectedCategory(category.id)}
-            />
-          ))}
+          {!isSearchFocused &&
+            categoryOptions.map((category) => (
+              <Chip
+                key={category.id}
+                groupId="category"
+                id={category.id}
+                label={category.label}
+                selected={selectedCategory === category.id}
+                onPress={() => setSelectedCategory(category.id)}
+              />
+            ))}
         </ScrollView>
       </View>
 

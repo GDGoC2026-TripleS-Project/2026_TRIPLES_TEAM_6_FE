@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { MainTabNavigationProp, RootStackParamList } from '../types/navigation';
+import type { MainTabNavigationProp } from '../types/navigation';
 import { useGoalStore } from '../store/goalStore';
 import {
   fetchDailyIntake,
@@ -28,14 +27,35 @@ export const useHomeScreen = () => {
   const [dailyLoading, setDailyLoading] = useState(false);
   const [dailyError, setDailyError] = useState<string | null>(null);
 
-  const caffeineGoal = useGoalStore((s) => s.caffeine);
-  const sugarGoal = useGoalStore((s) => s.sugar);
+  const fallbackCaffeine = useGoalStore((s) => s.caffeine);
+  const fallbackSugar = useGoalStore((s) => s.sugar);
+  const goalByDate = useGoalStore((s) => s.goalByDate);
+  const getGoalsForDate = useGoalStore((s) => s.getGoalsForDate);
 
   const dateKey = useMemo(() => {
     const yyyy = selectedDate.getFullYear();
     const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
     const dd = String(selectedDate.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
+  }, [selectedDate]);
+
+  useEffect(() => {
+    void getGoalsForDate(dateKey);
+  }, [dateKey, getGoalsForDate]);
+
+  const dateGoals = goalByDate[dateKey];
+  const caffeineGoal = dateGoals?.caffeine ?? fallbackCaffeine;
+  const sugarGoal = dateGoals?.sugar ?? fallbackSugar;
+
+  const isFutureDate = useMemo(() => {
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const startOfSelected = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate()
+    );
+    return startOfSelected > startOfToday;
   }, [selectedDate]);
 
   const isSkipped = !!skippedByDate[dateKey];
@@ -184,8 +204,8 @@ export const useHomeScreen = () => {
     ]);
   };
 
-  const handleEdit = async () => {
-    const targetId = selectedDrink?.id;
+  const handleEdit = async (drinkId?: string | number) => {
+    const targetId = selectedIntakeId ?? drinkId ?? selectedDrink?.id;
     if (!targetId) return;
     try {
       const detailRes = await fetchIntakeDetail(targetId);
@@ -197,8 +217,6 @@ export const useHomeScreen = () => {
         throw new Error('메뉴 정보를 불러오지 못했습니다.');
       }
 
-      const rootNavigation =
-        navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
       const targetDate = detailRes.data.intakeDate || dateKey;
       closeDetail();
       const edit = {
@@ -212,12 +230,7 @@ export const useHomeScreen = () => {
           quantity: opt.count ?? 1,
         })),
       };
-      const nav =
-        rootNavigation ??
-        (navigation as unknown as NativeStackNavigationProp<RootStackParamList>);
-      nav.navigate('RecordDrinkDetail', {
-        drinkId: String(sizeRes.data.menuId),
-        drinkName: sizeRes.data.menuName,
+      navigation.navigate('Record', {
         selectedDate: targetDate,
         edit,
       });
@@ -255,6 +268,7 @@ export const useHomeScreen = () => {
     stats,
     drinks,
     hasRecord,
+    isFutureDate,
     dailyLoading,
     dailyError,
     formatDateHeader,

@@ -137,6 +137,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await Promise.all([
         storage.set(storageKeys.accessToken, tokens.accessToken),
         storage.set(storageKeys.refreshToken, tokens.refreshToken),
+        storage.set(storageKeys.loginId, loginId),
       ]);
       if (autoLogin) {
         await storage.set(storageKeys.autoLogin, 'true');
@@ -188,7 +189,12 @@ console.log('[LOGIN TOKENS]', tokens);
       if (__DEV__) console.log('[LOGOUT API ERROR]', e);
     }
 
-    await storage.multiRemove([storageKeys.accessToken, storageKeys.refreshToken, storageKeys.autoLogin]);
+    await storage.multiRemove([
+      storageKeys.accessToken,
+      storageKeys.refreshToken,
+      storageKeys.autoLogin,
+      storageKeys.loginId,
+    ]);
     set({ user: null, accessToken: null, refreshToken: null });
     useUserStore.getState().clear();
   },
@@ -202,6 +208,7 @@ console.log('[LOGIN TOKENS]', tokens);
       await Promise.all([
         storage.set(storageKeys.accessToken, tokens.accessToken),
         storage.set(storageKeys.refreshToken, tokens.refreshToken),
+        storage.set(storageKeys.loginId, loginId),
         storage.set(storageKeys.onboardingPending, 'true'),
         storage.remove(storageKeys.onboardingDone),
       ]);

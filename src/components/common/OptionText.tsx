@@ -38,12 +38,13 @@ const styles = StyleSheet.create({
     color: colors.grayscale[600],
     fontSize: 14,
     fontFamily: 'Pretendard-Regular',
-    flexShrink: 1,
+    flexShrink: 0, 
   },
   optionExtra: {
     color: colors.grayscale[200],
     fontSize: 14,
     fontFamily: 'Pretendard-Regular',
-    flexShrink: 1,
+    flexShrink: 1,  
+    flex: 1,       
   },
 });

@@ -37,6 +37,7 @@ export default function CalendarScreen() {
     dailyError,
     caffeineGoal,
     sugarGoal,
+    isFutureDate,
     onAddRecord,
     onGoPeriodSearch,
     handlePeriodConfirm,
@@ -89,7 +90,7 @@ export default function CalendarScreen() {
         />
       )}
 
-      {!hasRecord && !isSkipped && (
+      {!hasRecord && !isSkipped && !isFutureDate && (
         <View style={styles.centerBox}>
           <Coffee style={{ marginTop: -10 }} />
           <Text style={styles.centerText}>
@@ -98,7 +99,7 @@ export default function CalendarScreen() {
         </View>
       )}
 
-      {!hasRecord && (
+      {!hasRecord && !isFutureDate && (
         <View style={[styles.skipCheckboxWrap, isSkipped && styles.skipCheckboxWrapActive]}>
           <SkipDrinkCheckbox value={isSkipped} onChange={onToggleSkip} disabled={false} />
         </View>
@@ -136,7 +137,7 @@ export default function CalendarScreen() {
         drink={selectedDrink}
         onClose={closeDetail}
         onDelete={(drink) => handleDelete(drink.id)}
-        onEdit={handleEdit}
+        onEdit={(drink) => handleEdit(drink.id)}
       />
 
       <PeriodSelectBottomSheet

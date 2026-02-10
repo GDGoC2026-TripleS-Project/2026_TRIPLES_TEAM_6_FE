@@ -185,7 +185,7 @@ const RecordDrinkDetail = () => {
                     return;
                 }
                 if (category === 'MILK') {
-                    milkSelected.add(id);
+                    if (milkSelected.size === 0) milkSelected.add(id);
                 }
             });
 
@@ -411,6 +411,7 @@ const AdditionalOptionsSection = ({
                 <ChipOptions 
                     groupId="extra3-option"
                     options={milkOptions}
+                    singleSelect
                 />
             </AccordionItem>
         )}

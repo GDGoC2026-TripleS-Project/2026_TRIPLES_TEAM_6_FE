@@ -5,8 +5,6 @@ type UseBrandMenusOptions = {
   brandId: number | string;
   category?: string;
   keyword?: string;
-  page?: number;
-  size?: number;
   debounceMs?: number;
   enabled?: boolean;
 };
@@ -21,8 +19,6 @@ export const useBrandMenus = ({
   brandId,
   category,
   keyword,
-  page = 0,
-  size = 50,
   debounceMs = 250,
   enabled = true,
 }: UseBrandMenusOptions): UseBrandMenusResult => {
@@ -50,13 +46,11 @@ export const useBrandMenus = ({
       fetchBrandMenus(brandId, {
         category,
         keyword: keyword?.trim() || undefined,
-        page,
-        size,
       })
         .then((res) => {
           if (!mountedRef.current) return;
           if (res.success && res.data) {
-            setMenus(res.data.content);
+            setMenus(res.data);
           } else {
             setError(res.error?.message ?? '메뉴를 불러오지 못했어요.');
           }
@@ -73,7 +67,7 @@ export const useBrandMenus = ({
     return () => {
       clearTimeout(t);
     };
-  }, [brandId, category, keyword, page, size, debounceMs, enabled]);
+  }, [brandId, category, keyword, debounceMs, enabled]);
 
   return { menus, isLoading, error };
 };

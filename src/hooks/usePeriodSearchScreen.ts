@@ -15,6 +15,7 @@ import { buildOptionBase } from '../utils/recordOptions';
 import type { DrinkLike } from '../components/common/DrinkDetailSheet';
 import type { OptionTextParts } from '../types/optionText';
 import type { ApiResponse } from '../lib/api/types';
+import { useGoalStore } from '../store/goalStore';
 
 const toKoreanDate = (dateString: string) => {
   if (!dateString) return 'YYYY.MM.DD';
@@ -50,7 +51,7 @@ const toDateList = (start: string, end: string) => {
 };
 
 export type PeriodRow =
-  | { type: 'header'; id: string; title: string }
+  | { type: 'header'; id: string; title: string; date: string }
   | { type: 'drink'; id: string; date: string; drink: IntakeDrink };
 
 export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) => {
@@ -71,6 +72,10 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
   });
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const fallbackCaffeine = useGoalStore((s) => s.caffeine);
+  const fallbackSugar = useGoalStore((s) => s.sugar);
+  const goalByDate = useGoalStore((s) => s.goalByDate);
+  const getGoalsForDate = useGoalStore((s) => s.getGoalsForDate);
 
   const normalized = useMemo(() => {
     if (!startDate || !endDate) return { start: startDate, end: endDate };
@@ -98,6 +103,7 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
       }
 
       const dates = toDateList(normalized.start, normalized.end);
+      await Promise.all(dates.map((date) => getGoalsForDate(date)));
       const dailyResults = await Promise.all(
         dates.map(async (date) => {
           try {
@@ -142,6 +148,7 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
         type: 'header',
         id: `h_${day.date}`,
         title: toSectionTitle(day.date),
+        date: day.date,
       });
 
       for (const drink of day.drinks) {
@@ -235,8 +242,8 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
     ]);
   };
 
-  const handleEdit = () => {
-    const targetId = selectedDrink?.id;
+  const handleEdit = (drinkId?: string | number) => {
+    const targetId = selectedIntakeId ?? drinkId ?? selectedDrink?.id;
     if (!targetId) return;
     (async () => {
       try {
@@ -261,9 +268,7 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
           })),
         };
         closeDetail();
-        navigation.navigate('RecordDrinkDetail', {
-          drinkId: String(sizeRes.data.menuId),
-          drinkName: sizeRes.data.menuName,
+        navigation.navigate('Record', {
           selectedDate: targetDate,
           edit,
         });
@@ -303,5 +308,8 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
     handleDelete,
     handleEdit,
     renderOptionText,
+    goalByDate,
+    fallbackCaffeine,
+    fallbackSugar,
   };
 };

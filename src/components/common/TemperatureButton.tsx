@@ -5,12 +5,20 @@ import { colors } from "../../constants/colors";
 type TemperatureButtonProps = {
     value: 'hot' | 'ice';
     onChange: (next: 'hot' | 'ice') => void;
+    hotEnabled?: boolean;
+    iceEnabled?: boolean;
 };
 
-const TemperatureButton = ({ value, onChange }: TemperatureButtonProps) => {
+const TemperatureButton = ({
+    value,
+    onChange,
+    hotEnabled = true,
+    iceEnabled = true,
+}: TemperatureButtonProps) => {
     return (
         <View style={styles.wrap}>
             <Pressable
+                disabled={!hotEnabled}
                 onPress={() => onChange('hot')}
                 style={[
                     styles.button,
@@ -18,10 +26,11 @@ const TemperatureButton = ({ value, onChange }: TemperatureButtonProps) => {
                     value === 'hot' ? styles.active : styles.inactive,
                 ]}
             >
-                <Text style={styles.text}>Hot</Text>
+                <Text style={[styles.text, !hotEnabled && styles.textDisabled]}>Hot</Text>
             </Pressable>
 
             <Pressable
+                disabled={!iceEnabled}
                 onPress={() => onChange('ice')}
                 style={[
                     styles.button,
@@ -29,7 +38,7 @@ const TemperatureButton = ({ value, onChange }: TemperatureButtonProps) => {
                     value === 'ice' ? styles.active : styles.inactive,
                 ]}
             >
-                <Text style={styles.text}>Ice</Text>
+                <Text style={[styles.text, !iceEnabled && styles.textDisabled]}>Ice</Text>
             </Pressable>
         </View>
     );
@@ -76,6 +85,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontFamily: 'Pretendard-SemiBold',
         color: colors.grayscale[100],
+    },
+    textDisabled: {
+        color: '#33393C',
     },
 });
 

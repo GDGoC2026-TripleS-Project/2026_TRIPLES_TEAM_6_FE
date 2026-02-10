@@ -1,6 +1,8 @@
 import { api } from '../../lib/api/client';
 import type { ApiResponse } from '../../lib/api/types';
 import { normalizeApiResponse } from '../../lib/api/response';
+import { storage } from '../../utils/storage';
+import { storageKeys } from '../../constants/storageKeys';
 
 export type IntakeDrink = {
   id: string;
@@ -52,6 +54,29 @@ export type CreateIntakePayload = {
   intakeDate: string; // YYYY-MM-DD
   quantity?: number;
   options?: Array<{ optionId: number | string; quantity?: number }>;
+};
+
+export type IntakeRecordOption = {
+  optionId: number | string;
+  quantity: number;
+};
+
+export type IntakeRecordResponse = {
+  id: number | string;
+  userId: number | string;
+  intakeDate: string;
+  menuSizeId: number | string;
+  quantity: number;
+  caffeineSnapshot: number;
+  sugarSnapshot: number;
+  caloriesSnapshot: number;
+  sodiumSnapshot: number;
+  proteinSnapshot: number;
+  fatSnapshot: number;
+  goalCaffeineTargetSnapshot?: number;
+  goalSugarTargetSnapshot?: number;
+  options: IntakeRecordOption[];
+  createdAt: string;
 };
 
 const toNumber = (value: unknown, fallback = 0) => {
@@ -247,7 +272,10 @@ export const fetchPeriodIntakeDates = async (
 export const fetchIntakeDetail = async (
   recordId: number | string
 ): Promise<ApiResponse<IntakeDetail>> => {
-  const res = await api.get<ApiResponse<any>>(`/intakes/${recordId}`);
+  const loginId = await storage.get(storageKeys.loginId);
+  const res = await api.get<ApiResponse<any>>(`/intakes/${recordId}`, {
+    params: loginId ? { loginId } : undefined,
+  });
   const normalized = normalizeApiResponse(res.data);
   if (normalized.success && normalized.data) {
     const base = normalizeDrink(normalized.data, 0) as IntakeDetail;
@@ -290,23 +318,27 @@ export const createIntakeRecord = async (
 export const updateIntakeRecord = async (
   intakeId: number | string,
   payload: CreateIntakePayload
-): Promise<ApiResponse<{ id?: number | string }>> => {
+): Promise<ApiResponse<IntakeRecordResponse>> => {
+  const loginId = await storage.get(storageKeys.loginId);
   const cleanPayload = Object.fromEntries(
     Object.entries(payload).filter(([, value]) => value !== undefined)
   ) as CreateIntakePayload;
-  const res = await api.put<ApiResponse<{ id?: number | string }>>(
+  const res = await api.put<ApiResponse<IntakeRecordResponse>>(
     `/intakes/${intakeId}`,
-    cleanPayload
+    cleanPayload,
+    { params: loginId ? { loginId } : undefined }
   );
   return normalizeApiResponse(res.data);
 };
 
 export const deleteIntakeRecord = async (
   intakeId: number | string
-): Promise<ApiResponse<{ deleted?: boolean }>> => {
+): Promise<ApiResponse<Record<string, never>>> => {
   try {
-    const res = await api.delete<ApiResponse<{ deleted?: boolean }>>(
-      `/intakes/${intakeId}`
+    const loginId = await storage.get(storageKeys.loginId);
+    const res = await api.delete<ApiResponse<Record<string, never>>>(
+      `/intakes/${intakeId}`,
+      { params: loginId ? { loginId } : undefined }
     );
     const normalized = normalizeApiResponse(res.data);
     if (normalized.success) {

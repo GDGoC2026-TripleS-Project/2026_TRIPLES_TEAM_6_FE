@@ -48,11 +48,24 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
     handleDelete,
     handleEdit,
     renderOptionText,
+    goalByDate,
+    fallbackCaffeine,
+    fallbackSugar,
   } = usePeriodSearchScreen(initialStart, initialEnd);
 
   const renderItem = ({ item }: ListRenderItemInfo<PeriodRow>) => {
     if (item.type === 'header') {
-      return <Text style={styles.sectionTitle}>{item.title}</Text>;
+      const goals = goalByDate[item.date];
+      const caffeineGoal = goals?.caffeine ?? fallbackCaffeine;
+      const sugarGoal = goals?.sugar ?? fallbackSugar;
+      return (
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{item.title}</Text>
+          <Text style={styles.sectionGoal}>
+            목표 {caffeineGoal}mg · {sugarGoal}g
+          </Text>
+        </View>
+      );
     }
 
     const d = item.drink;
@@ -139,7 +152,7 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
         drink={selectedDrink}
         onClose={closeDetail}
         onDelete={(drink) => handleDelete(drink.id)}
-        onEdit={handleEdit}
+        onEdit={(drink) => handleEdit(drink.id)}
       />
 
       <PeriodSelectBottomSheet
@@ -233,13 +246,21 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
 
+  sectionHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 8,
+  },
   sectionTitle: {
     color: colors.grayscale[600],
     fontSize: 12,
     fontFamily: 'Pretendard-Medium',
-    marginTop: 6,
-    marginBottom: 6,
-    paddingHorizontal: 16,
+  },
+  sectionGoal: {
+    marginTop: 4,
+    color: colors.grayscale[500],
+    fontSize: 12,
+    fontFamily: 'Pretendard-Regular',
   },
 
   empty: {
