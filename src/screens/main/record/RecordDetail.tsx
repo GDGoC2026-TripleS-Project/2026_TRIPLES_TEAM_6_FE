@@ -30,6 +30,7 @@ const RecordDetailScreen = () => {
   const { brandId, brandName, selectedDate } = route.params;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const { isFavorite, toggleFavorite } = useFavoriteMenus();
   const [categories, setCategories] = useState<string[]>([]);
 
@@ -110,17 +111,20 @@ const RecordDetailScreen = () => {
             variant="animated"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
           />
-          {categoryOptions.map((category) => (
-            <Chip
-              key={category.id}
-              groupId="category"
-              id={category.id}
-              label={category.label}
-              selected={selectedCategory === category.id}
-              onPress={() => setSelectedCategory(category.id)}
-            />
-          ))}
+          {!isSearchFocused &&
+            categoryOptions.map((category) => (
+              <Chip
+                key={category.id}
+                groupId="category"
+                id={category.id}
+                label={category.label}
+                selected={selectedCategory === category.id}
+                onPress={() => setSelectedCategory(category.id)}
+              />
+            ))}
         </ScrollView>
       </View>
 
