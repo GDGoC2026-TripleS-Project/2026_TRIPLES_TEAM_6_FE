@@ -14,16 +14,32 @@ const Chart = ({
   title = "카페인",
   unit = "mg" 
 }: ChartProps) => {
-  const maxValue = title === "당류" ? 37.5 : 600;
   const displayUnit = title === "당류" ? "g" : unit;
   
-  const intakePercent = Math.min(((currentIntake) / maxValue) * 100, 100);
-  const limitPercent =
-    currentIntake < dailyLimit
-      ? 50
-      : currentIntake > 0
-      ? Math.max(Math.min((dailyLimit / currentIntake) * intakePercent, 100), 4)
-      : Math.max(Math.min((dailyLimit / maxValue) * 100, 100), 4);
+  const safeLimit = dailyLimit > 0 ? dailyLimit : 0;
+  const safeIntake = currentIntake > 0 ? currentIntake : 0;
+  const MIN_PERCENT = 4;
+  const clampPercent = (value: number) => Math.max(0, Math.min(value, 100));
+  const clampPercentWithMin = (value: number) =>
+    value > 0 ? Math.max(MIN_PERCENT, Math.min(value, 100)) : 0;
+
+  const { intakePercent, limitPercent } =
+    safeLimit > 0
+      ? safeIntake > safeLimit
+        ? safeIntake >= safeLimit * 2
+          ? {
+              intakePercent: 50,
+            limitPercent: clampPercentWithMin((safeLimit / safeIntake) * 50),
+          }
+        : {
+            intakePercent: 50,
+            limitPercent: 50,
+            }
+        : {
+            intakePercent: clampPercentWithMin((safeIntake / safeLimit) * 50),
+            limitPercent: 50,
+          }
+      : { intakePercent: 0, limitPercent: 0 };
 
   const getScaleValues = () => {
     if (title === "당류") {
