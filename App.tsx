@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Platform, StyleSheet, Alert } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
+
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import * as Linking from 'expo-linking';
 
 import RootNavigator from './src/navigation/RootStack';
 import LoginScreen from './src/screens/main/sign/LoginScreen';
@@ -14,77 +14,18 @@ import SignUpScreen from './src/screens/main/sign/SignUpScreen';
 import FindPasswordScreen from './src/screens/main/sign/FindPasswordScreen';
 import PasswordResetInputScreen from './src/screens/main/sign/PasswordResetInputScreen';
 import TermsScreen from './src/screens/main/sign/TermsScreen';
-
 import { useAuthStore } from './src/app/features/auth/auth.store';
 import { storage } from './src/utils/storage';
 import { storageKeys } from './src/constants/storageKeys';
 import { colors } from './src/constants/colors';
 import { useGoalStore } from './src/store/goalStore';
-import { userApiLayer } from './src/app/features/user/user.api';
-
-// import messaging from '@react-native-firebase/messaging';
 
 const Stack = createNativeStackNavigator();
-const FORCE_ONBOARDING_PREVIEW = false;
-const prefix = Linking.createURL('/');
-
-const linking = {
-  prefixes: [prefix, 'lastcup://'],
-  config: {
-    screens: {
-      Login: 'login',
-      SignUpScreen: 'signup',
-      FindPasswordScreen: 'auth/find-password',
-      PasswordResetInputScreen: 'auth/reset-input',
-      TermsScreen: 'terms',
-      OnBoardingScreen: 'onboarding',
-      Main: {
-        screens: {
-          MainTabs: {
-            screens: {
-              Home: 'home',
-              Calendar: 'calendar',
-              Heart: 'heart',
-              Profile: 'profile',
-              Plus: 'record',
-            },
-          },
-          AlarmSettingScreen: 'settings/alarm',
-        },
-      },
-    },
-  },
-};
-
-/* =======================
-   FCM 등록 함수
-======================= */
-// const registerFcm = async () => {
-//   const authStatus = await messaging().requestPermission();
-//   const enabled =
-//     authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-//     authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-//
-//   if (!enabled) {
-//     console.log('푸시 권한 거부됨');
-//     return;
-//   }
-//
-//   const token = await messaging().getToken();
-//   if (!token) return;
-//
-//   console.log('📱 FCM TOKEN:', token);
-//
-//   await userApiLayer.registerDeviceToken({
-//     fcmToken: token,
-//     platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
-//   });
-// };
+const FORCE_ONBOARDING_PREVIEW = false; 
 
 export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);
   const [onboardingPending, setOnboardingPending] = useState(false);
-
   const hydrate = useAuthStore((s) => s.hydrate);
   const hydrateGoals = useGoalStore((s) => s.hydrate);
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -96,60 +37,40 @@ export default function App() {
     'Pretendard-Bold': require('./assets/fonts/Pretendard-Bold.otf'),
   });
 
-  /* =======================
-     앱 시작 시 FCM 등록
-  ======================= */
   useEffect(() => {
-    // registerFcm().catch(console.error);
-
-    // 포그라운드 알림 처리 (iOS 필수)
-        // const unsubscribe = messaging().onMessage(async remoteMessage => {
-    // Alert.alert(
-    // remoteMessage.notification?.title ?? '알림',
-    // remoteMessage.notification?.body ?? ''
-    // );
-    // });
-    //
-    // return unsubscribe;
-  }, []);
-
-  /* =======================
-     인증/스토리지 hydrate
-  ======================= */
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      try {
-        const [,, pending] = await Promise.all([
-          hydrate(),
-          hydrateGoals(),
-          storage.get(storageKeys.onboardingPending),
-        ]);
-
-        if (isMounted) {
-          setOnboardingPending(pending === 'true');
-        }
-      } finally {
-        if (isMounted) setIsHydrating(false);
+  let isMounted = true;
+  (async () => {
+    try {
+      const [,, pending] = await Promise.all([
+        hydrate(),
+        hydrateGoals(),
+        storage.get(storageKeys.onboardingPending),
+      ]);
+      
+      if (isMounted) {
+        // pending이 'true'인 경우에만 온보딩으로 진입하게 됨
+        setOnboardingPending(pending === 'true');
       }
-    })();
-    return () => { isMounted = false; };
-  }, [hydrate, hydrateGoals]);
+    } finally {
+      if (isMounted) setIsHydrating(false);
+    }
+  })();
+  return () => { isMounted = false; };
+}, [hydrate, hydrateGoals]);
 
   if (!loaded || isHydrating) return null;
-
   const shouldBypassAuth = FORCE_ONBOARDING_PREVIEW;
   const showAppFlow = Boolean(accessToken) || shouldBypassAuth;
   const shouldShowOnboarding = shouldBypassAuth || onboardingPending;
-
+  
   const initialRouteName = showAppFlow
-    ? (shouldShowOnboarding ? 'OnBoardingScreen' : 'Main')
-    : 'Login';
+  ? (shouldShowOnboarding ? 'OnBoardingScreen' : 'Main')
+  : 'Login';
 
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      <NavigationContainer linking={linking}>
+      <NavigationContainer>
         <Stack.Navigator
           key={showAppFlow ? 'app' : 'auth'}
           initialRouteName={initialRouteName}
@@ -163,10 +84,74 @@ export default function App() {
           ) : (
             <>
               <Stack.Screen name="Login" component={LoginScreen} />
-              <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
-              <Stack.Screen name="FindPasswordScreen" component={FindPasswordScreen} />
-              <Stack.Screen name="PasswordResetInputScreen" component={PasswordResetInputScreen} />
-              <Stack.Screen name="TermsScreen" component={TermsScreen} />
+              <Stack.Screen
+                name="SignUpScreen"
+                component={SignUpScreen}
+                options={{
+                  headerShown: true,
+                  title: '회원가입',
+                  headerTitleAlign: 'center',
+                  headerStyle: { backgroundColor: colors.grayscale[1000] },
+                  headerShadowVisible: false,
+                  headerTintColor: '#FFFFFF',
+                  headerTitleStyle: {
+                    fontSize: 16,
+                    fontFamily: 'Pretendard-SemiBold',
+                  },
+                  headerBackButtonDisplayMode: 'minimal',
+                }}
+              />
+              <Stack.Screen
+                name="FindPasswordScreen"
+                component={FindPasswordScreen}
+                options={{
+                  headerShown: true,
+                  title: '비밀번호 찾기',
+                  headerTitleAlign: 'center',
+                  headerStyle: { backgroundColor: colors.grayscale[1000] },
+                  headerShadowVisible: false,
+                  headerTintColor: '#FFFFFF',
+                  headerTitleStyle: {
+                    fontSize: 16,
+                    fontFamily: 'Pretendard-SemiBold',
+                  },
+                  headerBackButtonDisplayMode: 'minimal',
+                }}
+              />
+              <Stack.Screen
+                name="PasswordResetInputScreen"
+                component={PasswordResetInputScreen}
+                options={{
+                  headerShown: true,
+                  title: '비밀번호 변경',
+                  headerTitleAlign: 'center',
+                  headerStyle: { backgroundColor: colors.grayscale[1000] },
+                  headerShadowVisible: false,
+                  headerTintColor: '#FFFFFF',
+                  headerTitleStyle: {
+                    fontSize: 16,
+                    fontFamily: 'Pretendard-SemiBold',
+                  },
+                  headerBackButtonDisplayMode: 'minimal',
+                }}
+              />
+              <Stack.Screen
+                name="TermsScreen"
+                component={TermsScreen}
+                options={{
+                  headerShown: true,
+                  title: '개인정보 수집 및 이용 동의',
+                  headerTitleAlign: 'center',
+                  headerStyle: { backgroundColor: colors.grayscale[1000] },
+                  headerShadowVisible: false,
+                  headerTintColor: '#FFFFFF',
+                  headerTitleStyle: {
+                    fontSize: 16,
+                    fontFamily: 'Pretendard-SemiBold',
+                  },
+                  headerBackButtonDisplayMode: 'minimal',
+                }}
+              />
             </>
           )}
         </Stack.Navigator>

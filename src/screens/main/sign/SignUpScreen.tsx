@@ -5,8 +5,11 @@ import {
   StyleSheet,
   Pressable,
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
-  Keyboard
+  TouchableWithoutFeedback,
+  Platform,
+  ScrollView
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { colors } from "../../../constants/colors";
@@ -233,9 +236,18 @@ const SignUpScreen: React.FC = () => {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container}>
-      <Pressable style={styles.container} onPress={Keyboard.dismiss} accessible={false}>
-      <View style={styles.scrollView}>
+  <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+    >
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.form}>
           <Text style={styles.label}>아이디</Text>
           <TextField
@@ -329,8 +341,9 @@ const SignUpScreen: React.FC = () => {
             returnKeyType="done"
           />
         </View>
-      </View>
+      </ScrollView>
 
+      {/* ✅ 하단 고정 영역은 여기 (KAV 내부) */}
       <View style={styles.bottomSection}>
         <View style={styles.agreeRow}>
           <Pressable
@@ -348,7 +361,10 @@ const SignUpScreen: React.FC = () => {
             </Text>
           </Pressable>
 
-          <Pressable hitSlop={10} onPress={() => navigation.navigate("TermsScreen")}>
+          <Pressable
+            hitSlop={10}
+            onPress={() => navigation.navigate("TermsScreen")}
+          >
             <Text style={styles.detailText}>자세히 보기</Text>
           </Pressable>
         </View>
@@ -356,15 +372,18 @@ const SignUpScreen: React.FC = () => {
         <View style={styles.submitWrap}>
           <Button
             title={isLoading ? "가입 중..." : "가입하기"}
-            disabled={!canSubmit || isLoading || isCheckingLoginId || isCheckingNickname}
+            disabled={
+              !canSubmit || isLoading || isCheckingLoginId || isCheckingNickname
+            }
             onPress={onSubmit}
             variant="primary"
           />
         </View>
       </View>
-      </Pressable>
     </KeyboardAvoidingView>
-  );
+  </TouchableWithoutFeedback>
+);
+
 };
 
 const styles = StyleSheet.create({
@@ -378,6 +397,10 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingHorizontal: 16,
     paddingBottom: 20,
+  },
+
+  scrollContent: {
+    paddingBottom: 50,
   },
 
   form: {
@@ -394,9 +417,12 @@ const styles = StyleSheet.create({
 
   bottomSection: {
     backgroundColor: colors.grayscale[1000],
+    bottom: 0,
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 40,
+    borderTopWidth: 1,
+    borderTopColor: colors.grayscale[900],
   },
 
   agreeRow: {

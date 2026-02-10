@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Alert } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { colors } from "../../../constants/colors";
 import TextField from "../../../components/common/TextField";
+import HeaderDetail from "../../../components/common/HeaderDetail";
 import Button from "../../../components/common/Button";
 import { authApiLayer } from "../../../app/features/auth/auth.api";
 
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontFamily: "Pretendard-SemiBold",
     marginBottom: 6,
-    marginTop: 30,
+    marginTop: 12,
   },
 
   pageDesc: {
