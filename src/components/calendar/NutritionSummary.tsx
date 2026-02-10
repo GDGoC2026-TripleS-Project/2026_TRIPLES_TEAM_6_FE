@@ -31,10 +31,10 @@ export default function NutritionSummary({
     <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.header}>
-          <Text style={styles.label}>
-            카페인{' '}
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>카페인</Text>
             <Text style={styles.amountText}>{totalCaffeine}mg</Text>
-          </Text>
+          </View>
           {isCaffeineOver && (
             <View style={styles.warningBadge}>
               <Text style={styles.warningIcon}>!</Text>
@@ -49,9 +49,9 @@ export default function NutritionSummary({
           <View
             style={[
               styles.progressFill,
-              { 
+              {
                 width: `${caffeinePercent}%`,
-                backgroundColor: isCaffeineOver ? '#EF4444' : colors.primary[500]
+                backgroundColor: isCaffeineOver ? '#FF0000' : colors.grayscale[100],
               },
             ]}
           />
@@ -60,10 +60,10 @@ export default function NutritionSummary({
 
       <View style={styles.card}>
         <View style={styles.header}>
-          <Text style={styles.label}>
-            당류{' '}
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>당류</Text>
             <Text style={styles.amountText}>{totalSugar}g</Text>
-          </Text>
+          </View>
           {isSugarOver && (
             <View style={styles.warningBadge}>
               <Text style={styles.warningIcon}>!</Text>
@@ -78,9 +78,9 @@ export default function NutritionSummary({
           <View
             style={[
               styles.progressFill,
-              { 
+              {
                 width: `${sugarPercent}%`,
-                backgroundColor: isSugarOver ? '#EF4444' : colors.primary[500]
+                backgroundColor: isSugarOver ? '#FF0000' : colors.primary[500],
               },
             ]}
           />
@@ -108,7 +108,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    minHeight: 22,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   label: {
     color: colors.grayscale[100],
@@ -124,12 +129,14 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#EF4444',
+    backgroundColor: '#222527',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FF0000',
   },
   warningIcon: {
-    color: colors.grayscale[1000],
+    color: '#FF0000',
     fontSize: 13,
     fontFamily: 'Pretendard-Bold',
   },
@@ -138,7 +145,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.grayscale[800],
     borderRadius: 3,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginTop: 7,
+    marginBottom: 5,
   },
   progressFill: {
     height: '100%',
@@ -148,7 +156,7 @@ const styles = StyleSheet.create({
     color: colors.grayscale[600],
     fontSize: 12,
     fontFamily: 'Pretendard-Regular',
-    marginBottom: 8,
-    marginTop: 3,
+    marginTop: 2,
+    marginBottom: 5,
   },
 });
