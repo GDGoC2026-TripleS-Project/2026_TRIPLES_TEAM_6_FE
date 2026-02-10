@@ -21,6 +21,7 @@ const RecordScreen = () => {
   const navigation = useNavigation<RecordScreenNavigationProp>();
   const route = useRoute<RecordScreenRouteProp>();
   const selectedDate = route.params?.selectedDate;
+  const edit = route.params?.edit;
   const [searchQuery, setSearchQuery] = useState('');
 
   const { brands, setBrands, isLoading, error: loadError } = useBrands();
@@ -29,7 +30,9 @@ const RecordScreen = () => {
     navigation.navigate('RecordDetail', {
       brandId: String(brandId),
       brandName,
+      isFavorite: brands.find((b) => b.id === brandId)?.isFavorite,
       selectedDate,
+      edit,
     });
   };
 

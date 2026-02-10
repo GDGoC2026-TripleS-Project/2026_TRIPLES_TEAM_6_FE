@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
@@ -22,15 +22,20 @@ export default function HeartScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('drink');
   const { chipSelected } = useOptionGroup('brand');
   const {
-    brands: favoriteBrands,
-    setBrands: setFavoriteBrands,
+    brands: allBrands,
+    setBrands: setAllBrands,
     isLoading: isBrandsLoading,
     error: brandsError,
-  } = useBrands({ favoritesOnly: true, focusRefresh: true });
+  } = useBrands({ favoritesOnly: false, focusRefresh: true });
+
+  const favoriteBrands = useMemo(
+    () => allBrands.filter((brand) => brand.isFavorite),
+    [allBrands]
+  );
 
   const handleFavoriteToggle = useCallback(
     async (brandId: number, nextLiked: boolean) => {
-      setFavoriteBrands((prev) =>
+      setAllBrands((prev) =>
         prev.map((brand) =>
           brand.id === brandId ? { ...brand, isFavorite: nextLiked } : brand
         )
@@ -45,19 +50,16 @@ export default function HeartScreen() {
           throw new Error(res.error?.message ?? '즐겨찾기 처리에 실패했어요.');
         }
 
-        if (!nextLiked) {
-          setFavoriteBrands((prev) => prev.filter((brand) => brand.id !== brandId));
-        }
       } catch (err) {
         if (__DEV__) console.log('[API ERR] /brands/:id/favorites', err);
-        setFavoriteBrands((prev) =>
+        setAllBrands((prev) =>
           prev.map((brand) =>
             brand.id === brandId ? { ...brand, isFavorite: !nextLiked } : brand
           )
         );
       }
     },
-    [setFavoriteBrands]
+    [setAllBrands]
   );
 
   return (
@@ -70,7 +72,7 @@ export default function HeartScreen() {
 
       {activeTab === 'drink' && (
         <BrandChips
-          brands={favoriteBrands}
+          brands={allBrands}
           isLoading={isBrandsLoading}
           error={brandsError}
         />

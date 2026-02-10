@@ -2,13 +2,15 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { colors } from "../../constants/colors";
 import { Ionicons } from '@expo/vector-icons';
-import Heart from '../../../assets/headerH.svg'
+import HeartOff from '../../../assets/headerH.svg';
+import HeartOn from '../../../assets/Property 1=true.svg';
 
 type HeaderDetailProps = {
     title: string;
     onBack?: () => void;
     initialRightType?: 'close' | 'heart' | 'none';
     onRightPress?: () => void;
+    rightActive?: boolean;
 };
 
 function HeaderDetail({
@@ -16,6 +18,7 @@ function HeaderDetail({
     onBack,
     initialRightType = 'close',
     onRightPress,
+    rightActive = false,
 }: HeaderDetailProps) {
     const rightType = initialRightType;
     const handleRightPress = () => {
@@ -44,7 +47,11 @@ function HeaderDetail({
             {rightType === 'none' ? (
                 <View style={styles.side} />
             ) : (
-                <Pressable style={styles.side} onPress={handleRightPress}>
+                <Pressable
+                    style={styles.side}
+                    onPress={handleRightPress}
+                    disabled={rightType === 'heart' && !onRightPress}
+                >
                     
                     {rightType === 'close' ? (
                         <Ionicons
@@ -53,7 +60,7 @@ function HeaderDetail({
                             color={colors.primary[100]}
                         />
                     ): (
-                        <Heart width={24} height={24} />
+                        rightActive ? <HeartOn width={24} height={24} /> : <HeartOff width={24} height={24} />
                     )
                 }
                 </Pressable>

@@ -23,7 +23,14 @@ const EXPANDED_PADDING = 16;
 const COLLAPSED_PADDING = 10;
 const HORIZONTAL_MARGIN = 32;
 
-const SearchField = ({ variant = 'default', onChangeText, value, ...props }: SearchFieldProps) => {
+const SearchField = ({
+  variant = 'default',
+  onChangeText,
+  value,
+  onFocus,
+  onBlur,
+  ...props
+}: SearchFieldProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const { width: screenWidth } = useWindowDimensions();
@@ -62,7 +69,7 @@ const SearchField = ({ variant = 'default', onChangeText, value, ...props }: Sea
     }
   };
 
-  const handleBlur = () => {
+  const handleBlur = (event: any) => {
     if (variant === 'animated') {
       setIsFocused(false);
       Animated.parallel([
@@ -80,6 +87,7 @@ const SearchField = ({ variant = 'default', onChangeText, value, ...props }: Sea
         }),
       ]).start();
     }
+    onBlur?.(event);
   };
 
   const isAnimatedVariant = variant === 'animated';
@@ -107,7 +115,8 @@ const SearchField = ({ variant = 'default', onChangeText, value, ...props }: Sea
             isAnimatedVariant && !isFocused && styles.hiddenInput,
           ]}
           placeholderTextColor={colors.grayscale[600]}
-          onBlur={isAnimatedVariant ? handleBlur : undefined}
+          onBlur={isAnimatedVariant ? handleBlur : onBlur}
+          onFocus={onFocus}
           editable={isAnimatedVariant ? isFocused : true}
           pointerEvents={isAnimatedVariant && !isFocused ? 'none' : 'auto'}
           value={value}

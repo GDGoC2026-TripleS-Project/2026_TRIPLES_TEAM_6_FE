@@ -39,6 +39,7 @@ export default function HomeScreen() {
     stats,
     drinks,
     hasRecord,
+    isFutureDate,
     formatDateHeader,
     handlePrevDay,
     handleNextDay,
@@ -101,7 +102,7 @@ export default function HomeScreen() {
                 />
               );
             })
-          ) : (
+          ) : !isFutureDate ? (
             <View style={{justifyContent: 'center', alignItems: 'center', flex: 1, marginTop: 20, gap: 8}}>
               <Coffee width={80} height={80}/>
               <Text style={{color: colors.grayscale[100], fontSize: 18, fontFamily: 'Pretendard-Medium'}}>
@@ -109,7 +110,7 @@ export default function HomeScreen() {
               </Text>
               <SkipDrinkCheckbox value={isSkipped} onChange={onToggleSkip} disabled={false} />
             </View>
-          )}
+          ) : null}
         </View>
       </View>
 
@@ -118,7 +119,7 @@ export default function HomeScreen() {
         drink={selectedDrink}
         onClose={closeDetail}
         onDelete={(drink) => handleDelete(drink.id)}
-        onEdit={handleEdit}
+        onEdit={(drink) => handleEdit(drink.id)}
       />
 
       <DatePickerBottomSheet

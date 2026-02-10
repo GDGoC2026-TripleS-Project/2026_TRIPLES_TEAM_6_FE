@@ -1,4 +1,6 @@
 import { api } from '../../../lib/api/client';
+import { storage } from '../../../utils/storage';
+import { storageKeys } from '../../../constants/storageKeys';
 
 type ApiResponse<T> = { data: T };
 
@@ -20,6 +22,17 @@ export type GoalsRaw = {
   sugar?: number;
   caffeineLimit?: number;
   sugarLimit?: number;
+};
+
+export type GoalsPeriod = {
+  id: number;
+  userId: number;
+  dailyCaffeineTarget: number;
+  dailySugarTarget: number;
+  startDate: string;
+  endDate?: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type DevicePlatform = 'ANDROID' | 'IOS';
@@ -56,11 +69,26 @@ export const userApiLayer = {
   updateNotificationSettings: (payload: NotificationSettingsRaw) =>
     api.patch<ApiResponse<NotificationSettingsRaw>>('/users/me/notification-settings', payload),
 
-  getGoals: () =>
-    api.get<ApiResponse<GoalsRaw>>('/users/me/goals'),
+  getGoals: async (params?: { date?: string }) => {
+    const loginId = await storage.get(storageKeys.loginId);
+    const query = {
+      ...(params?.date ? { date: params.date } : {}),
+      ...(loginId ? { loginId } : {}),
+    };
+    return api.get<ApiResponse<GoalsRaw | GoalsPeriod | GoalsPeriod[]>>(
+      '/users/me/goals',
+      { params: Object.keys(query).length ? query : undefined }
+    );
+  },
 
-  updateGoals: (payload: { caffeine: number; sugar: number }) =>
-    api.patch<ApiResponse<{ caffeine: number; sugar: number }>>('/users/me/goals', payload),
+  updateGoals: async (payload: { caffeine: number; sugar: number; startDate?: string }) => {
+    const loginId = await storage.get(storageKeys.loginId);
+    return api.patch<ApiResponse<{ caffeine: number; sugar: number }>>(
+      '/users/me/goals',
+      payload,
+      { params: loginId ? { loginId } : undefined }
+    );
+  },
 
   registerDeviceToken: (payload: RegisterDeviceTokenPayload) =>
     api.post<ApiResponse<{ success: boolean }>>('/users/me/devices', payload),
