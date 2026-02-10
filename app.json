@@ -19,6 +19,7 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "bundleIdentifier": "com.triples.lastcup",
       "buildNumber": "1",
+      "deploymentTarget": "13.4",
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "jsEngine": "jsc",
