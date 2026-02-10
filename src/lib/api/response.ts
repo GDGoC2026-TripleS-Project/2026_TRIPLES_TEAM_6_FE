@@ -2,10 +2,20 @@ import type { ApiError, ApiResponse } from './types';
 
 export const normalizeApiResponse = <T>(res: ApiResponse<T>): ApiResponse<T> => {
   const hasData = (res as any)?.data !== undefined;
-  const hasError = (res as any)?.error !== undefined;
+  const error = (res as any)?.error as ApiError | null | undefined;
+  const hasError = error != null;
 
   if (__DEV__ && res.success && hasError) {
-    console.log('[API WARN] success=true but error present:', (res as any)?.error as ApiError);
+    console.log('[API WARN] success=true but error present:', error);
+  }
+
+  if (res.success && hasError && (error?.code || error?.message)) {
+    return {
+      success: false,
+      error,
+      data: (res as any)?.data as T | undefined,
+      timestamp: (res as any).timestamp ?? new Date().toISOString(),
+    };
   }
 
   if (!res.success && hasData) {

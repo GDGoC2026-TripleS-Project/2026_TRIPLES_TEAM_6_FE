@@ -135,10 +135,14 @@ const buildOptionTextFromOptions = (options: any[]) => {
 
 const normalizeDrink = (raw: any, index: number, fallbackDate?: string): IntakeDrink => {
   const nutrition = raw?.nutrition ?? {};
+  const intakeIds = Array.isArray(raw?.intakeIds) ? raw.intakeIds : undefined;
+  const primaryIntakeId =
+    intakeIds && intakeIds.length > 0 ? intakeIds[0] : undefined;
   const optionsText =
     normalizeOptionText(raw) || buildOptionTextFromOptions(raw?.options ?? raw?.optionList ?? []);
   return {
-    id: toString(raw?.id ?? raw?.recordId ?? raw?.intakeId ?? `${index}`),
+    // Prefer record-level identifiers over generic `id` to ensure detail fetches use intake record ids.
+    id: toString(primaryIntakeId ?? raw?.recordId ?? raw?.intakeId ?? raw?.id ?? `${index}`),
     brandName: toString(raw?.brandName ?? raw?.brand?.name ?? ''),
     menuName: toString(raw?.menuName ?? raw?.menu?.name ?? raw?.name ?? ''),
     optionText: optionsText,
@@ -243,7 +247,10 @@ const normalizePeriodDates = (raw: any): string[] => {
 
 
 export const fetchDailyIntake = async (date: string): Promise<ApiResponse<DailyIntake>> => {
-  const res = await api.get<ApiResponse<any>>('/intakes/daily', { params: { date } });
+  const loginId = await storage.get(storageKeys.loginId);
+  const res = await api.get<ApiResponse<any>>('/intakes/daily', {
+    params: loginId ? { date, loginId } : { date },
+  });
   const normalized = normalizeApiResponse(res.data);
   if (normalized.success && normalized.data) {
     return { ...normalized, data: normalizeDailyIntake(normalized.data, date) };
