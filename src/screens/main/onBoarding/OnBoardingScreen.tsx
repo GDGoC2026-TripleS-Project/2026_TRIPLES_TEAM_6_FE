@@ -103,8 +103,9 @@ function OnboardingScreen({ navigation }: { navigation: any }) {
         sugar: sugarValue,
       });
 
-      // 2. 온보딩 완료 저장 (App.js와 동일한 키 사용)
-      await storage.set('onboardingCompleted', 'true');
+      // 2. 온보딩 완료 저장 (App.tsx와 동일한 키 사용)
+      await storage.set(storageKeys.onboardingDone, 'true');
+      await storage.remove(storageKeys.onboardingPending);
 
       // 3. Main 화면으로 이동
       navigation.replace('Main', {

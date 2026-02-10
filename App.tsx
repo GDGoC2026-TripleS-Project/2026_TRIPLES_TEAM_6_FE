@@ -66,6 +66,7 @@ const linking: LinkingOptions<AppStackParamList> = {
 export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
+  const [onboardingPending, setOnboardingPending] = useState(false);
 
   const hydrate = useAuthStore((s) => s.hydrate);
   const hydrateGoals = useGoalStore((s) => s.hydrate);
@@ -85,14 +86,28 @@ export default function App() {
 
     (async () => {
       try {
-        const [,, completed] = await Promise.all([
+        const [,, completed, pending] = await Promise.all([
           hydrate(),
           hydrateGoals(),
           storage.get(storageKeys.onboardingDone),
+          storage.get(storageKeys.onboardingPending),
         ]);
 
         if (isMounted) {
-          setOnboardingCompleted(completed === 'true');
+          const done = completed === 'true';
+          let nextPending = pending === 'true';
+          const token = useAuthStore.getState().accessToken;
+
+          if (token && !done) {
+            await storage.set(storageKeys.onboardingPending, 'true');
+            nextPending = true;
+          } else if (done && nextPending) {
+            await storage.remove(storageKeys.onboardingPending);
+            nextPending = false;
+          }
+
+          setOnboardingCompleted(done);
+          setOnboardingPending(nextPending);
         }
       } finally {
         if (isMounted) setIsHydrating(false);
@@ -136,7 +151,7 @@ export default function App() {
   const shouldBypassAuth = FORCE_ONBOARDING_PREVIEW;
   const showAppFlow = Boolean(accessToken) || shouldBypassAuth;
   const shouldShowOnboarding =
-    shouldBypassAuth || (showAppFlow && !onboardingCompleted);
+    shouldBypassAuth || (showAppFlow && onboardingPending && !onboardingCompleted);
 
   const initialRouteName = showAppFlow
     ? shouldShowOnboarding

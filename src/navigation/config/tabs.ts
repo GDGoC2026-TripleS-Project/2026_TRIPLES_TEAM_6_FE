@@ -19,7 +19,7 @@ export type TabConfig = {
   name: keyof MainTabParamList;
   component: React.ComponentType<any>;
   title: string;
-  icon: React.ComponentType<{ color?: string }>;
+  icon: React.ComponentType<{ color?: string; width?: number; height?: number }>;
   isPlus?: boolean;
 };
 

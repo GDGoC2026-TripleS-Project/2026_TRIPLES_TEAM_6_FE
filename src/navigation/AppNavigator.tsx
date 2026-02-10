@@ -48,7 +48,7 @@ const TAB_BAR_CONFIG = {
 } as const;
 
 const createTabIcon =
-  (Icon: React.ComponentType<{ color?: string }>) =>
+  (Icon: React.ComponentType<{ color?: string; width?: number; height?: number }>) =>
   ({ focused }: { focused: boolean }) =>
     (
       <Icon
@@ -79,7 +79,9 @@ export default function AppNavigator() {
                     justifyContent: 'center',
                   }}
                 >
-                  {React.createElement(icon)}
+                  <View style={{ transform: [{ translateY: -3 }] }}>
+                    {React.createElement(icon, { width: 74, height: 74 })}
+                  </View>
                 </Pressable>
               ),
             }}
@@ -92,6 +94,7 @@ export default function AppNavigator() {
             options={{
               title,
               tabBarIcon: createTabIcon(icon),
+              tabBarIconStyle: { marginBottom: 8 },
             }}
           />
         )
