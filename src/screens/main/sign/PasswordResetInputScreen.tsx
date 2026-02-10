@@ -1,14 +1,17 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, Alert, Pressable } from "react-native";
 import { colors } from "../../../constants/colors";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import TextField from "../../../components/common/TextField";
 import Button from "../../../components/common/Button";
 import { authApiLayer } from "../../../app/features/auth/auth.api";
 
 const PasswordResetInputScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const [loginId, setLoginId] = useState("");
+  const route = useRoute<any>();
+  const defaultLoginId = route?.params?.defaultLoginId as string | undefined;
+
+  const [loginId, setLoginId] = useState(defaultLoginId ?? "");
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordCheck, setNewPasswordCheck] = useState("");

@@ -1,4 +1,6 @@
 import { api, authApi } from "../../../lib/api/client";
+import { storage } from "../../../utils/storage";
+import { storageKeys } from "../../../constants/storageKeys";
 
 type ApiResponse<T> = { data: T };
 
@@ -49,11 +51,17 @@ export const authApiLayer = {
   socialLogin: ({ provider, ...body }: SocialLoginPayload) =>
     authApi.post(`/auth/social/${provider}/login`, body),
 
-  requestPasswordReset: (payload: { loginId: string; email: string }) =>
-    authApi.post<PasswordResetRequestRes>('/auth/password-reset/request', payload),
+  requestPasswordReset: async (payload: { loginId: string; email: string }) => {
+    const token = await storage.get(storageKeys.accessToken);
+    const client = token ? api : authApi;
+    return client.post<PasswordResetRequestRes>('/auth/password-reset/request', payload);
+  },
 
-  confirmPasswordReset: (payload: { loginId: string; newPassword: string; token: string }) =>
-    authApi.post<PasswordResetConfirmRes>('/auth/password-reset/confirm', payload),
+  confirmPasswordReset: async (payload: { loginId: string; newPassword: string; token: string }) => {
+    const token = await storage.get(storageKeys.accessToken);
+    const client = token ? api : authApi;
+    return client.post<PasswordResetConfirmRes>('/auth/password-reset/confirm', payload);
+  },
 
   // 보호 API 예시는 api 사용
   // getMe: () => api.get<UserMeRes>('/users/me'),

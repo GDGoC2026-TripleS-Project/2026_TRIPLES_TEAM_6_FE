@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { colors } from "../../../constants/colors";
 import TextField from "../../../components/common/TextField";
 import Button from "../../../components/common/Button";
@@ -8,7 +8,10 @@ import { authApiLayer } from "../../../app/features/auth/auth.api";
 
 const FindPasswordScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const [userName, setUserName] = useState("");
+  const route = useRoute<any>();
+  const defaultLoginId = route?.params?.defaultLoginId as string | undefined;
+
+  const [userName, setUserName] = useState(defaultLoginId ?? "");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -104,7 +107,7 @@ const FindPasswordScreen: React.FC = () => {
       <View style={styles.headerArea}>
         <Text style={styles.pageTitle}>비밀번호 찾기</Text>
         <Text style={styles.pageDesc}>
-          가입할 때 사용한 아이디와 이메일을 입력해 주세요.
+          가입 시 사용한 아이디와 이메일을 입력해 주세요.
         </Text>
       </View>
 

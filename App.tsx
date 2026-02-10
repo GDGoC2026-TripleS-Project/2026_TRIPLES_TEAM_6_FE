@@ -5,6 +5,7 @@ import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import * as Linking from 'expo-linking';
 
 import RootNavigator from './src/navigation/RootStack';
 import LoginScreen from './src/screens/main/sign/LoginScreen';
@@ -25,6 +26,35 @@ import messaging from '@react-native-firebase/messaging';
 
 const Stack = createNativeStackNavigator();
 const FORCE_ONBOARDING_PREVIEW = false;
+const prefix = Linking.createURL('/');
+
+const linking = {
+  prefixes: [prefix, 'lastcup://'],
+  config: {
+    screens: {
+      Login: 'login',
+      SignUpScreen: 'signup',
+      FindPasswordScreen: 'auth/find-password',
+      PasswordResetInputScreen: 'auth/reset-input',
+      TermsScreen: 'terms',
+      OnBoardingScreen: 'onboarding',
+      Main: {
+        screens: {
+          MainTabs: {
+            screens: {
+              Home: 'home',
+              Calendar: 'calendar',
+              Heart: 'heart',
+              Profile: 'profile',
+              Plus: 'record',
+            },
+          },
+          AlarmSettingScreen: 'settings/alarm',
+        },
+      },
+    },
+  },
+};
 
 /* =======================
    FCM 등록 함수
@@ -119,7 +149,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      <NavigationContainer>
+      <NavigationContainer linking={linking}>
         <Stack.Navigator
           key={showAppFlow ? 'app' : 'auth'}
           initialRouteName={initialRouteName}
