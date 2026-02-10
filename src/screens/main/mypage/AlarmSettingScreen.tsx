@@ -16,6 +16,8 @@ import { useUserStore } from '../../../app/features/user/user.store';
 import { storage } from '../../../utils/storage';
 import { storageKeys } from '../../../constants/storageKeys';
 
+import { syncNotifications } from '../../../notifications/syncNotifications';
+
 type AlarmKey = 'record' | 'daily';
 
 type AlarmState = {
@@ -57,12 +59,12 @@ const toHHmm = (date: Date) =>
   `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 
 export default function AlarmSettingScreen() {
-  const { 
-    fetchNotificationSettings, 
-    updateNotificationSettings, 
-    notificationSettings, 
-    isLoading, 
-    errorMessage 
+  const {
+    fetchNotificationSettings,
+    updateNotificationSettings,
+    notificationSettings,
+    isLoading,
+    errorMessage,
   } = useUserStore();
 
   const [state, setState] = useState<AlarmState>({
@@ -79,7 +81,6 @@ export default function AlarmSettingScreen() {
 
   const activeDate = activeKey === 'record' ? state.recordTime : state.dailyTime;
 
-  // 화면 진입 시 데이터 불러오기
   useEffect(() => {
     fetchNotificationSettings();
     (async () => {
@@ -88,11 +89,9 @@ export default function AlarmSettingScreen() {
     })();
   }, []);
 
-  // 서버 데이터 동기화
   useEffect(() => {
     if (isFirstVisit === null) return;
 
-    // 처음 방문이거나 서버에 설정이 없으면 꺼진 상태로 시작
     if (isFirstVisit || !notificationSettings) {
       const defaultState: AlarmState = {
         recordEnabled: false,
@@ -100,12 +99,10 @@ export default function AlarmSettingScreen() {
         dailyEnabled: false,
         dailyTime: createTime(21, 0),
       };
-      
-      if (!initialState) {
-        setState(defaultState);
-        setInitialState(defaultState);
-      }
-      
+
+      setState(defaultState);
+      setInitialState(defaultState);
+
       if (isFirstVisit) {
         void storage.set(storageKeys.alarmFirstSeen, 'true');
         setIsFirstVisit(false);
@@ -113,7 +110,6 @@ export default function AlarmSettingScreen() {
       return;
     }
 
-    // 서버에 설정이 있으면 그 값 사용
     const synced: AlarmState = {
       recordEnabled: notificationSettings.recordEnabled,
       recordTime: toDateFromHHmm(notificationSettings.recordTime, 14, 0),
@@ -121,17 +117,8 @@ export default function AlarmSettingScreen() {
       dailyTime: toDateFromHHmm(notificationSettings.dailyTime, 21, 0),
     };
 
-    const shouldUpdate =
-      !initialState ||
-      state.recordEnabled !== synced.recordEnabled ||
-      state.dailyEnabled !== synced.dailyEnabled ||
-      !sameTime(state.recordTime, synced.recordTime) ||
-      !sameTime(state.dailyTime, synced.dailyTime);
-
-    if (shouldUpdate) {
-      setState(synced);
-      setInitialState(synced);
-    }
+    setState(synced);
+    setInitialState(synced);
   }, [notificationSettings, isFirstVisit]);
 
   const hasChanges = useMemo(() => {
@@ -151,7 +138,7 @@ export default function AlarmSettingScreen() {
 
   const closePicker = () => setPickerOpen(false);
 
-  const onPick = (_event: DateTimePickerEvent, picked?: Date) => {
+  const onPick = (_: DateTimePickerEvent, picked?: Date) => {
     if (Platform.OS === 'android') setPickerOpen(false);
     if (picked) {
       setState((prev) => ({
@@ -180,6 +167,9 @@ export default function AlarmSettingScreen() {
 
     if (success) {
       setInitialState(state);
+
+      await syncNotifications(state);
+
       Alert.alert('저장 완료', '알림 설정이 업데이트됐어요.');
     } else {
       Alert.alert('저장 실패', errorMessage ?? '다시 시도해 주세요.');
@@ -224,6 +214,7 @@ export default function AlarmSettingScreen() {
       {Platform.OS === 'android' && pickerOpen && (
         <DateTimePicker value={activeDate} mode="time" onChange={onPick} />
       )}
+
       {Platform.OS === 'ios' && (
         <Modal visible={pickerOpen} transparent animationType="slide">
           <Pressable style={styles.modalBackdrop} onPress={closePicker} />
@@ -272,10 +263,17 @@ function AlarmSection({
         </View>
         <ToggleSwitch value={enabled} onValueChange={onToggle} />
       </View>
+
       {enabled && (
         <View style={styles.timeBlock}>
           <Text style={styles.timeLabel}>알림 시간</Text>
-          <Pressable onPress={onPressTime} style={[styles.timeInput, isPickerActive && styles.timeInputActive]}>
+          <Pressable
+            onPress={onPressTime}
+            style={[
+              styles.timeInput,
+              isPickerActive && styles.timeInputActive,
+            ]}
+          >
             <Text style={styles.timeText}>{timeLabel}</Text>
           </Pressable>
         </View>
@@ -285,20 +283,69 @@ function AlarmSection({
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.grayscale[1000], paddingHorizontal: 20, paddingTop: 20 },
+  screen: {
+    flex: 1,
+    backgroundColor: colors.grayscale[1000],
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
   content: { paddingTop: 18, flex: 1 },
-  section: { borderRadius: 14, backgroundColor: colors.grayscale[1000], padding: 16 },
+  section: {
+    borderRadius: 14,
+    backgroundColor: colors.grayscale[1000],
+    padding: 16,
+  },
   sectionTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 20 },
-  sectionTitle: { color: colors.grayscale[100], fontSize: 18, fontFamily: 'Pretendard-SemiBold', marginBottom: 5 },
-  sectionDesc: { color: colors.grayscale[500], fontSize: 14, fontFamily: 'Pretendard-Regular', lineHeight: 16 },
+  sectionTitle: {
+    color: colors.grayscale[100],
+    fontSize: 18,
+    fontFamily: 'Pretendard-SemiBold',
+    marginBottom: 5,
+  },
+  sectionDesc: {
+    color: colors.grayscale[500],
+    fontSize: 14,
+    fontFamily: 'Pretendard-Regular',
+    lineHeight: 16,
+  },
   timeBlock: { marginTop: 14, gap: 8 },
-  timeLabel: { color: colors.grayscale[200], fontSize: 12, fontFamily: 'Pretendard-SemiBold' },
-  timeInput: { height: 48, borderRadius: 8, backgroundColor: colors.grayscale[800], borderWidth: 1, borderColor: colors.grayscale[800], paddingHorizontal: 14, justifyContent: 'center' },
+  timeLabel: {
+    color: colors.grayscale[200],
+    fontSize: 12,
+    fontFamily: 'Pretendard-SemiBold',
+  },
+  timeInput: {
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: colors.grayscale[800],
+    borderWidth: 1,
+    borderColor: colors.grayscale[800],
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+  },
   timeInputActive: { borderColor: colors.primary[500] },
-  timeText: { color: colors.grayscale[200], fontSize: 16, fontFamily: 'Pretendard-Regular' },
+  timeText: {
+    color: colors.grayscale[200],
+    fontSize: 16,
+    fontFamily: 'Pretendard-Regular',
+  },
   bottom: { paddingBottom: 38 },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
-  sheet: { backgroundColor: colors.grayscale[900], paddingTop: 10, paddingHorizontal: 18, paddingBottom: 18, borderTopLeftRadius: 18, borderTopRightRadius: 18 },
-  sheetHandle: { alignSelf: 'center', width: 42, height: 4, borderRadius: 2, backgroundColor: colors.grayscale[700], marginBottom: 12 },
+  sheet: {
+    backgroundColor: colors.grayscale[900],
+    paddingTop: 10,
+    paddingHorizontal: 18,
+    paddingBottom: 18,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+  },
+  sheetHandle: {
+    alignSelf: 'center',
+    width: 42,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.grayscale[700],
+    marginBottom: 12,
+  },
   sheetButton: { marginTop: 14, marginBottom: 16 },
 });

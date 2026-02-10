@@ -26,6 +26,7 @@
       "appleTeamId": "37G422NWZY"
     },
     "android": {
+      "useNextNotificationsApi": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
+import * as Notifications from 'expo-notifications';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -14,31 +14,42 @@ import SignUpScreen from './src/screens/main/sign/SignUpScreen';
 import FindPasswordScreen from './src/screens/main/sign/FindPasswordScreen';
 import PasswordResetInputScreen from './src/screens/main/sign/PasswordResetInputScreen';
 import TermsScreen from './src/screens/main/sign/TermsScreen';
+
 import { useAuthStore } from './src/app/features/auth/auth.store';
+import { useUserStore } from './src/app/features/user/user.store';
+import { useGoalStore } from './src/store/goalStore';
+
 import { storage } from './src/utils/storage';
 import { storageKeys } from './src/constants/storageKeys';
 import { colors } from './src/constants/colors';
-import { useGoalStore } from './src/store/goalStore';
 
-// import messaging from '@react-native-firebase/messaging';
+// 🔔 알림 동기화 유틸
+import { syncNotifications } from './src/notifications/syncNotifications';
+import { cancelNotification } from './src/notifications/notificationScheduler';
+import { NOTIFICATION_IDS } from './src/notifications/notificationIds';
 
 const Stack = createNativeStackNavigator();
-const FORCE_ONBOARDING_PREVIEW = false; 
+const FORCE_ONBOARDING_PREVIEW = false;
 
-/* =======================
-   FCM ?? ??
-======================= */
-const registerFcm = async () => {
-  // Firebase FCM disabled for Expo Go compatibility.
-  return;
-};
+Notifications.setNotificationHandler({
+  handleNotification: async (): Promise<Notifications.NotificationBehavior> => ({
+    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
+
   const hydrate = useAuthStore((s) => s.hydrate);
   const hydrateGoals = useGoalStore((s) => s.hydrate);
+
   const accessToken = useAuthStore((s) => s.accessToken);
+  const notificationSettings = useUserStore((s) => s.notificationSettings);
 
   const [loaded] = useFonts({
     'Pretendard-Regular': require('./assets/fonts/Pretendard-Regular.otf'),
@@ -48,33 +59,68 @@ export default function App() {
   });
 
   useEffect(() => {
-  let isMounted = true;
-  (async () => {
-    try {
-      const [,, completed] = await Promise.all([
-        hydrate(),
-        hydrateGoals(),
-        storage.get('onboardingCompleted'),
-      ]);
-      
-      if (isMounted) {
-        setOnboardingCompleted(completed === 'true');
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const [,, completed] = await Promise.all([
+          hydrate(),
+          hydrateGoals(),
+          storage.get(storageKeys.onboardingDone),
+        ]);
+
+        if (isMounted) {
+          setOnboardingCompleted(completed === 'true');
+        }
+      } finally {
+        if (isMounted) setIsHydrating(false);
       }
-    } finally {
-      if (isMounted) setIsHydrating(false);
-    }
-  })();
-  return () => { isMounted = false; };
-}, [hydrate, hydrateGoals]);
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [hydrate, hydrateGoals]);
+
+  useEffect(() => {
+    (async () => {
+      const settings = await Notifications.getPermissionsAsync();
+      if (settings.status !== 'granted') {
+        await Notifications.requestPermissionsAsync();
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!accessToken || !notificationSettings) return;
+
+    syncNotifications({
+      recordEnabled: notificationSettings.recordEnabled,
+      recordTime: new Date(`1970-01-01T${notificationSettings.recordTime}:00`),
+      dailyEnabled: notificationSettings.dailyEnabled,
+      dailyTime: new Date(`1970-01-01T${notificationSettings.dailyTime}:00`),
+    });
+  }, [accessToken, notificationSettings]);
+
+  useEffect(() => {
+    if (accessToken) return;
+
+    cancelNotification(NOTIFICATION_IDS.RECORD_REMIND);
+    cancelNotification(NOTIFICATION_IDS.DAILY_CLOSE);
+  }, [accessToken]);
 
   if (!loaded || isHydrating) return null;
+
   const shouldBypassAuth = FORCE_ONBOARDING_PREVIEW;
   const showAppFlow = Boolean(accessToken) || shouldBypassAuth;
-  const shouldShowOnboarding = shouldBypassAuth || (showAppFlow && !onboardingCompleted);
-  
+  const shouldShowOnboarding =
+    shouldBypassAuth || (showAppFlow && !onboardingCompleted);
+
   const initialRouteName = showAppFlow
-  ? (shouldShowOnboarding ? 'OnBoardingScreen' : 'Main')
-  : 'Login';
+    ? shouldShowOnboarding
+      ? 'OnBoardingScreen'
+      : 'Main'
+    : 'Login';
 
   return (
     <View style={styles.container}>
@@ -87,7 +133,10 @@ export default function App() {
         >
           {showAppFlow ? (
             <>
-              <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} />
+              <Stack.Screen
+                name="OnBoardingScreen"
+                component={OnBoardingScreen}
+              />
               <Stack.Screen name="Main" component={RootNavigator} />
             </>
           ) : (
