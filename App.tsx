@@ -23,7 +23,6 @@ import { storage } from './src/utils/storage';
 import { storageKeys } from './src/constants/storageKeys';
 import { colors } from './src/constants/colors';
 
-// 🔔 알림 동기화 유틸
 import { syncNotifications } from './src/notifications/syncNotifications';
 import { cancelNotification } from './src/notifications/notificationScheduler';
 import { NOTIFICATION_IDS } from './src/notifications/notificationIds';

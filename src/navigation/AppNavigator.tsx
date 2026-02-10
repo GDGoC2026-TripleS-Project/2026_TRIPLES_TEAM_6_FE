@@ -27,6 +27,7 @@ const TAB_BAR_CONFIG = {
   },
   headerTitleContainerStyle: {
     paddingBottom: 16,
+    paddingTop: 12,
   },
   headerTintColor: colors.grayscale[100],
   headerTitleStyle: {
