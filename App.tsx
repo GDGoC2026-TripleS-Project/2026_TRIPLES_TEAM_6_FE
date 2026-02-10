@@ -4,7 +4,8 @@ import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
 
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
+import * as Linking from 'expo-linking';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import RootNavigator from './src/navigation/RootStack';
@@ -22,6 +23,7 @@ import { useGoalStore } from './src/store/goalStore';
 import { storage } from './src/utils/storage';
 import { storageKeys } from './src/constants/storageKeys';
 import { colors } from './src/constants/colors';
+import { AppStackParamList } from './src/types/navigation';
 
 import { syncNotifications } from './src/notifications/syncNotifications';
 import { cancelNotification } from './src/notifications/notificationScheduler';
@@ -30,15 +32,33 @@ import { NOTIFICATION_IDS } from './src/notifications/notificationIds';
 const Stack = createNativeStackNavigator();
 const FORCE_ONBOARDING_PREVIEW = false;
 
-Notifications.setNotificationHandler({
-  handleNotification: async (): Promise<Notifications.NotificationBehavior> => ({
-    shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+const linking: LinkingOptions<AppStackParamList> = {
+  prefixes: [Linking.createURL('/'), 'lastcup://'],
+  config: {
+    screens: {
+      PasswordResetInputScreen: {
+        path: 'auth/password-reset',
+        parse: {
+          token: (t: string) => decodeURIComponent(t),
+          loginId: (v: string) => decodeURIComponent(v),
+        },
+      },
+      Main: {
+        screens: {
+          AlarmSettingScreen: 'alarm-setting',
+        },
+      },
+    },
+  },
+};
+
+/* =======================
+   FCM ?? ??
+======================= */
+const registerFcm = async () => {
+  // Firebase FCM disabled for Expo Go compatibility.
+  return;
+};
 
 export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);
@@ -56,6 +76,7 @@ export default function App() {
     'Pretendard-SemiBold': require('./assets/fonts/Pretendard-SemiBold.otf'),
     'Pretendard-Bold': require('./assets/fonts/Pretendard-Bold.otf'),
   });
+
 
   useEffect(() => {
     let isMounted = true;
@@ -124,12 +145,29 @@ export default function App() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      <NavigationContainer>
+      <NavigationContainer linking={linking}>
         <Stack.Navigator
           key={showAppFlow ? 'app' : 'auth'}
           initialRouteName={initialRouteName}
           screenOptions={{ headerShown: false }}
         >
+          <Stack.Screen
+            name="PasswordResetInputScreen"
+            component={PasswordResetInputScreen}
+            options={{
+              headerShown: true,
+              title: '비밀번호 변경',
+              headerTitleAlign: 'center',
+              headerStyle: { backgroundColor: colors.grayscale[1000] },
+              headerShadowVisible: false,
+              headerTintColor: '#FFFFFF',
+              headerTitleStyle: {
+                fontSize: 16,
+                fontFamily: 'Pretendard-SemiBold',
+              },
+              headerBackButtonDisplayMode: 'minimal',
+            }}
+          />
           {showAppFlow ? (
             <>
               <Stack.Screen
@@ -164,23 +202,6 @@ export default function App() {
                 options={{
                   headerShown: true,
                   title: '비밀번호 찾기',
-                  headerTitleAlign: 'center',
-                  headerStyle: { backgroundColor: colors.grayscale[1000] },
-                  headerShadowVisible: false,
-                  headerTintColor: '#FFFFFF',
-                  headerTitleStyle: {
-                    fontSize: 16,
-                    fontFamily: 'Pretendard-SemiBold',
-                  },
-                  headerBackButtonDisplayMode: 'minimal',
-                }}
-              />
-              <Stack.Screen
-                name="PasswordResetInputScreen"
-                component={PasswordResetInputScreen}
-                options={{
-                  headerShown: true,
-                  title: '비밀번호 변경',
                   headerTitleAlign: 'center',
                   headerStyle: { backgroundColor: colors.grayscale[1000] },
                   headerShadowVisible: false,
