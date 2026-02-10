@@ -25,20 +25,14 @@ const Chart = ({
 
   const { intakePercent, limitPercent } =
     safeLimit > 0
-      ? safeIntake > safeLimit
-        ? safeIntake >= safeLimit * 2
-          ? {
-              intakePercent: 50,
-            limitPercent: clampPercentWithMin((safeLimit / safeIntake) * 50),
-          }
-        : {
-            intakePercent: 50,
-            limitPercent: 50,
-            }
-        : {
-            intakePercent: clampPercentWithMin((safeIntake / safeLimit) * 50),
-            limitPercent: 50,
-          }
+      ? (() => {
+          const maxValue = Math.max(safeIntake, safeLimit);
+          return {
+            // Scale both bars by the max so over-intake doesn't cap the chart.
+            intakePercent: clampPercentWithMin((safeIntake / maxValue) * 100),
+            limitPercent: clampPercentWithMin((safeLimit / maxValue) * 100),
+          };
+        })()
       : { intakePercent: 0, limitPercent: 0 };
 
   const getScaleValues = () => {
