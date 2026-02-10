@@ -28,17 +28,22 @@ export default function OptionText({ text, base, extra }: OptionTextProps) {
 const styles = StyleSheet.create({
   optionWrap: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 15,
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    columnGap: 8,
+    rowGap: 4,
+    marginBottom: 8,
   },
   optionBase: {
     color: colors.grayscale[600],
     fontSize: 14,
     fontFamily: 'Pretendard-Regular',
+    flexShrink: 1,
   },
   optionExtra: {
     color: colors.grayscale[200],
     fontSize: 14,
     fontFamily: 'Pretendard-Regular',
+    flexShrink: 1,
   },
 });

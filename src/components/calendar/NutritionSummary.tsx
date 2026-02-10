@@ -1,13 +1,22 @@
-﻿import React from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../../constants/colors';
+
 interface NutritionSummaryProps {
   drinks: Array<{ caffeineMg: number; sugarG: number }>;
   caffeineMax?: number;
   sugarMax?: number;
 }
 
-export default function NutritionSummary({ 
+const ESPRESSO_MG = 75;
+const SUGAR_CUBE_G = 3;
+
+const formatUnits = (value: number) => {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+};
+
+export default function NutritionSummary({
   drinks,
   caffeineMax = 400,
   sugarMax = 25,
@@ -18,36 +27,65 @@ export default function NutritionSummary({
   const caffeinePercent = Math.min((totalCaffeine / caffeineMax) * 100, 100);
   const sugarPercent = Math.min((totalSugar / sugarMax) * 100, 100);
 
+  const isCaffeineOver = totalCaffeine > caffeineMax;
+  const isSugarOver = totalSugar > sugarMax;
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.label}>
-          카페인{' '}
-          <Text style={styles.amountText}>{totalCaffeine}mg</Text>
+        <View style={styles.header}>
+          <Text style={styles.label}>
+            카페인{' '}
+            <Text style={styles.amountText}>{totalCaffeine}mg</Text>
+          </Text>
+          {isCaffeineOver && (
+            <View style={styles.warningBadge}>
+              <Text style={styles.warningIcon}>!</Text>
+            </View>
+          )}
+        </View>
+        <Text style={styles.maxText}>
+          에스프레소 {formatUnits(totalCaffeine / ESPRESSO_MG)}/
+          {formatUnits(caffeineMax / ESPRESSO_MG)}잔
         </Text>
-        <Text style={styles.maxText}>0/{caffeineMax}mg</Text>
         <View style={styles.progressBar}>
-          <View 
+          <View
             style={[
-              styles.progressFill, 
-              { width: `${caffeinePercent}%` }
+              styles.progressFill,
+              { 
+                width: `${caffeinePercent}%`,
+                backgroundColor: isCaffeineOver ? '#EF4444' : colors.primary[500]
+              },
             ]}
           />
         </View>
       </View>
-      
+
       <View style={styles.card}>
-        <Text style={styles.label}>
-          당류{' '}
-          <Text style={styles.amountText}>{totalSugar}g</Text>
+        <View style={styles.header}>
+          <Text style={styles.label}>
+            당류{' '}
+            <Text style={styles.amountText}>{totalSugar}g</Text>
+          </Text>
+          {isSugarOver && (
+            <View style={styles.warningBadge}>
+              <Text style={styles.warningIcon}>!</Text>
+            </View>
+          )}
+        </View>
+        <Text style={styles.maxText}>
+          각설탕 {formatUnits(totalSugar / SUGAR_CUBE_G)}/
+          {formatUnits(sugarMax / SUGAR_CUBE_G)}개
         </Text>
-        <Text style={styles.maxText}>0/{sugarMax}g</Text>
         <View style={styles.progressBar}>
-          <View 
+          <View
             style={[
-              styles.progressFill, 
-              { width: `${sugarPercent}%` }
-            ]} 
+              styles.progressFill,
+              { 
+                width: `${sugarPercent}%`,
+                backgroundColor: isSugarOver ? '#EF4444' : colors.primary[500]
+              },
+            ]}
           />
         </View>
       </View>
@@ -69,16 +107,34 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
   label: {
     color: colors.grayscale[100],
     fontSize: 15,
     fontFamily: 'Pretendard-Medium',
-    marginBottom: 6,
   },
   amountText: {
     color: colors.primary[500],
     fontSize: 15,
     fontFamily: 'Pretendard-Medium',
+  },
+  warningBadge: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#EF4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  warningIcon: {
+    color: colors.grayscale[1000],
+    fontSize: 13,
+    fontFamily: 'Pretendard-Bold',
   },
   progressBar: {
     height: 6,
@@ -89,7 +145,6 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.primary[500],
     borderRadius: 2,
   },
   maxText: {
