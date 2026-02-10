@@ -35,7 +35,7 @@ const registerFcm = async () => {
 
 export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);
-  const [onboardingPending, setOnboardingPending] = useState(false);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
   const hydrate = useAuthStore((s) => s.hydrate);
   const hydrateGoals = useGoalStore((s) => s.hydrate);
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -51,15 +51,14 @@ export default function App() {
   let isMounted = true;
   (async () => {
     try {
-      const [,, pending] = await Promise.all([
+      const [,, completed] = await Promise.all([
         hydrate(),
         hydrateGoals(),
-        storage.get(storageKeys.onboardingPending),
+        storage.get('onboardingCompleted'),
       ]);
       
       if (isMounted) {
-        // pending이 'true'인 경우에만 온보딩으로 진입하게 됨
-        setOnboardingPending(pending === 'true');
+        setOnboardingCompleted(completed === 'true');
       }
     } finally {
       if (isMounted) setIsHydrating(false);
@@ -71,7 +70,7 @@ export default function App() {
   if (!loaded || isHydrating) return null;
   const shouldBypassAuth = FORCE_ONBOARDING_PREVIEW;
   const showAppFlow = Boolean(accessToken) || shouldBypassAuth;
-  const shouldShowOnboarding = shouldBypassAuth || onboardingPending;
+  const shouldShowOnboarding = shouldBypassAuth || (showAppFlow && !onboardingCompleted);
   
   const initialRouteName = showAppFlow
   ? (shouldShowOnboarding ? 'OnBoardingScreen' : 'Main')
