@@ -69,6 +69,10 @@ export default function DrinkDetailSheet({
 
   const rows: NutritionRow[] = useMemo(() => {
     if (!drink) return [];
+    
+    const caffeine = formatNumber(drink.caffeineMg);
+    const sugar = formatNumber(drink.sugarG);
+    
     return [
       {
         label: '카페인',
