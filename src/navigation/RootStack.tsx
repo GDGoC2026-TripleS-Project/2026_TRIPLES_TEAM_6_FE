@@ -62,9 +62,7 @@ export default function RootNavigator() {
                 title={route.params.brandName}
                 onBack={() => navigation.goBack()}
                 initialRightType="heart"
-                onRightPress={() =>
-                  navigation.navigate("MainTabs", { screen: "Heart" } as any)
-                }
+                rightActive={route.params.isFavorite ?? false}
               />
             </SafeAreaView>
           ),

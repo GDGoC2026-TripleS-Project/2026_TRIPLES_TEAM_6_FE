@@ -29,6 +29,7 @@ const RecordScreen = () => {
     navigation.navigate('RecordDetail', {
       brandId: String(brandId),
       brandName,
+      isFavorite: brands.find((b) => b.id === brandId)?.isFavorite,
       selectedDate,
     });
   };
