@@ -92,9 +92,13 @@ const SearchField = ({
 
   const isAnimatedVariant = variant === 'animated';
   const iconSize = 24;
+  const showValueDot =
+    isAnimatedVariant && !isFocused && !!(value && value.trim().length > 0);
 
   return (
     <Pressable onPress={handlePress} style={styles.wrapper}>
+      {showValueDot && <View style={styles.valueDot} pointerEvents="none" />}
+      
       <Animated.View
         style={[
           styles.container,
@@ -161,6 +165,16 @@ const styles = StyleSheet.create({
   hiddenInput: {
     width: 0,
     opacity: 0,
+  },
+  valueDot: {
+    position: 'absolute',
+    zIndex: 2,
+    top: 3,
+    left: 31,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.primary[500],
   },
 });
 

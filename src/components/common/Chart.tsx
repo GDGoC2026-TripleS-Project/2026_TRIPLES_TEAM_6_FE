@@ -25,20 +25,30 @@ const Chart = ({
 
   const { intakePercent, limitPercent } =
     safeLimit > 0
-      ? safeIntake > safeLimit
-        ? safeIntake >= safeLimit * 2
-          ? {
-              intakePercent: 50,
-            limitPercent: clampPercentWithMin((safeLimit / safeIntake) * 50),
-          }
-        : {
-            intakePercent: 50,
-            limitPercent: 50,
+      ? (() => {
+          if (safeIntake > safeLimit) {
+            // 섭취량이 기준량을 초과한 경우
+            if (safeIntake >= safeLimit * 2) {
+              // 섭취량이 기준량의 2배 이상인 경우
+              return {
+                intakePercent: 50,
+                limitPercent: clampPercentWithMin((safeLimit / safeIntake) * 50),
+              };
+            } else {
+              // 섭취량이 기준량보다 크지만 2배 미만인 경우
+              return {
+                intakePercent: clampPercentWithMin((safeIntake / safeLimit) * 50),
+                limitPercent: clampPercentWithMin((safeLimit / safeIntake) * 50),
+              };
             }
-        : {
-            intakePercent: clampPercentWithMin((safeIntake / safeLimit) * 50),
-            limitPercent: 50,
+          } else {
+            // 섭취량이 기준량 이하인 경우
+            return {
+              intakePercent: clampPercentWithMin((safeIntake / safeLimit) * 50),
+              limitPercent: 50,
+            };
           }
+        })()
       : { intakePercent: 0, limitPercent: 0 };
 
   const getScaleValues = () => {
@@ -85,8 +95,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     textAlign: 'left',
-    gap: 20,
-    width: 177
+    width: 177,
+    marginBottom: 24,
   },
   title: {
     fontSize: 12,

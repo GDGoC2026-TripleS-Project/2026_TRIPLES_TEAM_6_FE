@@ -15,6 +15,7 @@ import Chart from '../../../../assets/ComponentsImage/chart.svg';
 
 const { width } = Dimensions.get('window');
 
+
 const slides = [
   {
     id: '1',
@@ -93,26 +94,25 @@ function OnboardingScreen({ navigation }: { navigation: any }) {
   };
 
   const handleNext = async () => {
-  if (currentIndex < slides.length - 1) {
-    goTo(currentIndex + 1);
-  } else {
-    // 1. 목표치 저장
-    setGoals({
-      caffeine: caffeineValue,
-      sugar: sugarValue,
-    });
+    if (currentIndex < slides.length - 1) {
+      goTo(currentIndex + 1);
+    } else {
+      // 1. 목표치 저장
+      setGoals({
+        caffeine: caffeineValue,
+        sugar: sugarValue,
+      });
 
-   await Promise.all([
-      storage.set(storageKeys.onboardingDone, 'true'),
-      storage.set(storageKeys.onboardingPending, 'false'), // 이제 온보딩이 대기 중이 아님을 명시
-    ]);
+      // 2. 온보딩 완료 저장 (App.js와 동일한 키 사용)
+      await storage.set('onboardingCompleted', 'true');
 
-    navigation.replace('Main', {
-      screen: 'MainTabs',
-      params: { screen: 'Home' },
-    });
-  }
-};
+      // 3. Main 화면으로 이동
+      navigation.replace('Main', {
+        screen: 'MainTabs',
+        params: { screen: 'Home' },
+      });
+    }
+  };
 
   const handlePrev = () => {
     if (currentIndex > 0) goTo(currentIndex - 1);
@@ -136,12 +136,12 @@ function OnboardingScreen({ navigation }: { navigation: any }) {
         data={slides}
         renderItem={({ item, index }: { item: any; index: number }) => (
           <SlideItem
-  item={item}
-  index={index}
-  caffeineValue={caffeineValue}
-  sugarValue={sugarValue}
-  onChangeGoal={onChangeGoal}
-/>
+            item={item}
+            index={index}
+            caffeineValue={caffeineValue}
+            sugarValue={sugarValue}
+            onChangeGoal={onChangeGoal}
+          />
         )}
         keyExtractor={(item) => item.id}
         horizontal

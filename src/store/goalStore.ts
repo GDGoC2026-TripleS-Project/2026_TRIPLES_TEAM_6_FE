@@ -9,6 +9,7 @@ type GoalState = {
   goalByDate: Record<string, { caffeine: number; sugar: number }>;
 
   setGoals: (goals: { caffeine: number; sugar: number; effectiveDate?: string }) => void;
+  setGoalsLocal: (goals: { caffeine: number; sugar: number; effectiveDate?: string }) => Promise<void>;
   hydrate: () => Promise<void>;
   getGoalsForDate: (date: string) => Promise<void>;
 };
@@ -37,6 +38,21 @@ export const useGoalStore = create<GoalState>((set) => ({
     } catch {
       // keep local goals even if API update fails
     }
+  },
+  setGoalsLocal: async ({ caffeine, sugar, effectiveDate }) => {
+    const targetDate = effectiveDate ?? todayString();
+    set((state) => ({
+      caffeine,
+      sugar,
+      goalByDate: {
+        ...state.goalByDate,
+        [targetDate]: { caffeine, sugar },
+      },
+    }));
+    await Promise.all([
+      storage.set(storageKeys.goalCaffeine, String(caffeine)),
+      storage.set(storageKeys.goalSugar, String(sugar)),
+    ]);
   },
   
 

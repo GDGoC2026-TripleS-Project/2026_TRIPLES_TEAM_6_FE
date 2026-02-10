@@ -250,15 +250,10 @@ export const useUserStore = create<UserState>((set, get) => ({
     const res = await userApiLayer.updateNotificationSettings(payload);
     console.log('🟢 PATCH response:', JSON.stringify(res.data, null, 2));
     
-    if (res.data?.success === true) {
-      console.log('✅ Update success, refetching...');
-      await get().fetchNotificationSettings();
-      set({ isLoading: false });
-      return true;
-    }
-    
-    set({ isLoading: false, errorMessage: '저장에 실패했습니다.' });
-    return false;
+    console.log('✅ Update success, refetching...');
+    await get().fetchNotificationSettings();
+    set({ isLoading: false });
+    return true;
   } catch (e: any) {
     console.log('🔴 PATCH error:', e.response?.data);
     set({ 

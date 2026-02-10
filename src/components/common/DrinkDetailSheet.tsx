@@ -76,15 +76,15 @@ export default function DrinkDetailSheet({
     return [
       {
         label: '카페인',
-        value: caffeine,
+        value: formatNumber(drink.caffeineMg),
         unit: 'mg',
-        note: caffeine > 0 ? `에스프레소 약 ${formatUnits(caffeine / ESPRESSO_MG)}잔` : undefined,
+        note: '에스프레소 약 2잔',
       },
       {
         label: '당류',
-        value: sugar,
+        value: formatNumber(drink.sugarG),
         unit: 'g',
-        note: sugar > 0 ? `각설탕 약 ${formatUnits(sugar / SUGAR_CUBE_G)}개` : undefined,
+        note: '각설탕 약 1개',
       },
       { label: '칼로리', value: formatNumber(drink.calorieKcal), unit: 'kcal' },
       { label: '나트륨', value: formatNumber(drink.sodiumMg), unit: 'mg' },
@@ -107,7 +107,9 @@ export default function DrinkDetailSheet({
 
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>
+
       <Pressable style={styles.backdrop} onPress={handleClose} />
+
 
       <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
         <View style={styles.handle} />
