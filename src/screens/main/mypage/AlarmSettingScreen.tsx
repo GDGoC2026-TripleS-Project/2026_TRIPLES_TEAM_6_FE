@@ -73,14 +73,13 @@ export default function AlarmSettingScreen() {
   });
 
   const [isFirstVisit, setIsFirstVisit] = useState<boolean | null>(null);
-
   const [initialState, setInitialState] = useState<AlarmState | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [activeKey, setActiveKey] = useState<AlarmKey>('record');
 
   const activeDate = activeKey === 'record' ? state.recordTime : state.dailyTime;
 
-  // 1. 화면 진입 시 데이터 불러오기
+  // 화면 진입 시 데이터 불러오기
   useEffect(() => {
     fetchNotificationSettings();
     (async () => {
@@ -89,19 +88,36 @@ export default function AlarmSettingScreen() {
     })();
   }, []);
 
+  // 서버 데이터 동기화
   useEffect(() => {
     if (isFirstVisit === null) return;
-    if (!notificationSettings) {
+
+    // 처음 방문이거나 서버에 설정이 없으면 꺼진 상태로 시작
+    if (isFirstVisit || !notificationSettings) {
+      const defaultState: AlarmState = {
+        recordEnabled: false,
+        recordTime: createTime(14, 0),
+        dailyEnabled: false,
+        dailyTime: createTime(21, 0),
+      };
+      
       if (!initialState) {
-        setInitialState(state);
+        setState(defaultState);
+        setInitialState(defaultState);
+      }
+      
+      if (isFirstVisit) {
+        void storage.set(storageKeys.alarmFirstSeen, 'true');
+        setIsFirstVisit(false);
       }
       return;
     }
 
+    // 서버에 설정이 있으면 그 값 사용
     const synced: AlarmState = {
-      recordEnabled: isFirstVisit ? false : notificationSettings.recordEnabled,
+      recordEnabled: notificationSettings.recordEnabled,
       recordTime: toDateFromHHmm(notificationSettings.recordTime, 14, 0),
-      dailyEnabled: isFirstVisit ? false : notificationSettings.dailyEnabled,
+      dailyEnabled: notificationSettings.dailyEnabled,
       dailyTime: toDateFromHHmm(notificationSettings.dailyTime, 21, 0),
     };
 
@@ -115,11 +131,6 @@ export default function AlarmSettingScreen() {
     if (shouldUpdate) {
       setState(synced);
       setInitialState(synced);
-    }
-
-    if (isFirstVisit) {
-      void storage.set(storageKeys.alarmFirstSeen, 'true');
-      setIsFirstVisit(false);
     }
   }, [notificationSettings, isFirstVisit]);
 
@@ -157,26 +168,23 @@ export default function AlarmSettingScreen() {
     }));
   };
 
-  // 3. 저장 로직 개선
-  // 저장 로직 개선
-const onSave = async () => {
-  const payload = {
-    recordEnabled: state.recordEnabled,
-    recordTime: toHHmm(state.recordTime),
-    dailyEnabled: state.dailyEnabled,
-    dailyTime: toHHmm(state.dailyTime),
+  const onSave = async () => {
+    const payload = {
+      recordEnabled: state.recordEnabled,
+      recordTime: toHHmm(state.recordTime),
+      dailyEnabled: state.dailyEnabled,
+      dailyTime: toHHmm(state.dailyTime),
+    };
+
+    const success = await updateNotificationSettings(payload);
+
+    if (success) {
+      setInitialState(state);
+      Alert.alert('저장 완료', '알림 설정이 업데이트됐어요.');
+    } else {
+      Alert.alert('저장 실패', errorMessage ?? '다시 시도해 주세요.');
+    }
   };
-
-  const success = await updateNotificationSettings(payload);
-
-  if (success) {
-    // 저장 성공 시 initialState 업데이트 (버튼 비활성화)
-    setInitialState(state);
-    Alert.alert('저장 완료', '알림 설정이 업데이트됐어요.');
-  } else {
-    Alert.alert('저장 실패', errorMessage ?? '다시 시도해 주세요.');
-  }
-};
 
   return (
     <View style={styles.screen}>
@@ -213,7 +221,6 @@ const onSave = async () => {
         />
       </View>
 
-      {/* DatePicker Modals (기존과 동일) */}
       {Platform.OS === 'android' && pickerOpen && (
         <DateTimePicker value={activeDate} mode="time" onChange={onPick} />
       )}
@@ -239,7 +246,6 @@ const onSave = async () => {
   );
 }
 
-// AlarmSection 컴포넌트는 기존과 동일
 function AlarmSection({
   title,
   desc,
