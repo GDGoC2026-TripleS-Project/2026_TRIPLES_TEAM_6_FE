@@ -4,7 +4,7 @@ const config: ExpoConfig = {
   scheme: 'lastcup',
   name: 'lastcup',
   slug: 'lastcup',
-  version: '1.0.0',
+  version: '1.0.1',
   platforms: ['ios'],
   orientation: 'portrait',
   icon: './assets/icon.png',
@@ -19,6 +19,7 @@ const config: ExpoConfig = {
   ios: {
     googleServicesFile: './GoogleService-Info.plist',
     bundleIdentifier: 'com.triples.lastcup',
+    buildNumber: '3',
     supportsTablet: true,
     usesAppleSignIn: true,
     infoPlist: {
@@ -60,6 +61,7 @@ const config: ExpoConfig = {
       {
         ios: {
           useFrameworks: 'static',
+          deploymentTarget: '15.1',
         },
       },
     ],
