@@ -16,6 +16,7 @@ import GoalEditScreen from "../screens/main/mypage/GoalEditScreen";
 import PasswordResetScreen from "../screens/main/sign/PasswordResetScreen";
 import PasswordResetInputScreen from "../screens/main/sign/PasswordResetInputScreen";
 import FindPasswordScreen from "../screens/main/sign/FindPasswordScreen";
+import ResetLinkScreen from "../screens/main/sign/ResetLinkScreen";
 import ProfileSettingScreen from "../screens/main/mypage/ProfileSettingScreen";
 import AlarmSettingScreen from "../screens/main/mypage/AlarmSettingScreen";
 
@@ -117,14 +118,50 @@ export default function RootNavigator() {
         }}
       />
 
-      <Stack.Screen name="PasswordResetScreen" component={PasswordResetScreen} options={{ headerShown: true, title: "" }} />
+      <Stack.Screen
+        name="PasswordResetScreen"
+        component={PasswordResetScreen}
+        options={{
+          headerShown: true,
+          title: "재설정 완료",
+          headerTitleAlign: "center",
+          headerStyle: { backgroundColor: colors.grayscale[1000] },
+          headerShadowVisible: false,
+          headerTintColor: colors.grayscale[100],
+          headerTitleStyle: {
+            fontSize: 14,
+            fontFamily: "Pretendard-SemiBold",
+          },
+          headerBackButtonDisplayMode: "minimal",
+        }}
+      />
 
       <Stack.Screen
         name="FindPasswordScreen"
         component={FindPasswordScreen}
+        options={({ route }) => {
+          const isFromMyPage = route?.params?.redirectTo === "MyPage";
+          return {
+            headerShown: true,
+            title: isFromMyPage ? "비밀번호 변경" : "비밀번호 찾기",
+            headerTitleAlign: "center",
+            headerStyle: { backgroundColor: colors.grayscale[1000] },
+            headerShadowVisible: false,
+            headerTintColor: colors.grayscale[100],
+            headerTitleStyle: {
+              fontSize: 14,
+              fontFamily: "Pretendard-SemiBold",
+            },
+            headerBackButtonDisplayMode: "minimal",
+          };
+        }}
+      />
+      <Stack.Screen
+        name="ResetLinkScreen"
+        component={ResetLinkScreen}
         options={{
           headerShown: true,
-          title: "비밀번호 찾기",
+          title: "재설정 링크",
           headerTitleAlign: "center",
           headerStyle: { backgroundColor: colors.grayscale[1000] },
           headerShadowVisible: false,

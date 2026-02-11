@@ -1,16 +1,30 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { colors } from "../../../constants/colors";
 import Button from "../../../components/common/Button";
 import Check from "../../../../assets/ComponentsImage/check.svg";
 
 const ResetLinkScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const defaultLoginId = route?.params?.defaultLoginId as string | undefined;
+  const token = route?.params?.token as string | undefined;
+  const redirectTo = route?.params?.redirectTo as "MyPage" | "Login" | undefined;
+
   const onResend = () => {
-    console.log("재설정 링크 다시 받기");
+    navigation.navigate("FindPasswordScreen", {
+      defaultLoginId,
+      redirectTo,
+    });
   };
 
   const onNext = () => {
-    console.log("다음으로");
+    navigation.navigate("PasswordResetInputScreen", {
+      loginId: defaultLoginId,
+      token,
+      redirectTo,
+    });
   };
 
   return (
@@ -23,8 +37,7 @@ const ResetLinkScreen: React.FC = () => {
         <Text style={styles.title}>재설정 링크 발송 완료</Text>
 
         <Text style={styles.desc}>
-          입력하신 이메일 주소로
-비밀번호 재설정 링크를 보냈습니다.
+          입력하신 이메일 주소로 비밀번호 재설정 링크를 보냈습니다.
         </Text>
       </View>
 

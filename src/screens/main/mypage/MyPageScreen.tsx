@@ -66,15 +66,14 @@ export default function MyPageScreen() {
     }, [fetchMe])
   );
 
-  type RootNoParam = {
-    [K in keyof RootStackParamList]: RootStackParamList[K] extends undefined ? K : never;
-  }[keyof RootStackParamList];
-
-  const goRoot = (name: RootNoParam) => {
+  const goRoot = <T extends keyof RootStackParamList>(
+    name: T,
+    params?: RootStackParamList[T]
+  ) => {
     if (rootNavigation) {
-      rootNavigation.navigate(name);
+      rootNavigation.navigate(name, params as never);
     } else {
-      navigation.navigate(name as never);
+      navigation.navigate(name as never, params as never);
     }
   };
 
@@ -122,7 +121,7 @@ export default function MyPageScreen() {
       ? [
           {
             label: "비밀번호 변경",
-            onPress: () => goRoot("PasswordResetInputScreen"),
+            onPress: () => goRoot("FindPasswordScreen", { redirectTo: "MyPage" }),
           },
         ]
       : []),

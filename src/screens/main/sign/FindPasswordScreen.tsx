@@ -11,6 +11,9 @@ const FindPasswordScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const defaultLoginId = route?.params?.defaultLoginId as string | undefined;
+  const redirectTo = route?.params?.redirectTo as "MyPage" | "Login" | undefined;
+  const isFromMyPage = redirectTo === "MyPage";
+  const pageTitleText = isFromMyPage ? "비밀번호 변경" : "비밀번호 찾기";
 
   const [userName, setUserName] = useState(defaultLoginId ?? "");
   const [email, setEmail] = useState("");
@@ -101,9 +104,10 @@ const FindPasswordScreen: React.FC = () => {
         {
           text: "확인",
           onPress: () =>
-            navigation.navigate("PasswordResetInputScreen", {
+            navigation.navigate("ResetLinkScreen", {
               defaultLoginId: userName.trim(),
               token: typeof tokenFromResponse === "string" ? tokenFromResponse : undefined,
+              redirectTo,
             }),
         },
       ]);
@@ -127,7 +131,7 @@ const FindPasswordScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.headerArea}>
-        <Text style={styles.pageTitle}>비밀번호 찾기</Text>
+        <Text style={styles.pageTitle}>{pageTitleText}</Text>
         <Text style={styles.pageDesc}>
           가입 시 사용한 아이디와 이메일을 입력해 주세요.
         </Text>

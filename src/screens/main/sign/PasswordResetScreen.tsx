@@ -1,15 +1,35 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { CommonActions, useNavigation, useRoute } from "@react-navigation/native";
 import { colors } from "../../../constants/colors";
 import Button from "../../../components/common/Button";
 import Check from "../../../../assets/ComponentsImage/check.svg";
+import { useAuthStore } from "../../../app/features/auth/auth.store";
 
 const PasswordResetScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const redirectTo = route?.params?.redirectTo as "MyPage" | "Login" | undefined;
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const logout = useAuthStore((s) => s.logout);
+  const effectiveRedirectTo = redirectTo ?? "Login";
 
-  const Complete = () => {
-    navigation.navigate("Login");
+  const Complete = async () => {
+    if (effectiveRedirectTo === "MyPage") {
+      navigation.navigate("MainTabs", { screen: "Profile" });
+      return;
+    }
+    if (accessToken) {
+      await logout();
+      return;
+    }
+    const parent = navigation.getParent?.();
+    const root = parent?.getParent?.() ?? parent;
+    if (root) {
+      root.dispatch(CommonActions.navigate({ name: "Login" }));
+      return;
+    }
+    navigation.dispatch(CommonActions.navigate({ name: "Login" }));
   };
 
   return (
@@ -24,7 +44,14 @@ const PasswordResetScreen: React.FC = () => {
       </View>
 
       <View style={styles.bottom}>
-        <Button title="로그인 화면으로 이동" onPress={Complete} />
+        <Button
+          title={
+            effectiveRedirectTo === "MyPage"
+              ? "마이페이지로 이동"
+              : "로그인 화면으로 이동"
+          }
+          onPress={Complete}
+        />
       </View>
     </View>
   );

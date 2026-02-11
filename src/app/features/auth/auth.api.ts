@@ -57,7 +57,7 @@ export const authApiLayer = {
     return client.post<PasswordResetRequestRes>('/auth/password-reset/request', payload);
   },
 
-  confirmPasswordReset: async (payload: { loginId: string; newPassword: string; token: string }) => {
+  confirmPasswordReset: async (payload: { newPassword: string; token: string }) => {
     const token = await storage.get(storageKeys.accessToken);
     const client = token ? api : authApi;
     return client.post<PasswordResetConfirmRes>('/auth/password-reset/confirm', payload);

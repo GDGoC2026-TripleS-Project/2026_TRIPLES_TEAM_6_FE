@@ -13,7 +13,9 @@ import LoginScreen from './src/screens/main/sign/LoginScreen';
 import OnBoardingScreen from './src/screens/main/onBoarding/OnBoardingScreen';
 import SignUpScreen from './src/screens/main/sign/SignUpScreen';
 import FindPasswordScreen from './src/screens/main/sign/FindPasswordScreen';
+import ResetLinkScreen from './src/screens/main/sign/ResetLinkScreen';
 import PasswordResetInputScreen from './src/screens/main/sign/PasswordResetInputScreen';
+import PasswordResetScreen from './src/screens/main/sign/PasswordResetScreen';
 import TermsScreen from './src/screens/main/sign/TermsScreen';
 
 import { useAuthStore } from './src/app/features/auth/auth.store';
@@ -47,7 +49,7 @@ const linking: LinkingOptions<AppStackParamList> = {
   config: {
     screens: {
       PasswordResetInputScreen: {
-        path: 'auth/password-reset',
+        path: 'password-reset',
         parse: {
           token: (t: string) => decodeURIComponent(t),
           loginId: (v: string) => decodeURIComponent(v),
@@ -214,11 +216,45 @@ export default function App() {
                 }}
               />
               <Stack.Screen
+                name="ResetLinkScreen"
+                component={ResetLinkScreen}
+                options={{
+                  headerShown: true,
+                  title: '재설정 링크',
+                  headerTitleAlign: 'center',
+                  headerStyle: { backgroundColor: colors.grayscale[1000] },
+                  headerShadowVisible: false,
+                  headerTintColor: '#FFFFFF',
+                  headerTitleStyle: {
+                    fontSize: 16,
+                    fontFamily: 'Pretendard-SemiBold',
+                  },
+                  headerBackButtonDisplayMode: 'minimal',
+                }}
+              />
+              <Stack.Screen
                 name="PasswordResetInputScreen"
                 component={PasswordResetInputScreen}
                 options={{
                   headerShown: true,
                   title: '비밀번호 변경',
+                  headerTitleAlign: 'center',
+                  headerStyle: { backgroundColor: colors.grayscale[1000] },
+                  headerShadowVisible: false,
+                  headerTintColor: '#FFFFFF',
+                  headerTitleStyle: {
+                    fontSize: 16,
+                    fontFamily: 'Pretendard-SemiBold',
+                  },
+                  headerBackButtonDisplayMode: 'minimal',
+                }}
+              />
+              <Stack.Screen
+                name="PasswordResetScreen"
+                component={PasswordResetScreen}
+                options={{
+                  headerShown: true,
+                  title: '재설정 완료',
                   headerTitleAlign: 'center',
                   headerStyle: { backgroundColor: colors.grayscale[1000] },
                   headerShadowVisible: false,

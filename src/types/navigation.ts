@@ -74,9 +74,10 @@ export type RootStackParamList = {
   DropCompleteScreen: undefined;
   PeriodSearchScreen: { startDate: string; endDate: string };
   GoalEditScreen: undefined;
-  PasswordResetScreen: undefined;
-  PasswordResetInputScreen: undefined;
-  FindPasswordScreen: undefined;
+  PasswordResetScreen: { redirectTo?: 'MyPage' | 'Login' } | undefined;
+  PasswordResetInputScreen: { redirectTo?: 'MyPage' | 'Login' } | undefined;
+  FindPasswordScreen: { redirectTo?: 'MyPage' | 'Login' } | undefined;
+  ResetLinkScreen: { redirectTo?: 'MyPage' | 'Login' } | undefined;
   ProfileSettingScreen: undefined;
   AlarmSettingScreen: undefined;
 };
@@ -84,8 +85,9 @@ export type RootStackParamList = {
 export type AppStackParamList = {
   Login: undefined;
   SignUpScreen: undefined;
-  FindPasswordScreen: undefined;
-  PasswordResetInputScreen: undefined;
+  FindPasswordScreen: { redirectTo?: 'MyPage' | 'Login' } | undefined;
+  ResetLinkScreen: { redirectTo?: 'MyPage' | 'Login' } | undefined;
+  PasswordResetInputScreen: { redirectTo?: 'MyPage' | 'Login' } | undefined;
   TermsScreen: undefined;
   OnBoardingScreen: undefined;
   Main: NavigatorScreenParams<RootStackParamList>;
