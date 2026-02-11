@@ -45,6 +45,7 @@ export default function CalendarScreen() {
     closeDetail,
     handleDelete,
     handleEdit,
+    handleGoBrand,
     renderOptionText,
   } = useCalendarScreen();
 
@@ -151,6 +152,7 @@ export default function CalendarScreen() {
         onClose={closeDetail}
         onDelete={(drink: DrinkLike) => handleDelete(drink.id)}
         onEdit={(drink: DrinkLike) => handleEdit(drink.id)}
+        onTitlePress={(drink: DrinkLike) => handleGoBrand(drink.id)}
       />
 
       <PeriodSelectBottomSheet

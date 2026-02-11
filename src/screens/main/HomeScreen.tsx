@@ -47,6 +47,7 @@ export default function HomeScreen() {
     closeDetail,
     handleDelete,
     handleEdit,
+    handleGoBrand,
     renderOptionText,
   } = useHomeScreen();
 
@@ -147,6 +148,7 @@ export default function HomeScreen() {
         onClose={closeDetail}
         onDelete={(drink) => handleDelete(drink.id)}
         onEdit={(drink) => handleEdit(drink.id)}
+        onTitlePress={(drink) => handleGoBrand(drink.id)}
       />
 
       <DatePickerBottomSheet

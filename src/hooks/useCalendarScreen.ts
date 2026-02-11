@@ -11,7 +11,6 @@ import {
   type DailyIntake,
   type IntakeDrink,
 } from '../api/record/intake.api';
-import { fetchMenuSizeDetail } from '../api/record/menu.api';
 import { buildOptionBase } from '../utils/recordOptions';
 import type { DrinkLike } from '../components/common/DrinkDetailSheet';
 import type { OptionTextParts } from '../types/optionText';
@@ -225,6 +224,38 @@ export const useCalendarScreen = () => {
 
   const closeDetail = () => setDetailOpen(false);
 
+  const handleGoBrand = async (drinkId?: string | number) => {
+    const targetId = selectedIntakeId ?? drinkId ?? selectedDrink?.id;
+    if (!targetId) return;
+    try {
+      const detailRes = await fetchIntakeDetail(targetId);
+      if (!detailRes.success || !detailRes.data?.brandId) {
+        throw new Error('상세 정보가 없습니다.');
+      }
+      const targetDate = detailRes.data.intakeDate || selectedDate;
+      closeDetail();
+      navigation.navigate('RecordDetail', {
+        brandId: String(detailRes.data.brandId),
+        brandName: detailRes.data.brandName ?? '',
+        selectedDate: targetDate,
+        isFavorite: undefined,
+        edit: {
+          intakeId: detailRes.data.id,
+          menuSizeId: detailRes.data.menuSizeId,
+          intakeDate: detailRes.data.intakeDate,
+          temperature: detailRes.data.temperature,
+          sizeName: detailRes.data.sizeName,
+          options: detailRes.data.options?.map((opt) => ({
+            optionId: opt.optionId,
+            quantity: opt.count ?? 1,
+          })),
+        },
+      });
+    } catch {
+      Alert.alert('이동 실패', '브랜드 정보를 불러오지 못했습니다.');
+    }
+  };
+
   const handleDelete = (drinkId?: string) => {
     const targetId = selectedIntakeId ?? drinkId;
     if (!targetId) return;
@@ -262,14 +293,9 @@ export const useCalendarScreen = () => {
     if (!targetId) return;
     try {
       const detailRes = await fetchIntakeDetail(targetId);
-      if (!detailRes.success || !detailRes.data?.menuSizeId) {
+      if (!detailRes.success || !detailRes.data?.menuId) {
         throw new Error('상세 정보가 없습니다.');
       }
-      const sizeRes = await fetchMenuSizeDetail(detailRes.data.menuSizeId);
-      if (!sizeRes.success || !sizeRes.data) {
-        throw new Error('메뉴 정보를 불러오지 못했습니다.');
-      }
-
       const targetDate = detailRes.data.intakeDate || selectedDate;
       closeDetail();
       const edit = {
@@ -283,7 +309,9 @@ export const useCalendarScreen = () => {
           quantity: opt.count ?? 1,
         })),
       };
-      navigation.navigate('Record', {
+      navigation.navigate('RecordDrinkDetail', {
+        drinkId: String(detailRes.data.menuId),
+        drinkName: detailRes.data.menuName ?? selectedDrink?.menuName ?? '',
         selectedDate: targetDate,
         edit,
       });
@@ -331,6 +359,7 @@ export const useCalendarScreen = () => {
     closeDetail,
     handleDelete,
     handleEdit,
+    handleGoBrand,
     renderOptionText,
   };
 };

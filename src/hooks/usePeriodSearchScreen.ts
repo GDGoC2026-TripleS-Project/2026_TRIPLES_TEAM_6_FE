@@ -10,7 +10,6 @@ import {
   type DailyIntake,
   type IntakeDrink,
 } from '../api/record/intake.api';
-import { fetchMenuSizeDetail } from '../api/record/menu.api';
 import { buildOptionBase } from '../utils/recordOptions';
 import type { DrinkLike } from '../components/common/DrinkDetailSheet';
 import type { OptionTextParts } from '../types/optionText';
@@ -210,6 +209,40 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
 
   const closeDetail = () => setDetailOpen(false);
 
+  const handleGoBrand = (drinkId?: string | number) => {
+    const targetId = selectedIntakeId ?? drinkId ?? selectedDrink?.id;
+    if (!targetId) return;
+    (async () => {
+      try {
+        const detailRes = await fetchIntakeDetail(targetId);
+        if (!detailRes.success || !detailRes.data?.brandId) {
+          throw new Error('상세 정보가 없습니다.');
+        }
+        const targetDate = detailRes.data.intakeDate || detailDate;
+        closeDetail();
+        navigation.navigate('RecordDetail', {
+          brandId: String(detailRes.data.brandId),
+          brandName: detailRes.data.brandName ?? '',
+          selectedDate: targetDate,
+          isFavorite: undefined,
+          edit: {
+            intakeId: detailRes.data.id,
+            menuSizeId: detailRes.data.menuSizeId,
+            intakeDate: detailRes.data.intakeDate,
+            temperature: detailRes.data.temperature,
+            sizeName: detailRes.data.sizeName,
+            options: detailRes.data.options?.map((opt) => ({
+              optionId: opt.optionId,
+              quantity: opt.count ?? 1,
+            })),
+          },
+        });
+      } catch {
+        Alert.alert('이동 실패', '브랜드 정보를 불러오지 못했습니다.');
+      }
+    })();
+  };
+
   const handleDelete = (drinkId?: string) => {
     const targetId = selectedIntakeId ?? drinkId;
     if (!targetId) return;
@@ -248,12 +281,8 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
     (async () => {
       try {
         const detailRes = await fetchIntakeDetail(targetId);
-        if (!detailRes.success || !detailRes.data?.menuSizeId) {
+        if (!detailRes.success || !detailRes.data?.menuId) {
           throw new Error('상세 정보가 없습니다.');
-        }
-        const sizeRes = await fetchMenuSizeDetail(detailRes.data.menuSizeId);
-        if (!sizeRes.success || !sizeRes.data) {
-          throw new Error('메뉴 정보를 불러오지 못했습니다.');
         }
         const targetDate = detailRes.data.intakeDate || detailDate;
         const edit = {
@@ -268,7 +297,9 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
           })),
         };
         closeDetail();
-        navigation.navigate('Record', {
+        navigation.navigate('RecordDrinkDetail', {
+          drinkId: String(detailRes.data.menuId),
+          drinkName: detailRes.data.menuName ?? selectedDrink?.menuName ?? '',
           selectedDate: targetDate,
           edit,
         });
@@ -307,6 +338,7 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
     closeDetail,
     handleDelete,
     handleEdit,
+    handleGoBrand,
     renderOptionText,
     goalByDate,
     fallbackCaffeine,

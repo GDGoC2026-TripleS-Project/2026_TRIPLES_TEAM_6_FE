@@ -47,6 +47,7 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
     closeDetail,
     handleDelete,
     handleEdit,
+    handleGoBrand,
     renderOptionText,
     goalByDate,
     fallbackCaffeine,
@@ -153,6 +154,7 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
         onClose={closeDetail}
         onDelete={(drink) => handleDelete(drink.id)}
         onEdit={(drink) => handleEdit(drink.id)}
+        onTitlePress={(drink) => handleGoBrand(drink.id)}
       />
 
       <PeriodSelectBottomSheet

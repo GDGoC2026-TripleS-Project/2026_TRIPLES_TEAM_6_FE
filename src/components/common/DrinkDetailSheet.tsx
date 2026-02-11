@@ -41,6 +41,7 @@ type Props = {
   onClose: () => void;
   onEdit?: (drink: DrinkLike) => void;
   onDelete?: (drink: DrinkLike) => void;
+  onTitlePress?: (drink: DrinkLike) => void;
 };
 
 const formatNumber = (n?: number) => (typeof n === 'number' ? n : 0);
@@ -51,6 +52,7 @@ export default function DrinkDetailSheet({
   onClose,
   onEdit,
   onDelete,
+  onTitlePress,
 }: Props) {
   const anim = useRef(new Animated.Value(0)).current; 
 
@@ -130,7 +132,9 @@ export default function DrinkDetailSheet({
 
         <View style={styles.header}>
           <Text style={styles.brand}>{drink.brandName}</Text>
-          <Text style={styles.title}>{drink.menuName}</Text>
+          <Pressable onPress={() => onTitlePress?.(drink)} hitSlop={6}>
+            <Text style={styles.title}>{drink.menuName}</Text>
+          </Pressable>
         </View>
 
         <View style={styles.divider} />
