@@ -10,26 +10,42 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "jsEngine": "jsc",
+
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
     "ios": {
       "googleServicesFile": "./GoogleService-Info.plist",
       "bundleIdentifier": "com.triples.lastcup",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "deploymentTarget": "13.4",
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "jsEngine": "jsc",
+      "appleTeamId": "37G422NWZY",
+
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      },
-      "appleTeamId": "37G422NWZY"
+        "ITSAppUsesNonExemptEncryption": false,
+
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "kakao697c4d3c42b546e3401cb2763ff37c7f"
+            ]
+          }
+        ],
+
+        "LSApplicationQueriesSchemes": [
+          "kakaokompassauth",
+          "kakaolink"
+        ]
+      }
     },
+
     "android": {
-      "useNextNotificationsApi": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -49,35 +65,42 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.triples.lastcup"
     },
+
     "web": {
       "favicon": "./assets/favicon.png"
     },
+
     "plugins": [
       "expo-font",
       "expo-web-browser",
       "@react-native-community/datetimepicker",
+
       [
         "@react-native-seoul/kakao-login",
         {
           "kakaoAppKey": "697c4d3c42b546e3401cb2763ff37c7f"
         }
       ],
+
       [
         "expo-build-properties",
         {
           "ios": {
-            "useFrameworks": "dynamic"
+            "useFrameworks": "static"
           }
         }
-      ]
-      , "@react-native-firebase/app",
+      ],
+
+      "@react-native-firebase/app",
       "@react-native-firebase/messaging"
     ],
+
     "extra": {
       "eas": {
         "projectId": "f2fd9b7c-43e3-41e0-a0ee-67617f477007"
       }
     },
+
     "owner": "gkstldus22"
   }
 }
