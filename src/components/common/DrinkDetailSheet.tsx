@@ -27,6 +27,8 @@ export type DrinkLike = {
   menuName: string;
   caffeineMg?: number;
   sugarG?: number;
+  espressoShotCount?: number;
+  sugarCubeCount?: number;
   calorieKcal?: number;
   sodiumMg?: number;
   proteinG?: number;
@@ -72,19 +74,31 @@ export default function DrinkDetailSheet({
     
     const caffeine = formatNumber(drink.caffeineMg);
     const sugar = formatNumber(drink.sugarG);
+    const espressoCount =
+      typeof drink.espressoShotCount === 'number'
+        ? drink.espressoShotCount
+        : caffeine > 0
+        ? Math.round(caffeine / ESPRESSO_MG)
+        : 0;
+    const sugarCubeCount =
+      typeof drink.sugarCubeCount === 'number'
+        ? drink.sugarCubeCount
+        : sugar > 0
+        ? Math.round(sugar / SUGAR_CUBE_G)
+        : 0;
     
     return [
       {
         label: '카페인',
         value: formatNumber(drink.caffeineMg),
         unit: 'mg',
-        note: caffeine > 0 ? `에스프레소 약 ${formatUnits(caffeine / ESPRESSO_MG)}잔` : undefined,
+        note: espressoCount > 0 ? `에스프레소 약 ${espressoCount}잔` : undefined,
       },
       {
         label: '당류',
         value: formatNumber(drink.sugarG),
         unit: 'g',
-        note: sugar > 0 ? `각설탕 약 ${formatUnits(sugar / SUGAR_CUBE_G)}개` : undefined,
+        note: sugarCubeCount > 0 ? `각설탕 약 ${sugarCubeCount}개` : undefined,
       },
       { label: '칼로리', value: formatNumber(drink.calorieKcal), unit: 'kcal' },
       { label: '나트륨', value: formatNumber(drink.sodiumMg), unit: 'mg' },
