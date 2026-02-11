@@ -73,13 +73,6 @@
       "@react-native-community/datetimepicker",
 
       [
-        "@react-native-seoul/kakao-login",
-        {
-          "kakaoAppKey": "697c4d3c42b546e3401cb2763ff37c7f"
-        }
-      ],
-
-      [
         "expo-build-properties",
         {
           "ios": {
@@ -91,6 +84,7 @@
       "@react-native-firebase/app",
       "@react-native-firebase/messaging"
     ],
+
 
     "extra": {
       "eas": {
