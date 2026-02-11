@@ -162,7 +162,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      <NavigationContainer>
+      <NavigationContainer linking={linking}>
         <Stack.Navigator
           key={showAppFlow ? 'app' : 'auth'}
           initialRouteName={initialRouteName}

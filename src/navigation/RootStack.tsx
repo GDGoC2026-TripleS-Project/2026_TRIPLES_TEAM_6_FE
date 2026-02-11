@@ -54,19 +54,7 @@ export default function RootNavigator() {
       <Stack.Screen
         name="RecordDetail"
         component={RecordDetailScreen}
-        options={({ navigation, route }) => ({
-          headerShown: true,
-          header: () => (
-            <SafeAreaView edges={["top"]} style={{ backgroundColor: colors.grayscale[1000] }}>
-              <HeaderDetail
-                title={route.params.brandName}
-                onBack={() => navigation.goBack()}
-                initialRightType="heart"
-                rightActive={route.params.isFavorite ?? false}
-              />
-            </SafeAreaView>
-          ),
-        })}
+        options={{ headerShown: false }}
       />
 
       <Stack.Screen

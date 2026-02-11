@@ -24,7 +24,7 @@ const RecordScreen = () => {
   const edit = route.params?.edit;
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { brands, setBrands, isLoading, error: loadError } = useBrands();
+  const { brands, setBrands, isLoading, error: loadError } = useBrands({ focusRefresh: true });
 
   const handleBrandPress = (brandId: number, brandName: string) => {
     navigation.navigate('RecordDetail', {

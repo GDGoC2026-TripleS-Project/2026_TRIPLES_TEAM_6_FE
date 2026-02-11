@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View, Text, ScrollView } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import SearchField from '../../../components/common/SearchField';
 import List from '../../../components/common/List';
 import { colors } from '../../../constants/colors';
@@ -10,6 +11,8 @@ import { RootStackParamList } from '../../../types/navigation';
 import { useBrandMenus } from '../../../hooks/useBrandMenus';
 import { fetchBrandMenus } from '../../../api/record/menu.api';
 import { useFavoriteMenus } from '../../../hooks/useFavoriteMenus';
+import HeaderDetail from '../../../components/common/HeaderDetail';
+import { addBrandFavorite, deleteBrandFavorite } from '../../../api/record/brand.api';
 
 type RecordDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecordDetail'>;
 type RecordDetailRouteProp = RouteProp<RootStackParamList, 'RecordDetail'>;
@@ -33,6 +36,7 @@ const RecordDetailScreen = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const { isFavorite, toggleFavorite } = useFavoriteMenus();
   const [categories, setCategories] = useState<string[]>([]);
+  const [isBrandFavorite, setIsBrandFavorite] = useState(route.params.isFavorite ?? false);
 
   const apiCategory = useMemo(() => {
     if (selectedCategory === 'all') return undefined;
@@ -99,8 +103,34 @@ const RecordDetailScreen = () => {
     });
   };
 
+  const handleBrandFavoriteToggle = async () => {
+    const nextLiked = !isBrandFavorite;
+    setIsBrandFavorite(nextLiked);
+    try {
+      const res = nextLiked
+        ? await addBrandFavorite(brandId)
+        : await deleteBrandFavorite(brandId);
+
+      if (!res.success) {
+        throw new Error(res.error?.message ?? '즐겨찾기 처리에 실패했어요.');
+      }
+    } catch (err) {
+      if (__DEV__) console.log('[API ERR] /brands/:id/favorites', err);
+      setIsBrandFavorite(!nextLiked);
+    }
+  };
+
   return (
     <View style={styles.container}>
+      <SafeAreaView edges={['top']} style={styles.headerContainer}>
+        <HeaderDetail
+          title={brandName}
+          onBack={() => navigation.goBack()}
+          initialRightType="heart"
+          rightActive={isBrandFavorite}
+          onRightPress={handleBrandFavoriteToggle}
+        />
+      </SafeAreaView>
       <View style={styles.filterSection}>
         <ScrollView
           horizontal
@@ -174,6 +204,9 @@ const RecordDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  headerContainer: {
+    backgroundColor: colors.grayscale[1000],
   },
   filterSection: {
     paddingVertical: 16,
