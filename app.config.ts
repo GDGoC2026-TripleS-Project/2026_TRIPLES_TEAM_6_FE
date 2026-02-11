@@ -59,7 +59,7 @@ const config: ExpoConfig = {
       'expo-build-properties',
       {
         ios: {
-          useFrameworks: 'dynamic',
+          useFrameworks: 'static',
         },
       },
     ],
