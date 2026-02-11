@@ -93,7 +93,6 @@ export const calculateTotals = (params: {
     const nutrition = optionNutrition?.[id];
     if (nutrition) {
       totalCaffeine += (nutrition.caffeineMg ?? 0) * count;
-      totalSugar += (nutrition.sugarG ?? 0) * count;
       return true;
     }
     return false;
@@ -112,8 +111,7 @@ export const calculateTotals = (params: {
   if (options.syrup) {
     Object.entries(options.syrup).forEach(([key, count]) => {
       if (count <= 0) return;
-      const used = applyNutrition(key, count);
-      if (!used) totalSugar += count * 5;
+      applyNutrition(key, count);
     });
   }
 

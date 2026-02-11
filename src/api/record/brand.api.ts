@@ -15,14 +15,9 @@ export type BrandOption = {
   id: number;
   name: string;
   category: string;
-  caffeineMg: number;
-  sugarG: number;
-  calories: number;
-  sodiumMg: number;
-  proteinG: number;
-  fatG: number;
-  displayUnitName: string;
-  sugarCubeEquivalent: number;
+  selectionType: 'COUNT' | 'SINGLE' | 'MULTI';
+  caffeineMg?: number;
+  sugarG?: number;
 };
 
 export type BrandFavoriteResponse = {

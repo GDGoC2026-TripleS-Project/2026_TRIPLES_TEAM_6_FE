@@ -25,7 +25,7 @@ import { fetchBrandOptions, type BrandOption } from '../../../api/record/brand.a
 type RecordDrinkDetailRouteProp = RouteProp<RootStackParamList, 'RecordDrinkDetail'>;
 type RecordDrinkDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecordDrinkDetail'>;
 
-const INFO_MESSAGE = '커피를 제외한 옵션은 기록용 메모이며, 영양정보 계산에는 포함되지 않아요.';
+const INFO_MESSAGE = '추가 옵션은 카페인 합산에만 반영돼요.';
 
 const RecordDrinkDetail = () => {
     const route = useRoute<RecordDrinkDetailRouteProp>();
@@ -210,10 +210,14 @@ const RecordDrinkDetail = () => {
         const optionNutrition = brandOptions.reduce<
             Record<string, { caffeineMg?: number; sugarG?: number }>
         >((acc, option) => {
-            acc[String(option.id)] = {
-                caffeineMg: option.caffeineMg,
-                sugarG: option.sugarG,
-            };
+            const hasCaffeine = option.caffeineMg !== undefined && option.caffeineMg !== null;
+            const hasSugar = option.sugarG !== undefined && option.sugarG !== null;
+            if (hasCaffeine || hasSugar) {
+                acc[String(option.id)] = {
+                    caffeineMg: option.caffeineMg ?? 0,
+                    sugarG: option.sugarG ?? 0,
+                };
+            }
             return acc;
         }, {});
         return { optionNames, optionNutrition };
