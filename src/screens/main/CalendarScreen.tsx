@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, StyleSheet, Pressable, FlatList } from 'react-native';
 import { colors } from '../../constants/colors';
 import Coffee from '../../../assets/ComponentsImage/coffeeImg.svg';
 
@@ -48,89 +48,102 @@ export default function CalendarScreen() {
     renderOptionText,
   } = useCalendarScreen();
 
-  return (
-    <ScrollView style={styles.container}>
-      <Calendar
-        events={calendarEvents}
-        startDate={selectedDate}
-        endDate={selectedDate}
-        onDayPress={setSelectedDate}
-      />
-
-      <View style={styles.periodBtnWrap}>
-        <Pressable
-          onPress={onGoPeriodSearch}
-          style={({ pressed }) => [
-            styles.periodButton,
-            pressed && styles.periodButtonPressed,
+  const renderItem = useCallback(
+    ({ item }: { item: typeof drinks[number] }) => {
+      const opt = renderOptionText(item);
+      return (
+        <DrinkList
+          brandName={item.brandName}
+          menuName={item.menuName}
+          optionText={
+            opt.base ? (
+              <OptionText base={opt.base} extra={opt.extras} />
+            ) : (
+              <OptionText text={opt.extras[0] || '옵션 없음'} />
+            )
+          }
+          pills={[
+            { label: '카페인', value: item.caffeineMg, unit: 'mg' },
+            { label: '당류', value: item.sugarG, unit: 'g' },
           ]}
-          hitSlop={8}
-        >
-          <Text style={styles.periodText}>기간별 조회하기</Text>
-          <Ionicons
-            name="chevron-forward"
-            size={16}
-            color={colors.grayscale[300]}
-            style={styles.periodIcon}
-          />
-        </Pressable>
-      </View>
-
-      <View style={styles.headerRow}>
-        <Text style={styles.dataText}>{toKoreanDate(selectedDate)}</Text>
-
-        <AddRecordButton title="기록 추가하기" onPress={onAddRecord} />
-      </View>
-
-      {(hasRecord || isSkipped) && (
-        <NutritionSummary
-          drinks={summaryDrinks}
-          caffeineMax={caffeineGoal}
-          sugarMax={sugarGoal}
+          onPress={() => openDetail(item)}
         />
-      )}
+      );
+    },
+    [openDetail, renderOptionText]
+  );
 
-      {!hasRecord && !isSkipped && !isFutureDate && (
-        <View style={styles.centerBox}>
-          <Coffee style={{ marginTop: -10 }} />
-          <Text style={styles.centerText}>
-            마신 음료가 있다면 기록을 추가해보세요.
-          </Text>
-        </View>
-      )}
+  return (
+    <>
+      <FlatList
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        data={hasRecord && !isSkipped ? drinks : []}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={renderItem}
+        initialNumToRender={6}
+        windowSize={5}
+        removeClippedSubviews
+        ListHeaderComponent={
+          <View>
+            <Calendar
+              events={calendarEvents}
+              startDate={selectedDate}
+              endDate={selectedDate}
+              onDayPress={setSelectedDate}
+            />
 
-      {!hasRecord && !isFutureDate && (
-        <View style={[styles.skipCheckboxWrap, isSkipped && styles.skipCheckboxWrapActive]}>
-          <SkipDrinkCheckbox value={isSkipped} onChange={onToggleSkip} disabled={false} />
-        </View>
-      )}
-
-      <View style={styles.list}>
-        {hasRecord &&
-          !isSkipped &&
-          drinks.map((d) => {
-            const opt = renderOptionText(d);
-            return (
-              <DrinkList
-                key={d.id}
-                brandName={d.brandName}
-                menuName={d.menuName}
-                optionText={
-                  opt.base ? (
-                    <OptionText base={opt.base} extra={opt.extras} />
-                  ) : (
-                    <OptionText text={opt.extras[0] || '옵션 없음'} />
-                  )
-                }
-                pills={[
-                  { label: '카페인', value: d.caffeineMg, unit: 'mg' },
-                  { label: '당류', value: d.sugarG, unit: 'g' },
+            <View style={styles.periodBtnWrap}>
+              <Pressable
+                onPress={onGoPeriodSearch}
+                style={({ pressed }) => [
+                  styles.periodButton,
+                  pressed && styles.periodButtonPressed,
                 ]}
-                onPress={() => openDetail(d)}
+                hitSlop={8}
+              >
+                <Text style={styles.periodText}>기간별 조회하기</Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.grayscale[300]}
+                  style={styles.periodIcon}
+                />
+              </Pressable>
+            </View>
+
+            <View style={styles.headerRow}>
+              <Text style={styles.dataText}>{toKoreanDate(selectedDate)}</Text>
+
+              <AddRecordButton title="기록 추가하기" onPress={onAddRecord} />
+            </View>
+
+            {(hasRecord || isSkipped) && (
+              <NutritionSummary
+                drinks={summaryDrinks}
+                caffeineMax={caffeineGoal}
+                sugarMax={sugarGoal}
               />
-            );
-          })}
-      </View>
+            )}
+
+            {!hasRecord && !isSkipped && !isFutureDate && (
+              <View style={styles.centerBox}>
+                <Coffee style={{ marginTop: -10 }} />
+                <Text style={styles.centerText}>
+                  마신 음료가 있다면 기록을 추가해보세요.
+                </Text>
+              </View>
+            )}
+
+            {!hasRecord && !isFutureDate && (
+              <View style={[styles.skipCheckboxWrap, isSkipped && styles.skipCheckboxWrapActive]}>
+                <SkipDrinkCheckbox value={isSkipped} onChange={onToggleSkip} disabled={false} />
+              </View>
+            )}
+          </View>
+        }
+        ListFooterComponent={<View style={styles.listFooterSpacing} />}
+      />
 
       <DrinkDetailSheet
         visible={detailOpen}
@@ -145,7 +158,7 @@ export default function CalendarScreen() {
         onClose={() => setPeriodSheetOpen(false)}
         onConfirm={handlePeriodConfirm}
       />
-    </ScrollView>
+    </>
   );
 }
 
@@ -155,6 +168,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.grayscale[1000],
     paddingHorizontal: 3,
     paddingTop: 4,
+  },
+  content: {
+    paddingBottom: 30,
   },
 
   headerRow: {
@@ -174,13 +190,8 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 
-  list: {
-    marginTop: 10,
-    borderRadius: 12,
-    backgroundColor: colors.grayscale[1000],
-    borderColor: colors.grayscale[800],
-    overflow: 'hidden',
-    marginBottom: 30,
+  listFooterSpacing: {
+    height: 20,
   },
 
   centerBox: {

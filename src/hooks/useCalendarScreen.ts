@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { MainTabNavigationProp } from '../types/navigation';
@@ -49,6 +49,7 @@ export const useCalendarScreen = () => {
   const [dailyLoading, setDailyLoading] = useState(false);
   const [dailyError, setDailyError] = useState<string | null>(null);
   const [eventDates, setEventDates] = useState<string[]>([]);
+  const dailyCacheRef = useRef<Record<string, DailyIntake>>({});
 
   const fallbackCaffeine = useGoalStore((s) => s.caffeine);
   const fallbackSugar = useGoalStore((s) => s.sugar);
@@ -82,13 +83,31 @@ export const useCalendarScreen = () => {
   const hasRecord = drinks.length > 0;
 
   const loadDaily = useCallback(async () => {
+    const cached = dailyCacheRef.current[selectedDate];
+    if (cached) {
+      setDaily(cached);
+    }
     setDailyLoading(true);
     setDailyError(null);
     try {
       const res = await fetchDailyIntake(selectedDate);
       if (res.success && res.data) {
+        dailyCacheRef.current[selectedDate] = res.data;
         setDaily(res.data);
       } else {
+        if (!dailyCacheRef.current[selectedDate]) {
+          setDaily({
+            date: selectedDate,
+            totalCaffeineMg: 0,
+            totalSugarG: 0,
+            drinkCount: 0,
+            drinks: [],
+          });
+        }
+        setDailyError(res.error?.message ?? '일별 기록을 불러오지 못했습니다.');
+      }
+    } catch {
+      if (!dailyCacheRef.current[selectedDate]) {
         setDaily({
           date: selectedDate,
           totalCaffeineMg: 0,
@@ -96,16 +115,7 @@ export const useCalendarScreen = () => {
           drinkCount: 0,
           drinks: [],
         });
-        setDailyError(res.error?.message ?? '일별 기록을 불러오지 못했습니다.');
       }
-    } catch {
-      setDaily({
-        date: selectedDate,
-        totalCaffeineMg: 0,
-        totalSugarG: 0,
-        drinkCount: 0,
-        drinks: [],
-      });
       setDailyError('일별 기록을 불러오지 못했습니다.');
     } finally {
       setDailyLoading(false);
@@ -120,9 +130,11 @@ export const useCalendarScreen = () => {
     };
   }, [loadDaily]);
 
+  const monthKey = useMemo(() => selectedDate.slice(0, 7), [selectedDate]);
+
   useEffect(() => {
     let isMounted = true;
-    const { start, end } = toMonthRange(selectedDate);
+    const { start, end } = toMonthRange(`${monthKey}-01`);
     const loadEvents = async () => {
       try {
         const res = await fetchPeriodIntakeDates(start, end);
@@ -141,7 +153,7 @@ export const useCalendarScreen = () => {
     return () => {
       isMounted = false;
     };
-  }, [selectedDate]);
+  }, [monthKey]);
 
   const onToggleSkip = (next: boolean) => {
     setSkippedByDate((prev) => ({

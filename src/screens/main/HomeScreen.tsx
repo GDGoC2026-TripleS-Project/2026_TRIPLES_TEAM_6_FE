@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import Chart from '../../components/common/Chart';
 import { colors } from '../../constants/colors';
 import DrinkList from '../../components/common/MenuItem';
@@ -50,69 +50,96 @@ export default function HomeScreen() {
     renderOptionText,
   } = useHomeScreen();
 
+  const renderItem = useCallback(
+    ({ item }: { item: typeof drinks[number] }) => {
+      const opt = renderOptionText(item);
+      return (
+        <DrinkList
+          brandName={item.brandName}
+          menuName={item.menuName}
+          optionText={
+            opt.base ? (
+              <OptionText base={opt.base} extra={opt.extras} />
+            ) : (
+              <OptionText text={opt.extras[0] || '옵션 없음'} />
+            )
+          }
+          pills={[
+            { label: '카페인', value: item.caffeineMg || 0, unit: 'mg' },
+            { label: '당류', value: item.sugarG || 0, unit: 'g' },
+          ]}
+          onPress={() => openDetail(item)}
+        />
+      );
+    },
+    [openDetail, renderOptionText]
+  );
+
+  const renderEmpty = () => {
+    if (isFutureDate) return null;
+    return (
+      <View style={styles.emptyWrap}>
+        <Coffee width={80} height={80} />
+        <Text style={styles.emptyText}>
+          {isSkipped
+            ? '오늘은 카페에서 음료를 마시지 않았어요.'
+            : '마신 음료가 있다면 기록을 추가해보세요.'}
+        </Text>
+        <SkipDrinkCheckbox value={isSkipped} onChange={onToggleSkip} disabled={false} />
+      </View>
+    );
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.dateHeader}>
-        <TouchableOpacity onPress={handlePrevDay} style={styles.arrowButton}>
-          <ChevronLeft />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setDateSheetOpen(true)} hitSlop={8}>
-          <Text style={styles.dateText}>{formatDateHeader(selectedDate)}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleNextDay} style={styles.arrowButton}>
-          <ChevronRight />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.chartContainer}>
-        <Chart 
-          title="카페인"
-          currentIntake={stats.caffeine}
-          dailyLimit={caffeineGoal}
-          unit="mg"
-        />
-        <Chart 
-          title="당류"
-          currentIntake={stats.sugar}
-          dailyLimit={sugarGoal}
-          unit="g"
-        />
-      </View>
-
-      <View style={styles.drinkSection}>
-        <View style={styles.drinkHeader}>
-          <Text style={styles.title}>오늘 마신 음료</Text>
-          <Text style={styles.countTitle}>{stats.count}잔</Text>
-        </View>
-        <View>
-          {hasRecord ? (
-            drinks.map((drink, index) => {
-              const opt = renderOptionText(drink);
-              return (
-                <DrinkList 
-                  key={`drink_${drink.id ?? index}`}
-                  brandName={drink.brandName}
-                  menuName={drink.menuName}
-                  optionText={opt.base ? <OptionText base={opt.base} extra={opt.extras} /> : <OptionText text={opt.extras[0] || '옵션 없음'} />}
-                  pills={[
-                    { label: '카페인', value: drink.caffeineMg || 0, unit: 'mg' },
-                    { label: '당류', value: drink.sugarG || 0, unit: 'g' },
-                  ]}
-                  onPress={() => openDetail(drink)}
-                />
-              );
-            })
-          ) : !isFutureDate ? (
-            <View style={{justifyContent: 'center', alignItems: 'center', flex: 1, marginTop: 20, gap: 8}}>
-              <Coffee width={80} height={80}/>
-              <Text style={{color: colors.grayscale[100], fontSize: 18, fontFamily: 'Pretendard-Medium'}}>
-                {isSkipped ? '오늘은 카페에서 음료를 마시지 않았어요.' : '마신 음료가 있다면 기록을 추가해보세요.'}
-              </Text>
-              <SkipDrinkCheckbox value={isSkipped} onChange={onToggleSkip} disabled={false} />
+    <>
+      <FlatList
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        data={hasRecord ? drinks : []}
+        keyExtractor={(item, index) => String(item.id ?? index)}
+        renderItem={renderItem}
+        initialNumToRender={6}
+        windowSize={5}
+        removeClippedSubviews
+        ListHeaderComponent={
+          <View>
+            <View style={styles.dateHeader}>
+              <TouchableOpacity onPress={handlePrevDay} style={styles.arrowButton}>
+                <ChevronLeft />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setDateSheetOpen(true)} hitSlop={8}>
+                <Text style={styles.dateText}>{formatDateHeader(selectedDate)}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleNextDay} style={styles.arrowButton}>
+                <ChevronRight />
+              </TouchableOpacity>
             </View>
-          ) : null}
-        </View>
-      </View>
+
+            <View style={styles.chartContainer}>
+              <Chart
+                title="카페인"
+                currentIntake={stats.caffeine}
+                dailyLimit={caffeineGoal}
+                unit="mg"
+              />
+              <Chart
+                title="당류"
+                currentIntake={stats.sugar}
+                dailyLimit={sugarGoal}
+                unit="g"
+              />
+            </View>
+
+            <View style={styles.drinkSection}>
+              <View style={styles.drinkHeader}>
+                <Text style={styles.title}>오늘 마신 음료</Text>
+                <Text style={styles.countTitle}>{stats.count}잔</Text>
+              </View>
+            </View>
+          </View>
+        }
+        ListEmptyComponent={renderEmpty}
+      />
 
       <DrinkDetailSheet
         visible={detailOpen}
@@ -128,7 +155,7 @@ export default function HomeScreen() {
         onChange={setSelectedDate}
         onClose={() => setDateSheetOpen(false)}
       />
-    </ScrollView>
+    </>
   );
 } 
 
@@ -138,6 +165,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#111',
     gap: 20,
     paddingTop: 16,
+  },
+  content: {
+    paddingBottom: 24,
   },
   dateHeader: {
     flexDirection: 'row',
@@ -181,6 +211,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.primary[500],
     fontFamily: 'Pretendard-Semibold'
+  },
+  emptyWrap: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    gap: 8,
+  },
+  emptyText: {
+    color: colors.grayscale[100],
+    fontSize: 18,
+    fontFamily: 'Pretendard-Medium',
+    textAlign: 'center',
   },
   optionWrap: {
     flexDirection: 'row',

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { colors } from "../../constants/colors";
 import TagPill from "./TagPill";
@@ -19,7 +19,7 @@ type DrinkListProps = {
   onPress?: () => void;
 };
 
-export default function DrinkList({
+function DrinkList({
   brandName,
   menuName,
   optionText,
@@ -63,6 +63,31 @@ export default function DrinkList({
     </Pressable>
   );
 }
+
+const arePillsEqual = (
+  prev: [NutritionPillProps, NutritionPillProps],
+  next: [NutritionPillProps, NutritionPillProps]
+) =>
+  prev[0].label === next[0].label &&
+  prev[0].value === next[0].value &&
+  prev[0].unit === next[0].unit &&
+  prev[1].label === next[1].label &&
+  prev[1].value === next[1].value &&
+  prev[1].unit === next[1].unit;
+
+const areEqual = (prev: DrinkListProps, next: DrinkListProps) =>
+  prev.brandName === next.brandName &&
+  prev.menuName === next.menuName &&
+  prev.optionText === next.optionText &&
+  arePillsEqual(prev.pills, next.pills) &&
+  prev.rightText === next.rightText &&
+  prev.RightIcon === next.RightIcon &&
+  prev.onPress === next.onPress;
+
+const MemoDrinkList = memo(DrinkList, areEqual);
+MemoDrinkList.displayName = 'DrinkList';
+
+export default MemoDrinkList;
 
 const styles = StyleSheet.create({
     row: {

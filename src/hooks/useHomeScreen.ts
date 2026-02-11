@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { MainTabNavigationProp } from '../types/navigation';
@@ -26,6 +26,7 @@ export const useHomeScreen = () => {
   const [daily, setDaily] = useState<DailyIntake | null>(null);
   const [dailyLoading, setDailyLoading] = useState(false);
   const [dailyError, setDailyError] = useState<string | null>(null);
+  const dailyCacheRef = useRef<Record<string, DailyIntake>>({});
 
   const fallbackCaffeine = useGoalStore((s) => s.caffeine);
   const fallbackSugar = useGoalStore((s) => s.sugar);
@@ -68,13 +69,31 @@ export const useHomeScreen = () => {
   const hasRecord = drinks.length > 0;
 
   const loadDaily = useCallback(async () => {
+    const cached = dailyCacheRef.current[dateKey];
+    if (cached) {
+      setDaily(cached);
+    }
     setDailyLoading(true);
     setDailyError(null);
     try {
       const res = await fetchDailyIntake(dateKey);
       if (res.success && res.data) {
+        dailyCacheRef.current[dateKey] = res.data;
         setDaily(res.data);
       } else {
+        if (!dailyCacheRef.current[dateKey]) {
+          setDaily({
+            date: dateKey,
+            totalCaffeineMg: 0,
+            totalSugarG: 0,
+            drinkCount: 0,
+            drinks: [],
+          });
+        }
+        setDailyError(res.error?.message ?? '일별 섭취 기록을 불러오지 못했습니다.');
+      }
+    } catch {
+      if (!dailyCacheRef.current[dateKey]) {
         setDaily({
           date: dateKey,
           totalCaffeineMg: 0,
@@ -82,16 +101,7 @@ export const useHomeScreen = () => {
           drinkCount: 0,
           drinks: [],
         });
-        setDailyError(res.error?.message ?? '일별 섭취 기록을 불러오지 못했습니다.');
       }
-    } catch {
-      setDaily({
-        date: dateKey,
-        totalCaffeineMg: 0,
-        totalSugarG: 0,
-        drinkCount: 0,
-        drinks: [],
-      });
       setDailyError('일별 섭취 기록을 불러오지 못했습니다.');
     } finally {
       setDailyLoading(false);
