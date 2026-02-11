@@ -12,9 +12,9 @@ const config: ExpoConfig = {
   newArchEnabled: false,
   jsEngine: 'jsc',
   splash: {
-    image: './assets/splash-icon.png',
+    image: './assets/icon.png',
     resizeMode: 'contain',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#111111',
   },
   ios: {
     googleServicesFile: './GoogleService-Info.plist',
