@@ -111,16 +111,21 @@ export default function MyPageScreen() {
 
   const ProviderIcon = provider ? ProviderIconMap[provider] : undefined;
 
+  const isSocialLogin = Boolean(provider);
   const rows: RowItem[] = [
     {
       label: "기준 수정",
       subLabel: user.criteriaText,
       onPress: () => goRoot("GoalEditScreen"),
     },
-    {
-      label: "비밀번호 변경",
-      onPress: () => goRoot("PasswordResetInputScreen"),
-    },
+    ...(!isSocialLogin
+      ? [
+          {
+            label: "비밀번호 변경",
+            onPress: () => goRoot("PasswordResetInputScreen"),
+          },
+        ]
+      : []),
     {
       label: "알림 설정",
       onPress: () => goRoot("AlarmSettingScreen"),
