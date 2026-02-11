@@ -58,6 +58,8 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                     const isInRange = hasRange && (isBetween(dateString, startDate, endDate) || isStart || isEnd);
                     const isDisabled = state === 'disabled';
                     const isToday = showToday && state === 'today';
+                    const isSelected = isStart || isEnd;
+                    const hasSelection = !!startDate || !!endDate;
 
                     return (
                         <Pressable
@@ -78,16 +80,19 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                             <View
                                 style={[
                                     styles.dayCircle,
-                                    (isStart || isEnd) && styles.dayCircleActive,
-                                    isToday && !(isStart || isEnd) && styles.dayCircleToday,
+                                    isToday && isSelected && styles.dayCircleToday,
+                                    isToday && !hasSelection && styles.dayCircleToday,
+                                    isSelected && !isToday && styles.dayCircleSelected,
                                 ]}
                             >
                                 <Text
                                     style={[
                                         styles.dayText,
                                         isDisabled && styles.dayTextDisabled,
-                                        (isStart || isEnd) && styles.dayTextActive,
-                                        isToday && !(isStart || isEnd) && styles.dayTextToday,
+                                        isToday && isSelected && styles.dayTextTodaySelected,
+                                        isToday && !hasSelection && styles.dayTextTodaySelected,
+                                        isToday && hasSelection && !isSelected && styles.dayTextTodayWithSelection,
+                                        isSelected && !isToday && styles.dayTextSelected,
                                     ]}
                                 >
                                     {date.day}
@@ -113,8 +118,8 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                     textSectionTitleColor: colors.grayscale[300],
                     selectedDayBackgroundColor: colors.grayscale[600],
                     selectedDayTextColor: colors.grayscale[100],
-                    todayTextColor: '#0B0B0B',
-                    todayBackgroundColor: colors.primary[300],
+                    todayTextColor: colors.grayscale[100],
+                    todayBackgroundColor: colors.grayscale[600],
                     dayTextColor: colors.grayscale[100],
                     textDisabledColor: colors.grayscale[600],
                     monthTextColor: colors.grayscale[100],
@@ -133,10 +138,7 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                             height: 28,
                         },
                         today: {
-                            backgroundColor: colors.primary[300],
-                            borderRadius: 14,
-                            width: 28,
-                            height: 28,
+                            color: colors.primary[500],
                         },
                     },
                     'stylesheet.dot': {
@@ -228,22 +230,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    dayCircleActive: {
+    dayCircleToday: {
         backgroundColor: colors.primary[500],
     },
-    dayCircleToday: {
-        backgroundColor: colors.primary[200],
+    dayCircleSelected: {
+        backgroundColor: colors.grayscale[600],
     },
     dayText: {
         color: colors.grayscale[200],
         fontFamily: 'Pretendard-Medium',
         fontSize: 14,
     },
-    dayTextActive: {
+    dayTextTodaySelected: {
         color: colors.grayscale[1000],
     },
-    dayTextToday: {
-        color: colors.grayscale[1000],
+    dayTextTodayWithSelection: {
+        color: colors.primary[500],
+    },
+    dayTextSelected: {
+        color: colors.grayscale[100],
     },
     dayTextDisabled: {
         color: colors.grayscale[600],
