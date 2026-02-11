@@ -90,6 +90,7 @@ const DatePickerField = ({ value, onChange, placeholder = '날짜 선택' }: Dat
                 endDate={tempSelected || formatDate(value).replace(/\./g, '-')}
                 onDayPress={setTempSelected}
                 style={{marginTop: 25}}
+                disableTodayHighlight={true}
               />
             </View>
 

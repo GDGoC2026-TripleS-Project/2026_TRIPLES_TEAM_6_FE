@@ -24,11 +24,20 @@ type CalendarProps = {
     endDate?: string;
     selecting?: 'start' | 'end';
     showToday?: boolean;
+    disableTodayHighlight?: boolean;
     onDayPress?: (dateString: string) => void;
     style?: ViewStyle;
 };
 
-const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPress, style }: CalendarProps) => {
+const Calendar = ({ 
+    events = [], 
+    startDate, 
+    endDate, 
+    showToday = true, 
+    disableTodayHighlight = false,
+    onDayPress, 
+    style 
+}: CalendarProps) => {
     const eventSet = useMemo(() => new Set(events), [events]);
 
     const isSame = (a?: string, b?: string) => !!a && !!b && a === b;
@@ -80,19 +89,27 @@ const Calendar = ({ events = [], startDate, endDate, showToday = true, onDayPres
                             <View
                                 style={[
                                     styles.dayCircle,
-                                    isToday && isSelected && styles.dayCircleToday,
-                                    isToday && !hasSelection && styles.dayCircleToday,
-                                    isSelected && !isToday && styles.dayCircleSelected,
+                                    disableTodayHighlight
+                                        ? isSelected && styles.dayCircleSelected
+                                        : [
+                                            isToday && isSelected && styles.dayCircleToday,
+                                            isToday && !hasSelection && styles.dayCircleToday,
+                                            isSelected && !isToday && styles.dayCircleSelected,
+                                        ]
                                 ]}
                             >
                                 <Text
                                     style={[
                                         styles.dayText,
                                         isDisabled && styles.dayTextDisabled,
-                                        isToday && isSelected && styles.dayTextTodaySelected,
-                                        isToday && !hasSelection && styles.dayTextTodaySelected,
-                                        isToday && hasSelection && !isSelected && styles.dayTextTodayWithSelection,
-                                        isSelected && !isToday && styles.dayTextSelected,
+                                        disableTodayHighlight
+                                            ? isSelected && styles.dayTextSelected
+                                            : [
+                                                isToday && isSelected && styles.dayTextTodaySelected,
+                                                isToday && !hasSelection && styles.dayTextTodaySelected,
+                                                isToday && hasSelection && !isSelected && styles.dayTextTodayWithSelection,
+                                                isSelected && !isToday && styles.dayTextSelected,
+                                            ]
                                     ]}
                                 >
                                     {date.day}
@@ -234,7 +251,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.primary[500],
     },
     dayCircleSelected: {
-        backgroundColor: colors.grayscale[600],
+        backgroundColor: colors.primary[500],
     },
     dayText: {
         color: colors.grayscale[200],
@@ -248,7 +265,7 @@ const styles = StyleSheet.create({
         color: colors.primary[500],
     },
     dayTextSelected: {
-        color: colors.grayscale[100],
+        color: colors.grayscale[1000],
     },
     dayTextDisabled: {
         color: colors.grayscale[600],
