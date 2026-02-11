@@ -20,8 +20,8 @@
     "ios": {
       "googleServicesFile": "./GoogleService-Info.plist",
       "bundleIdentifier": "com.triples.lastcup",
-      "buildNumber": "2",
-      "deploymentTarget": "13.4",
+      "buildNumber": "3",
+      "deploymentTarget": "15.1",
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "jsEngine": "jsc",
@@ -29,7 +29,6 @@
 
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [
@@ -37,14 +36,12 @@
             ]
           }
         ],
-
         "LSApplicationQueriesSchemes": [
           "kakaokompassauth",
           "kakaolink"
         ]
       }
     },
-
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -86,7 +83,7 @@
         "expo-build-properties",
         {
           "ios": {
-            "useFrameworks": "static"
+            "useFrameworks": "dynamic"
           }
         }
       ],
