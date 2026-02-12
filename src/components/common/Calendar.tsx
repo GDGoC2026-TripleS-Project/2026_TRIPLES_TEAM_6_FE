@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
         color: colors.primary[500],
     },
     dayTextSelected: {
-        color: colors.grayscale[1000],
+        color: colors.grayscale[100],
     },
     dayTextDisabled: {
         color: colors.grayscale[600],
