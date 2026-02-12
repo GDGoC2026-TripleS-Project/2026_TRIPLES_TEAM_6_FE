@@ -3,6 +3,7 @@ import { View, ScrollView, StyleSheet, Text } from 'react-native';
 import Chip from '../../common/Chip';
 import { colors } from '../../../constants/colors';
 import type { Brand } from '../../../api/record/brand.api';
+import { useOptionGroup } from '../../../hooks/useOptionGroup';
 
 export default function BrandChips({
   brands,
@@ -13,6 +14,8 @@ export default function BrandChips({
   isLoading: boolean;
   error: string | null;
 }) {
+  const { chipSelected, selectSingleChip } = useOptionGroup('brand');
+
   if (error) {
     return (
       <View style={styles.chipContainer}>
@@ -35,9 +38,10 @@ export default function BrandChips({
         {brands.map((brand) => (
           <Chip
             key={brand.id}
-            groupId="brand"
             id={String(brand.id)}
             label={brand.name}
+            selected={chipSelected.has(String(brand.id))}
+            onPress={() => selectSingleChip(String(brand.id))}
           />
         ))}
         {isLoading && (

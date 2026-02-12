@@ -3,6 +3,7 @@ import { useOptionStore } from '../store/useOptionStore';
 export const useOptionGroup = (groupId: string) => {
   const group = useOptionStore(state => state.groups[groupId]);
   const toggleChip = useOptionStore(state => state.toggleChip);
+  const selectSingleChip = useOptionStore(state => state.selectSingleChip);
   const setStepper = useOptionStore(state => state.setStepper);
   const resetGroup = useOptionStore(state => state.resetGroup);
 
@@ -16,6 +17,7 @@ export const useOptionGroup = (groupId: string) => {
     stepperCounts: group?.stepperCounts ?? {},
 
     toggleChip: (chipId: string) => toggleChip(groupId, chipId),
+    selectSingleChip: (chipId: string) => selectSingleChip(groupId, chipId),
     setStepper: (stepperId: string, value: number) =>
       setStepper(groupId, stepperId, value),
     reset: () => resetGroup(groupId),

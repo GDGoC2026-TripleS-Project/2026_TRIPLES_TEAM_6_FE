@@ -17,6 +17,7 @@ interface OptionGroup {
 interface OptionState {
   groups: Record<string, OptionGroup>;
   toggleChip: (groupId: string, chipId: string) => void;
+  selectSingleChip: (groupId: string, chipId: string) => void;
   setStepper: (groupId: string, stepperId: string, value: number) => void;
   resetGroup: (groupId: string) => void;
   getGroupData: (groupId: string) => OptionGroup | undefined;
@@ -52,6 +53,31 @@ export const useOptionStore = create<OptionState>((set, get) => ({
       } else {
         newSelected.add(chipId);
       }
+
+      return {
+        groups: {
+          ...state.groups,
+          [groupId]: {
+            ...group,
+            chipSelected: newSelected,
+          },
+        },
+      };
+    });
+  },
+
+  selectSingleChip: (groupId, chipId) => {
+    set((state) => {
+      const group = state.groups[groupId] || {
+        chipSelected: new Set<string>(),
+        stepperCounts: {},
+        brandName: '',
+        menuName: '',
+      };
+
+      const isOnlySelected =
+        group.chipSelected.size === 1 && group.chipSelected.has(chipId);
+      const newSelected = isOnlySelected ? new Set<string>() : new Set([chipId]);
 
       return {
         groups: {
