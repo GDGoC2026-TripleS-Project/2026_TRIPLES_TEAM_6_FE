@@ -12,14 +12,13 @@ const config: ExpoConfig = {
   newArchEnabled: false,
   jsEngine: 'jsc',
   splash: {
-    image: './assets/icon.png',
-    resizeMode: 'contain',
+    image: './assets/icon-splash.png',
     backgroundColor: '#111111',
   },
   ios: {
     googleServicesFile: './GoogleService-Info.plist',
     bundleIdentifier: 'com.triples.lastcup',
-    buildNumber: '3',
+    buildNumber: '4',
     supportsTablet: true,
     usesAppleSignIn: true,
     infoPlist: {
