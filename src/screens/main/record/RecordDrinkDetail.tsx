@@ -13,6 +13,7 @@ import Info from "../../../../assets/info.svg";
 import Button from "../../../components/common/Button";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useOptionStore } from '../../../store/useOptionStore';
+import { useFavoriteMenus } from '../../../hooks/useFavoriteMenus';
 import {
     fetchMenuDetail,
     fetchMenuSizes,
@@ -25,7 +26,7 @@ import { fetchBrandOptions, type BrandOption } from '../../../api/record/brand.a
 type RecordDrinkDetailRouteProp = RouteProp<RootStackParamList, 'RecordDrinkDetail'>;
 type RecordDrinkDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'RecordDrinkDetail'>;
 
-const INFO_MESSAGE = '추가 옵션은 카페인 합산에만 반영돼요.';
+const INFO_MESSAGE = '커피를 제외한 옵션은 기록용 메모이며, 영양정보 계산에는 포함되지 않아요.';
 
 const RecordDrinkDetail = () => {
     const route = useRoute<RecordDrinkDetailRouteProp>();
@@ -44,6 +45,7 @@ const RecordDrinkDetail = () => {
     const getGroupData = useOptionStore(state => state.getGroupData);
     const resetGroup = useOptionStore(state => state.resetGroup);
     const setGroupInfo = useOptionStore(state => state.setGroupInfo);
+    const { isFavorite, toggleFavorite } = useFavoriteMenus();
     const editAppliedRef = useRef(false);
 
     const tempToApi = (t: 'hot' | 'ice'): MenuTemperature => (t === 'hot' ? 'HOT' : 'ICED');
@@ -202,6 +204,18 @@ const RecordDrinkDetail = () => {
         setTemperature(next);
     };
 
+    const handleTitlePress = () => {
+        if (!edit?.intakeId) return;
+        if (!menuDetail?.brandId) return;
+        navigation.navigate('RecordDetail', {
+            brandId: String(menuDetail.brandId),
+            brandName: menuDetail.brandName ?? '',
+            selectedDate,
+            isFavorite: undefined,
+            edit,
+        });
+    };
+
     const optionMaps = useMemo(() => {
         const optionNames = brandOptions.reduce<Record<string, string>>((acc, option) => {
             acc[String(option.id)] = option.name;
@@ -295,7 +309,25 @@ const RecordDrinkDetail = () => {
                 contentContainerStyle={styles.scrollContent}
             >
                     <View style={styles.container}>
-                    <List title={drinkName} />
+                    <List
+                        title={drinkName}
+                        onPress={handleTitlePress}
+                        liked={menuDetail ? isFavorite(menuDetail.id) : false}
+                        onToggle={(nextLiked) => {
+                            if (!menuDetail) return;
+                            toggleFavorite(
+                                {
+                                    id: menuDetail.id,
+                                    name: menuDetail.name,
+                                    brandId: menuDetail.brandId,
+                                    brandName: menuDetail.brandName,
+                                    imageUrl: menuDetail.imageUrl,
+                                    category: menuDetail.category,
+                                },
+                                nextLiked
+                            );
+                        }}
+                    />
                     <View style={styles.requiredOptionsSection}>
                         <TemperatureSection 
                             temperature={temperature}

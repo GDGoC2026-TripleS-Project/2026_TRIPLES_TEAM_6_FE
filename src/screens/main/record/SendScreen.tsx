@@ -12,12 +12,10 @@ const SendScreen = () => {
     const navigation = useNavigation<SendScreenNavigationProp>();
 
     const handleAddMore = () => {
-        // Record 화면으로 이동 (음료 기록 화면)
         navigation.navigate('Record');
     };
 
     const handleGoHome = () => {
-        // MainTabs의 Home으로 이동
         navigation.navigate('MainTabs', { screen: 'Home' });
     };
 
