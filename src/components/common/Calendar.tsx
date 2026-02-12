@@ -85,7 +85,6 @@ const Calendar = ({
                                     ]}
                                 />
                             )}
-
                             <View
                                 style={[
                                     styles.dayCircle,
@@ -94,7 +93,7 @@ const Calendar = ({
                                         : [
                                             isToday && isSelected && styles.dayCircleToday,
                                             isToday && !hasSelection && styles.dayCircleToday,
-                                            isSelected && !isToday && styles.dayCircleSelected,
+                                            isSelected && !isToday && styles.dayCircleSelectedGray,
                                         ]
                                 ]}
                             >
@@ -252,6 +251,9 @@ const styles = StyleSheet.create({
     },
     dayCircleSelected: {
         backgroundColor: colors.primary[500],
+    },
+    dayCircleSelectedGray: {
+        backgroundColor: colors.grayscale[600],
     },
     dayText: {
         color: colors.grayscale[200],

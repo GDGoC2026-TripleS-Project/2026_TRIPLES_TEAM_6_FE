@@ -123,6 +123,7 @@ export default function PeriodSelectBottomSheet({
               selecting={step}
               showToday={false}
               onDayPress={handleDayPress}
+              disableTodayHighlight={true}
             />
           </View>
 
