@@ -161,7 +161,7 @@ export default function RootNavigator() {
         component={ResetLinkScreen}
         options={{
           headerShown: true,
-          title: "재설정 링크",
+          title: "인증 코드",
           headerTitleAlign: "center",
           headerStyle: { backgroundColor: colors.grayscale[1000] },
           headerShadowVisible: false,

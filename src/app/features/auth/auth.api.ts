@@ -13,7 +13,8 @@ type RefreshRes = ApiResponse<{ accessToken: string; refreshToken: string }>;
 type LogoutRes = ApiResponse<{ loggedOut: boolean }>;
 type AvailabilityRes = ApiResponse<{ isAvailable?: boolean; available?: boolean }>;
 type PasswordResetRequestRes = ApiResponse<{ requested?: boolean }>;
-type PasswordResetConfirmRes = ApiResponse<{ reset?: boolean }>;
+type PasswordResetVerifyRes = ApiResponse<boolean>;
+type PasswordResetConfirmRes = ApiResponse<boolean>;
 export type SocialProvider = 'KAKAO' | 'GOOGLE' | 'APPLE';
 export type SocialLoginPayload = {
   provider: SocialProvider;
@@ -57,7 +58,22 @@ export const authApiLayer = {
     return client.post<PasswordResetRequestRes>('/auth/password-reset/request', payload);
   },
 
-  confirmPasswordReset: async (payload: { newPassword: string; token: string }) => {
+  verifyPasswordResetCode: async (payload: {
+    loginId: string;
+    email: string;
+    verificationCode: string;
+  }) => {
+    const token = await storage.get(storageKeys.accessToken);
+    const client = token ? api : authApi;
+    return client.post<PasswordResetVerifyRes>('/auth/password-reset/verify', payload);
+  },
+
+  confirmPasswordReset: async (payload: {
+    loginId: string;
+    email: string;
+    verificationCode: string;
+    newPassword: string;
+  }) => {
     const token = await storage.get(storageKeys.accessToken);
     const client = token ? api : authApi;
     return client.post<PasswordResetConfirmRes>('/auth/password-reset/confirm', payload);

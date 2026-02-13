@@ -12,16 +12,10 @@ const PasswordResetScreen: React.FC = () => {
   const redirectTo = route?.params?.redirectTo as "MyPage" | "Login" | undefined;
   const accessToken = useAuthStore((s) => s.accessToken);
   const logout = useAuthStore((s) => s.logout);
-  const effectiveRedirectTo = redirectTo ?? "Login";
 
   const Complete = async () => {
-    if (effectiveRedirectTo === "MyPage") {
-      navigation.navigate("MainTabs", { screen: "Profile" });
-      return;
-    }
     if (accessToken) {
       await logout();
-      return;
     }
     const parent = navigation.getParent?.();
     const root = parent?.getParent?.() ?? parent;
@@ -45,11 +39,7 @@ const PasswordResetScreen: React.FC = () => {
 
       <View style={styles.bottom}>
         <Button
-          title={
-            effectiveRedirectTo === "MyPage"
-              ? "마이페이지로 이동"
-              : "로그인 화면으로 이동"
-          }
+          title="로그인 화면으로 이동"
           onPress={Complete}
         />
       </View>

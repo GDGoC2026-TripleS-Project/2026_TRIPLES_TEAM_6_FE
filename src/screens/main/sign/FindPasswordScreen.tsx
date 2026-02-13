@@ -80,33 +80,13 @@ const FindPasswordScreen: React.FC = () => {
         Alert.alert("요청 실패", "비밀번호 재설정 요청에 실패했습니다.");
         return;
       }
-      const data = (res?.data as any)?.data;
-      const headerTokenRaw =
-        (res as any)?.headers?.authorization ||
-        (res as any)?.headers?.['x-auth-token'] ||
-        (res as any)?.headers?.['x-reset-token'] ||
-        (res as any)?.headers?.['x-reset-code'];
-      const headerToken =
-        typeof headerTokenRaw === 'string'
-          ? headerTokenRaw.replace(/^Bearer\\s+/i, '')
-          : undefined;
-      const tokenFromResponse =
-        (typeof data === 'string' ? data : undefined) ||
-        data?.token ||
-        data?.authToken ||
-        data?.code ||
-        headerToken ||
-        undefined;
-      if (__DEV__) {
-        console.log('[PW RESET TOKEN]', tokenFromResponse ?? '<none>');
-      }
-      Alert.alert("요청 완료", "비밀번호 재설정 안내를 전송했습니다.", [
+      Alert.alert("요청 완료", "인증 코드를 이메일로 전송했습니다.", [
         {
           text: "확인",
           onPress: () =>
             navigation.navigate("ResetLinkScreen", {
               defaultLoginId: userName.trim(),
-              token: typeof tokenFromResponse === "string" ? tokenFromResponse : undefined,
+              defaultEmail: email.trim(),
               redirectTo,
             }),
         },
@@ -166,7 +146,7 @@ const FindPasswordScreen: React.FC = () => {
 
       <View style={styles.submitWrap}>
         <Button
-          title="재설정 링크 받기"
+          title="인증 코드 받기"
           disabled={!canSubmit || isSubmitting}
           onPress={onSubmit}
         />

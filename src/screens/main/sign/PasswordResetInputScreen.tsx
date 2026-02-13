@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
-import * as Linking from "expo-linking";
 import { colors } from "../../../constants/colors";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import TextField from "../../../components/common/TextField";
@@ -10,11 +9,12 @@ import { authApiLayer } from "../../../app/features/auth/auth.api";
 const PasswordResetInputScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const deepLinkToken = route?.params?.token as string | undefined;
+  const loginId = route?.params?.loginId as string | undefined;
+  const email = route?.params?.email as string | undefined;
+  const verificationCode = route?.params?.verificationCode as string | undefined;
   const redirectTo = route?.params?.redirectTo as "MyPage" | "Login" | undefined;
   const effectiveRedirectTo = redirectTo ?? "Login";
 
-  const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordCheck, setNewPasswordCheck] = useState("");
 
@@ -22,38 +22,6 @@ const PasswordResetInputScreen: React.FC = () => {
   const [newPasswordCheckError, setNewPasswordCheckError] =
     useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (deepLinkToken) setToken(deepLinkToken);
-  }, [deepLinkToken]);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const extractToken = (url?: string | null) => {
-      if (!url) return;
-      const parsed = Linking.parse(url);
-      const rawToken = parsed?.queryParams?.token;
-      if (typeof rawToken === "string" && mounted) {
-        setToken(rawToken);
-      }
-    };
-
-    if (!token) {
-      Linking.getInitialURL()
-        .then((url) => extractToken(url))
-        .catch(() => {});
-    }
-
-    const sub = Linking.addEventListener("url", ({ url }) => {
-      extractToken(url);
-    });
-
-    return () => {
-      mounted = false;
-      sub.remove();
-    };
-  }, [token]);
 
   const isValidPassword = (v: string) =>
     v.length >= 8 && /[a-zA-Z]/.test(v) && /[0-9]/.test(v);
@@ -94,10 +62,10 @@ const PasswordResetInputScreen: React.FC = () => {
   }, [newPassword, newPasswordCheck]);
 
   const onSubmit = async () => {
-    if (!token?.trim()) {
+    if (!loginId || !email || !verificationCode) {
       Alert.alert(
         "재설정 실패",
-        "재설정 링크 정보가 누락되었습니다. 메일의 링크로 다시 접속해 주세요."
+        "인증 정보가 누락되었습니다. 인증 코드를 다시 확인해 주세요."
       );
       return;
     }
@@ -108,11 +76,16 @@ const PasswordResetInputScreen: React.FC = () => {
     setIsSubmitting(true);
     try {
       const res = await authApiLayer.confirmPasswordReset({
-        token: token.trim(),
+        loginId,
+        email,
+        verificationCode,
         newPassword,
       });
-      if (res?.data?.data?.reset === false) {
-        Alert.alert("재설정 실패", "비밀번호 재설정에 실패했습니다.");
+      if (res?.data?.data !== true) {
+        Alert.alert(
+          "재설정 실패",
+          res?.data?.error?.message ?? "비밀번호 재설정에 실패했습니다."
+        );
         return;
       }
       navigation.navigate("PasswordResetScreen", { redirectTo: effectiveRedirectTo });
