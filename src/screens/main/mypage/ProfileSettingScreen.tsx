@@ -47,7 +47,7 @@ export default function ProfileSettingScreen() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (status !== 'granted') {
-      alert('갤러리 접근 권한이 필요합니다.');
+      Alert.alert('갤러리 접근 권한 필요', '갤러리 접근 권한이 필요합니다.');
       return;
     }
 

@@ -37,6 +37,10 @@ export default function CalendarScreen() {
     dailyError,
     caffeineGoal,
     sugarGoal,
+    totalEspressoShotCount,
+    totalSugarCubeCount,
+    totalCaffeineMg,
+    totalSugarG,
     isFutureDate,
     onAddRecord,
     onGoPeriodSearch,
@@ -47,6 +51,7 @@ export default function CalendarScreen() {
     handleEdit,
     handleGoBrand,
     renderOptionText,
+    handleMonthChange,
   } = useCalendarScreen();
 
   const renderItem = useCallback(
@@ -92,6 +97,7 @@ export default function CalendarScreen() {
               startDate={selectedDate}
               endDate={selectedDate}
               onDayPress={setSelectedDate}
+              onMonthChange={handleMonthChange}
             />
 
             <View style={styles.periodBtnWrap}>
@@ -122,6 +128,10 @@ export default function CalendarScreen() {
             {(hasRecord || isSkipped) && (
               <NutritionSummary
                 drinks={summaryDrinks}
+                totalCaffeineMg={totalCaffeineMg}
+                totalSugarG={totalSugarG}
+                totalEspressoShotCount={totalEspressoShotCount}
+                totalSugarCubeCount={totalSugarCubeCount}
                 caffeineMax={caffeineGoal}
                 sugarMax={sugarGoal}
               />

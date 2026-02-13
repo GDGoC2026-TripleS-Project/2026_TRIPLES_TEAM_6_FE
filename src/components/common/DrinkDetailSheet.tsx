@@ -14,11 +14,6 @@ import Button from './Button';
 const { height: SCREEN_H } = Dimensions.get('window');
 const SHEET_H = Math.min(520, SCREEN_H * 0.62);
 
-const ESPRESSO_MG = 75;
-const SUGAR_CUBE_G = 3;
-
-const formatUnits = (value: number) => String(Math.round(value));
-
 type NutritionRow = { label: string; value: number; unit: string; note?: string };
 
 export type DrinkLike = {
@@ -76,31 +71,27 @@ export default function DrinkDetailSheet({
     
     const caffeine = formatNumber(drink.caffeineMg);
     const sugar = formatNumber(drink.sugarG);
-    const espressoCount =
-      typeof drink.espressoShotCount === 'number'
-        ? drink.espressoShotCount
-        : caffeine > 0
-        ? Math.round(caffeine / ESPRESSO_MG)
-        : 0;
-    const sugarCubeCount =
-      typeof drink.sugarCubeCount === 'number'
-        ? drink.sugarCubeCount
-        : sugar > 0
-        ? Math.round(sugar / SUGAR_CUBE_G)
-        : 0;
+    const espressoCount = drink.espressoShotCount;
+    const sugarCubeCount = drink.sugarCubeCount;
     
     return [
       {
         label: '카페인',
         value: formatNumber(drink.caffeineMg),
         unit: 'mg',
-        note: espressoCount > 0 ? `에스프레소 약 ${espressoCount}잔` : undefined,
+        note:
+          typeof espressoCount === 'number' && espressoCount > 0
+            ? `에스프레소 약 ${espressoCount}잔`
+            : undefined,
       },
       {
         label: '당류',
         value: formatNumber(drink.sugarG),
         unit: 'g',
-        note: sugarCubeCount > 0 ? `각설탕 약 ${sugarCubeCount}개` : undefined,
+        note:
+          typeof sugarCubeCount === 'number' && sugarCubeCount > 0
+            ? `각설탕 약 ${sugarCubeCount}개`
+            : undefined,
       },
       { label: '칼로리', value: formatNumber(drink.calorieKcal), unit: 'kcal' },
       { label: '나트륨', value: formatNumber(drink.sodiumMg), unit: 'mg' },

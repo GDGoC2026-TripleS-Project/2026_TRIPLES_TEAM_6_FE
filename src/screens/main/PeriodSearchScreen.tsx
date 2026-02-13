@@ -57,14 +57,27 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
   const renderItem = ({ item }: ListRenderItemInfo<PeriodRow>) => {
     if (item.type === 'header') {
       const goals = goalByDate[item.date];
-      const caffeineGoal = goals?.caffeine ?? fallbackCaffeine;
-      const sugarGoal = goals?.sugar ?? fallbackSugar;
+      const pickGoal = (...values: Array<number | undefined>) =>
+        values.find((v) => typeof v === 'number' && v > 0);
+      const caffeineGoal = pickGoal(
+        item.goalCaffeine,
+        goals?.caffeine,
+        fallbackCaffeine
+      );
+      const sugarGoal = pickGoal(
+        item.goalSugar,
+        goals?.sugar,
+        fallbackSugar
+      );
+      const showGoals = Boolean(caffeineGoal || sugarGoal);
       return (
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{item.title}</Text>
-          <Text style={styles.sectionGoal}>
-            목표 {caffeineGoal}mg · {sugarGoal}g
-          </Text>
+          {showGoals && (
+            <Text style={styles.sectionGoal}>
+              목표 {caffeineGoal ?? '-'}mg · {sugarGoal ?? '-'}g
+            </Text>
+          )}
         </View>
       );
     }
@@ -119,12 +132,22 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
       <View style={styles.summaryWrap}>
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>섭취한 카페인</Text>
-          <Text style={styles.summaryValue}>{summary.caffeineTotal}mg</Text>
+          <View style={styles.summaryValueCol}>
+            <Text style={styles.summaryValue}>{summary.caffeineTotal}mg</Text>
+            {typeof summary.espressoShotCount === 'number' && summary.espressoShotCount > 0 && (
+              <Text style={styles.summaryNote}>에스프레소 약 {summary.espressoShotCount}잔</Text>
+            )}
+          </View>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>섭취한 당류</Text>
-          <Text style={styles.summaryValue}>{summary.sugarTotal}g</Text>
+          <View style={styles.summaryValueCol}>
+            <Text style={styles.summaryValue}>{summary.sugarTotal}g</Text>
+            {typeof summary.sugarCubeCount === 'number' && summary.sugarCubeCount > 0 && (
+              <Text style={styles.summaryNote}>각설탕 약 {summary.sugarCubeCount}개</Text>
+            )}
+          </View>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryRow}>
@@ -237,6 +260,15 @@ const styles = StyleSheet.create({
     color: colors.grayscale[200],
     fontSize: 15,
     fontFamily: 'Pretendard-SemiBold',
+  },
+  summaryValueCol: {
+    alignItems: 'flex-end',
+  },
+  summaryNote: {
+    color: colors.grayscale[500],
+    fontSize: 12,
+    fontFamily: 'Pretendard-Regular',
+    marginTop: 4,
   },
   summaryValue: {
     color: colors.primary[500],

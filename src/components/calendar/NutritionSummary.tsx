@@ -4,6 +4,10 @@ import { colors } from '../../constants/colors';
 
 interface NutritionSummaryProps {
   drinks: Array<{ caffeineMg: number; sugarG: number }>;
+  totalCaffeineMg?: number;
+  totalSugarG?: number;
+  totalEspressoShotCount?: number;
+  totalSugarCubeCount?: number;
   caffeineMax?: number;
   sugarMax?: number;
 }
@@ -15,17 +19,34 @@ const formatUnits = (value: number) => String(Math.round(value));
 
 export default function NutritionSummary({
   drinks,
-  caffeineMax = 400,
-  sugarMax = 25,
+  totalCaffeineMg,
+  totalSugarG,
+  totalEspressoShotCount,
+  totalSugarCubeCount,
+  caffeineMax,
+  sugarMax,
 }: NutritionSummaryProps) {
-  const totalCaffeine = drinks.reduce((sum, d) => sum + d.caffeineMg, 0);
-  const totalSugar = drinks.reduce((sum, d) => sum + d.sugarG, 0);
+  const totalCaffeine =
+    typeof totalCaffeineMg === 'number'
+      ? totalCaffeineMg
+      : drinks.reduce((sum, d) => sum + d.caffeineMg, 0);
+  const totalSugar =
+    typeof totalSugarG === 'number'
+      ? totalSugarG
+      : drinks.reduce((sum, d) => sum + d.sugarG, 0);
 
-  const caffeinePercent = Math.min((totalCaffeine / caffeineMax) * 100, 100);
-  const sugarPercent = Math.min((totalSugar / sugarMax) * 100, 100);
+  const hasCaffeineMax = typeof caffeineMax === 'number' && caffeineMax > 0;
+  const hasSugarMax = typeof sugarMax === 'number' && sugarMax > 0;
 
-  const isCaffeineOver = totalCaffeine > caffeineMax;
-  const isSugarOver = totalSugar > sugarMax;
+  const caffeinePercent = hasCaffeineMax
+    ? Math.min((totalCaffeine / caffeineMax) * 100, 100)
+    : 0;
+  const sugarPercent = hasSugarMax
+    ? Math.min((totalSugar / sugarMax) * 100, 100)
+    : 0;
+
+  const isCaffeineOver = hasCaffeineMax && totalCaffeine > caffeineMax;
+  const isSugarOver = hasSugarMax && totalSugar > sugarMax;
 
   return (
     <View style={styles.container}>
@@ -41,10 +62,12 @@ export default function NutritionSummary({
             </View>
           )}
         </View>
-        <Text style={styles.maxText}>
-          에스프레소 {formatUnits(totalCaffeine / ESPRESSO_MG)}/
-          {formatUnits(caffeineMax / ESPRESSO_MG)}잔
-        </Text>
+        {hasCaffeineMax && typeof totalEspressoShotCount === 'number' && totalEspressoShotCount > 0 && (
+          <Text style={styles.maxText}>
+            에스프레소 {formatUnits(totalEspressoShotCount)}/
+            {formatUnits(caffeineMax / ESPRESSO_MG)}잔
+          </Text>
+        )}
         <View style={styles.progressBar}>
           <View
             style={[
@@ -70,10 +93,12 @@ export default function NutritionSummary({
             </View>
           )}
         </View>
-        <Text style={styles.maxText}>
-          각설탕 {formatUnits(totalSugar / SUGAR_CUBE_G)}/
-          {formatUnits(sugarMax / SUGAR_CUBE_G)}개
-        </Text>
+        {hasSugarMax && typeof totalSugarCubeCount === 'number' && totalSugarCubeCount > 0 && (
+          <Text style={styles.maxText}>
+            각설탕 {formatUnits(totalSugarCubeCount)}/
+            {formatUnits(sugarMax / SUGAR_CUBE_G)}개
+          </Text>
+        )}
         <View style={styles.progressBar}>
           <View
             style={[

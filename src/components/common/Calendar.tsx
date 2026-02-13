@@ -26,6 +26,7 @@ type CalendarProps = {
     showToday?: boolean;
     disableTodayHighlight?: boolean;
     onDayPress?: (dateString: string) => void;
+    onMonthChange?: (dateString: string) => void;
     style?: ViewStyle;
 };
 
@@ -36,6 +37,7 @@ const Calendar = ({
     showToday = true, 
     disableTodayHighlight = false,
     onDayPress, 
+    onMonthChange,
     style 
 }: CalendarProps) => {
     const eventSet = useMemo(() => new Set(events), [events]);
@@ -52,10 +54,17 @@ const Calendar = ({
         }
     };
 
+    const handleMonthChange = (day: DateData) => {
+        if (onMonthChange) {
+            onMonthChange(day.dateString);
+        }
+    };
+
     return (
         <View style={styles.container}>
             <RNCalendar
                 onDayPress={handleDayPress}
+                onMonthChange={handleMonthChange}
                 dayComponent={({ date, state }) => {
                     if (!date) return null;
 

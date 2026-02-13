@@ -50,7 +50,7 @@ const toDateList = (start: string, end: string) => {
 };
 
 export type PeriodRow =
-  | { type: 'header'; id: string; title: string; date: string }
+  | { type: 'header'; id: string; title: string; date: string; goalCaffeine?: number; goalSugar?: number }
   | { type: 'drink'; id: string; date: string; drink: IntakeDrink };
 
 export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) => {
@@ -60,6 +60,7 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
   const [startDate, setStartDate] = useState<string>(initialStart);
   const [endDate, setEndDate] = useState<string>(initialEnd);
   const [days, setDays] = useState<DailyIntake[]>([]);
+  const [periodDrinks, setPeriodDrinks] = useState<IntakeDrink[]>([]);
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedDrink, setSelectedDrink] = useState<DrinkLike | null>(null);
   const [selectedIntakeId, setSelectedIntakeId] = useState<string | number | null>(null);
@@ -67,6 +68,8 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
   const [summary, setSummary] = useState({
     caffeineTotal: 0,
     sugarTotal: 0,
+    espressoShotCount: undefined as number | undefined,
+    sugarCubeCount: undefined as number | undefined,
     drinkCount: 0,
   });
   const [loading, setLoading] = useState(false);
@@ -84,7 +87,8 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
   const loadPeriod = useCallback(async () => {
     if (!normalized.start || !normalized.end) {
       setDays([]);
-      setSummary({ caffeineTotal: 0, sugarTotal: 0, drinkCount: 0 });
+      setPeriodDrinks([]);
+      setSummary({ caffeineTotal: 0, sugarTotal: 0, espressoShotCount: undefined, sugarCubeCount: undefined, drinkCount: 0 });
       return;
     }
     setLoading(true);
@@ -92,16 +96,26 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
     try {
       const periodRes = await fetchPeriodIntake(normalized.start, normalized.end);
       if (periodRes.success && periodRes.data) {
+        const totalCaffeine = periodRes.data.totalCaffeineMg ?? 0;
+        const totalSugar = periodRes.data.totalSugarG ?? 0;
         setSummary({
-          caffeineTotal: periodRes.data.totalCaffeineMg ?? 0,
-          sugarTotal: periodRes.data.totalSugarG ?? 0,
+          caffeineTotal: totalCaffeine,
+          sugarTotal: totalSugar,
+          espressoShotCount: periodRes.data.totalEspressoShotCount,
+          sugarCubeCount: periodRes.data.totalSugarCubeCount,
           drinkCount: periodRes.data.drinkCount ?? 0,
         });
+        if (Array.isArray(periodRes.data.intakes)) {
+          setPeriodDrinks(periodRes.data.intakes);
+          setDays([]);
+          return;
+        }
       } else {
-        setSummary({ caffeineTotal: 0, sugarTotal: 0, drinkCount: 0 });
+        setSummary({ caffeineTotal: 0, sugarTotal: 0, espressoShotCount: undefined, sugarCubeCount: undefined, drinkCount: 0 });
       }
 
       const dates = toDateList(normalized.start, normalized.end);
+      setPeriodDrinks([]);
       await Promise.all(dates.map((date) => getGoalsForDate(date)));
       const dailyResults = await Promise.all(
         dates.map(async (date) => {
@@ -124,7 +138,8 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
       setDays(nextDays);
     } catch {
       setDays([]);
-      setSummary({ caffeineTotal: 0, sugarTotal: 0, drinkCount: 0 });
+      setPeriodDrinks([]);
+      setSummary({ caffeineTotal: 0, sugarTotal: 0, espressoShotCount: undefined, sugarCubeCount: undefined, drinkCount: 0 });
       setLoadError('기간 기록을 불러오지 못했습니다.');
     } finally {
       setLoading(false);
@@ -140,6 +155,15 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
   }, [loadPeriod]);
 
   const rows: PeriodRow[] = useMemo(() => {
+    if (periodDrinks.length > 0) {
+      return periodDrinks.map((drink) => ({
+        type: 'drink',
+        id: `p_${drink.id}`,
+        date: '',
+        drink,
+      }));
+    }
+
     const out: PeriodRow[] = [];
 
     for (const day of days) {
@@ -148,6 +172,8 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
         id: `h_${day.date}`,
         title: toSectionTitle(day.date),
         date: day.date,
+        goalCaffeine: day.goalCaffeine,
+        goalSugar: day.goalSugar,
       });
 
       for (const drink of day.drinks) {
@@ -161,7 +187,7 @@ export const usePeriodSearchScreen = (initialStart: string, initialEnd: string) 
     }
 
     return out;
-  }, [days]);
+  }, [days, periodDrinks]);
 
   const handleConfirmPeriod = (s: string, e: string) => {
     setStartDate(s);

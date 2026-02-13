@@ -36,9 +36,21 @@ const toMonthRange = (dateString: string) => {
   return { start, end };
 };
 
+const shiftMonthKey = (monthKey: string, delta: number) => {
+  const [yRaw, mRaw] = monthKey.split('-');
+  const y = Number(yRaw);
+  const m = Number(mRaw);
+  if (!y || !m) return monthKey;
+  const d = new Date(y, m - 1 + delta, 1);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${yyyy}-${mm}`;
+};
+
 export const useCalendarScreen = () => {
   const navigation = useNavigation<MainTabNavigationProp<'Calendar'>>();
   const [selectedDate, setSelectedDate] = useState<string>(todayString());
+  const [visibleMonth, setVisibleMonth] = useState<string>(() => todayString().slice(0, 7));
   const [skippedByDate, setSkippedByDate] = useState<Record<string, boolean>>({});
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedDrink, setSelectedDrink] = useState<DrinkLike | null>(null);
@@ -49,6 +61,9 @@ export const useCalendarScreen = () => {
   const [dailyError, setDailyError] = useState<string | null>(null);
   const [eventDates, setEventDates] = useState<string[]>([]);
   const dailyCacheRef = useRef<Record<string, DailyIntake>>({});
+  const monthCacheRef = useRef<Record<string, string[]>>({});
+  const monthLoadingRef = useRef<Record<string, boolean>>({});
+  const visibleMonthRef = useRef<string>(visibleMonth);
 
   const fallbackCaffeine = useGoalStore((s) => s.caffeine);
   const fallbackSugar = useGoalStore((s) => s.sugar);
@@ -73,13 +88,27 @@ export const useCalendarScreen = () => {
   }, [selectedDate, getGoalsForDate]);
 
   const dateGoals = goalByDate[selectedDate];
-  const caffeineGoal = dateGoals?.caffeine ?? fallbackCaffeine;
-  const sugarGoal = dateGoals?.sugar ?? fallbackSugar;
+  const pickGoal = (...values: Array<number | undefined>) =>
+    values.find((v) => typeof v === 'number' && v > 0);
+  const caffeineGoal = pickGoal(
+    daily?.goalCaffeine,
+    dateGoals?.caffeine,
+    fallbackCaffeine
+  );
+  const sugarGoal = pickGoal(
+    daily?.goalSugar,
+    dateGoals?.sugar,
+    fallbackSugar
+  );
 
   const isSkipped = !!skippedByDate[selectedDate];
   const drinks: IntakeDrink[] = daily?.drinks ?? [];
   const summaryDrinks = isSkipped ? [] : drinks;
   const hasRecord = drinks.length > 0;
+  const totalEspressoShotCount = daily?.totalEspressoShotCount;
+  const totalSugarCubeCount = daily?.totalSugarCubeCount;
+  const totalCaffeineMg = daily?.totalCaffeineMg;
+  const totalSugarG = daily?.totalSugarG;
 
   const loadDaily = useCallback(async () => {
     const cached = dailyCacheRef.current[selectedDate];
@@ -129,30 +158,65 @@ export const useCalendarScreen = () => {
     };
   }, [loadDaily]);
 
-  const monthKey = useMemo(() => selectedDate.slice(0, 7), [selectedDate]);
+  useEffect(() => {
+    setVisibleMonth(selectedDate.slice(0, 7));
+  }, [selectedDate]);
+
+  const monthKey = useMemo(() => visibleMonth, [visibleMonth]);
+
+  const handleMonthChange = useCallback((dateString: string) => {
+    if (!dateString) return;
+    setVisibleMonth(dateString.slice(0, 7));
+  }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    const { start, end } = toMonthRange(`${monthKey}-01`);
-    const loadEvents = async () => {
+    visibleMonthRef.current = visibleMonth;
+  }, [visibleMonth]);
+
+  const fetchMonthDates = useCallback(
+    async (key: string, setActive: boolean) => {
+      const cached = monthCacheRef.current[key];
+      if (cached) {
+        if (setActive && visibleMonthRef.current === key) {
+          setEventDates(cached);
+        }
+        return;
+      }
+      if (monthLoadingRef.current[key]) return;
+      monthLoadingRef.current[key] = true;
+      const { start, end } = toMonthRange(`${key}-01`);
       try {
         const res = await fetchPeriodIntakeDates(start, end);
-        if (!isMounted) return;
         if (res.success && res.data) {
-          setEventDates(res.data ?? []);
-        } else {
+          monthCacheRef.current[key] = res.data ?? [];
+          if (setActive && visibleMonthRef.current === key) {
+            setEventDates(res.data ?? []);
+          }
+        } else if (setActive && visibleMonthRef.current === key) {
           setEventDates([]);
         }
       } catch {
-        if (!isMounted) return;
-        setEventDates([]);
+        if (setActive && visibleMonthRef.current === key) {
+          setEventDates([]);
+        }
+      } finally {
+        delete monthLoadingRef.current[key];
       }
-    };
-    loadEvents();
+    },
+    []
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+    if (isMounted) {
+      void fetchMonthDates(monthKey, true);
+      void fetchMonthDates(shiftMonthKey(monthKey, -1), false);
+      void fetchMonthDates(shiftMonthKey(monthKey, 1), false);
+    }
     return () => {
       isMounted = false;
     };
-  }, [monthKey]);
+  }, [monthKey, fetchMonthDates]);
 
   const onToggleSkip = (next: boolean) => {
     setSkippedByDate((prev) => ({
@@ -351,6 +415,10 @@ export const useCalendarScreen = () => {
     dailyError,
     caffeineGoal,
     sugarGoal,
+    totalEspressoShotCount,
+    totalSugarCubeCount,
+    totalCaffeineMg,
+    totalSugarG,
     isFutureDate,
     onAddRecord,
     onGoPeriodSearch,
@@ -361,5 +429,6 @@ export const useCalendarScreen = () => {
     handleEdit,
     handleGoBrand,
     renderOptionText,
+    handleMonthChange,
   };
 };

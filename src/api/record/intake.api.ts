@@ -25,6 +25,10 @@ export type DailyIntake = {
   date: string;
   totalCaffeineMg: number;
   totalSugarG: number;
+  totalEspressoShotCount?: number;
+  totalSugarCubeCount?: number;
+  goalCaffeine?: number;
+  goalSugar?: number;
   drinkCount: number;
   drinks: IntakeDrink[];
 };
@@ -34,8 +38,11 @@ export type PeriodIntake = {
   endDate: string;
   totalCaffeineMg: number;
   totalSugarG: number;
+  totalEspressoShotCount?: number;
+  totalSugarCubeCount?: number;
   drinkCount: number;
   dates: string[];
+  intakes?: IntakeDrink[];
 };
 
 export type IntakeDetail = IntakeDrink & {
@@ -105,6 +112,16 @@ const toNumber = (value: unknown, fallback = 0) => {
   return fallback;
 };
 
+const toOptionalNumber = (value: unknown): number | undefined => {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === 'number' && !Number.isNaN(value)) return value;
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    if (!Number.isNaN(parsed)) return parsed;
+  }
+  return undefined;
+};
+
 const toString = (value: unknown, fallback = '') => {
   if (typeof value === 'string') return value;
   if (value === undefined || value === null) return fallback;
@@ -149,14 +166,20 @@ const normalizeDrink = (raw: any, index: number, fallbackDate?: string): IntakeD
     temperature: raw?.temperature,
     sizeName: toString(raw?.sizeName ?? ''),
     caffeineMg: toNumber(
-      raw?.caffeineMg ??
+      raw?.caffeinePerUnit ??
+        raw?.caffeineMg ??
         raw?.caffeine ??
         raw?.caffeineSnapshot ??
         nutrition?.caffeineMg ??
         nutrition?.caffeine
     ),
     sugarG: toNumber(
-      raw?.sugarG ?? raw?.sugar ?? raw?.sugarSnapshot ?? nutrition?.sugarG ?? nutrition?.sugar
+      raw?.sugarPerUnit ??
+        raw?.sugarG ??
+        raw?.sugar ??
+        raw?.sugarSnapshot ??
+        nutrition?.sugarG ??
+        nutrition?.sugar
     ),
     calorieKcal: toNumber(
       raw?.calorieKcal ??
@@ -199,6 +222,14 @@ const normalizeDailyIntake = (raw: any, fallbackDate?: string): DailyIntake => {
   const totalSugar = toNumber(
     raw?.totalSugarG ?? raw?.sugarTotal ?? raw?.totalSugar ?? raw?.totalSugarSnapshot
   );
+  const totalEspressoShotCount = toOptionalNumber(
+    raw?.totalEspressoShotCount ?? raw?.espressoShotCount ?? raw?.totalShotCount
+  );
+  const totalSugarCubeCount = toOptionalNumber(
+    raw?.totalSugarCubeCount ?? raw?.sugarCubeCount ?? raw?.totalCubeCount
+  );
+  const goalCaffeine = toOptionalNumber(raw?.goalCaffeine ?? raw?.caffeineGoal ?? raw?.goalCaffeineTarget);
+  const goalSugar = toOptionalNumber(raw?.goalSugar ?? raw?.sugarGoal ?? raw?.goalSugarTarget);
   const drinkCount = toNumber(
     raw?.drinkCount ?? raw?.intakeCount ?? raw?.count ?? drinks.length
   );
@@ -209,6 +240,10 @@ const normalizeDailyIntake = (raw: any, fallbackDate?: string): DailyIntake => {
     ),
     totalCaffeineMg: totalCaffeine || drinks.reduce((acc, d) => acc + (d.caffeineMg ?? 0), 0),
     totalSugarG: totalSugar || drinks.reduce((acc, d) => acc + (d.sugarG ?? 0), 0),
+    totalEspressoShotCount,
+    totalSugarCubeCount,
+    goalCaffeine,
+    goalSugar,
     drinkCount: drinkCount || drinks.length,
     drinks,
   };
@@ -225,6 +260,12 @@ const normalizePeriodIntake = (raw: any, fallbackStart?: string, fallbackEnd?: s
       raw.recordsByDate.map((d: any) => d?.date).filter(Boolean)) ||
     [];
 
+  const intakesRaw =
+    raw?.intakes ?? raw?.items ?? raw?.groups ?? raw?.list ?? raw?.content ?? [];
+  const intakes = Array.isArray(intakesRaw)
+    ? intakesRaw.map((d: any, idx: number) => normalizeDrink(d, idx))
+    : [];
+
   return {
     startDate: toString(raw?.startDate ?? raw?.from ?? fallbackStart ?? ''),
     endDate: toString(raw?.endDate ?? raw?.to ?? fallbackEnd ?? ''),
@@ -232,10 +273,17 @@ const normalizePeriodIntake = (raw: any, fallbackStart?: string, fallbackEnd?: s
       raw?.totalCaffeineMg ?? raw?.caffeineTotal ?? raw?.totalCaffeine
     ),
     totalSugarG: toNumber(raw?.totalSugarG ?? raw?.sugarTotal ?? raw?.totalSugar),
+    totalEspressoShotCount: toOptionalNumber(
+      raw?.totalEspressoShotCount ?? raw?.espressoShotCount ?? raw?.totalShotCount
+    ),
+    totalSugarCubeCount: toOptionalNumber(
+      raw?.totalSugarCubeCount ?? raw?.sugarCubeCount ?? raw?.totalCubeCount
+    ),
     drinkCount: toNumber(
       raw?.drinkCount ?? raw?.intakeCount ?? raw?.count ?? raw?.totalCount
     ),
     dates,
+    intakes,
   };
 };
 
