@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { MainTabNavigationProp } from '../types/navigation';
 import { useGoalStore } from '../store/goalStore';
+import { useSkipStore } from '../store/skipStore';
 import {
   fetchDailyIntake,
   fetchIntakeDetail,
@@ -17,7 +18,8 @@ import type { OptionTextParts } from '../types/optionText';
 export const useHomeScreen = () => {
   const navigation = useNavigation<MainTabNavigationProp<'Home'>>();
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [skippedByDate, setSkippedByDate] = useState<Record<string, boolean>>({});
+  const skippedByDate = useSkipStore((s) => s.skippedByDate);
+  const setSkip = useSkipStore((s) => s.setSkip);
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedDrink, setSelectedDrink] = useState<DrinkLike | null>(null);
   const [selectedIntakeId, setSelectedIntakeId] = useState<string | number | null>(null);
@@ -142,10 +144,7 @@ export const useHomeScreen = () => {
   };
 
   const onToggleSkip = (next: boolean) => {
-    setSkippedByDate((prev) => ({
-      ...prev,
-      [dateKey]: next,
-    }));
+    void setSkip(dateKey, next);
   };
 
   const openDetail = async (drink: IntakeDrink) => {

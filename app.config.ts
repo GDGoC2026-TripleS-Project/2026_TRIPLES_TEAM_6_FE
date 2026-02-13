@@ -2,7 +2,7 @@ import type { ExpoConfig } from 'expo/config';
 
 const config: ExpoConfig = {
   scheme: 'lastcup',
-  name: 'lastcup',
+  name: '라스트컵',
   slug: 'lastcup',
   version: '1.0.1',
   platforms: ['ios'],
@@ -71,6 +71,12 @@ const config: ExpoConfig = {
     eas: {
       projectId: 'f2fd9b7c-43e3-41e0-a0ee-67617f477007',
     },
+  },
+  runtimeVersion: {
+    policy: 'appVersion',
+  },
+  updates: {
+    url: 'https://u.expo.dev/f2fd9b7c-43e3-41e0-a0ee-67617f477007',
   },
   owner: 'gkstldus22',
 };

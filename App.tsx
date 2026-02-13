@@ -21,6 +21,7 @@ import TermsScreen from './src/screens/main/sign/TermsScreen';
 import { useAuthStore } from './src/app/features/auth/auth.store';
 import { useUserStore } from './src/app/features/user/user.store';
 import { useGoalStore } from './src/store/goalStore';
+import { useSkipStore } from './src/store/skipStore';
 
 import { storage } from './src/utils/storage';
 import { storageKeys } from './src/constants/storageKeys';
@@ -73,6 +74,7 @@ export default function App() {
 
   const hydrate = useAuthStore((s) => s.hydrate);
   const hydrateGoals = useGoalStore((s) => s.hydrate);
+  const hydrateSkips = useSkipStore((s) => s.hydrate);
 
   const accessToken = useAuthStore((s) => s.accessToken);
   const notificationSettings = useUserStore((s) => s.notificationSettings);
@@ -110,7 +112,7 @@ export default function App() {
 
     (async () => {
       try {
-        await Promise.all([hydrate(), hydrateGoals()]);
+        await Promise.all([hydrate(), hydrateGoals(), hydrateSkips()]);
         if (!isMounted) return;
         const token = useAuthStore.getState().accessToken;
         await refreshOnboardingState(token);

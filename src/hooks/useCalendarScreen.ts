@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { MainTabNavigationProp } from '../types/navigation';
 import { useGoalStore } from '../store/goalStore';
+import { useSkipStore } from '../store/skipStore';
 import {
   fetchDailyIntake,
   fetchIntakeDetail,
@@ -51,7 +52,8 @@ export const useCalendarScreen = () => {
   const navigation = useNavigation<MainTabNavigationProp<'Calendar'>>();
   const [selectedDate, setSelectedDate] = useState<string>(todayString());
   const [visibleMonth, setVisibleMonth] = useState<string>(() => todayString().slice(0, 7));
-  const [skippedByDate, setSkippedByDate] = useState<Record<string, boolean>>({});
+  const skippedByDate = useSkipStore((s) => s.skippedByDate);
+  const setSkip = useSkipStore((s) => s.setSkip);
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedDrink, setSelectedDrink] = useState<DrinkLike | null>(null);
   const [selectedIntakeId, setSelectedIntakeId] = useState<string | number | null>(null);
@@ -252,10 +254,7 @@ export const useCalendarScreen = () => {
   );
 
   const onToggleSkip = (next: boolean) => {
-    setSkippedByDate((prev) => ({
-      ...prev,
-      [selectedDate]: next,
-    }));
+    void setSkip(selectedDate, next);
   };
 
   const onAddRecord = () => {
