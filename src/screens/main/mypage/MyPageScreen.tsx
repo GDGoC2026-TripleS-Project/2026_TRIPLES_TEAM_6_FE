@@ -67,15 +67,21 @@ export default function MyPageScreen() {
   );
 
   const goRoot = <T extends keyof RootStackParamList>(
-    name: T,
-    params?: RootStackParamList[T]
-  ) => {
-    if (rootNavigation) {
-      rootNavigation.navigate(name, params as never);
-    } else {
-      navigation.navigate(name as never, params as never);
-    }
-  };
+      name: T,
+      params?: RootStackParamList[T]
+    ) => {
+      if (rootNavigation) {
+        rootNavigation.navigate({
+          name,
+          params,
+        } as never);
+      } else {
+        navigation.navigate({
+          name,
+          params,
+        } as never);
+      }
+    };
 
   const handleLogout = async () => {
     setLogoutModalVisible(false);
