@@ -19,7 +19,7 @@ const config: ExpoConfig = {
     googleServicesFile: './GoogleService-Info.plist',
     bundleIdentifier: 'com.triples.lastcup',
     buildNumber: '5',
-    supportsTablet: true,
+    supportsTablet: false,
     usesAppleSignIn: true,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
