@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Dimensions, TextInput } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { colors } from '../../constants/colors';
 
@@ -46,33 +46,42 @@ export default function SlideItem({
   onChangeGoal,
 }: SlideItemProps) {
   const hasSlider = item.type === 'caffeine' || item.type === 'sugar';
+  const sliderItem = hasSlider ? (item as SliderSlide) : undefined;
 
   const [isSliding, setIsSliding] = useState(false);
 
   const [value, setValue] = useState<number>(
     hasSlider ? (item as SliderSlide).defaultValue : 0
   );
+  const [inputText, setInputText] = useState(
+    hasSlider ? String((item as SliderSlide).defaultValue) : ''
+  );
 
   useEffect(() => {
     if (!hasSlider) return;
 
-    const sliderItem = item as SliderSlide;
-
     const next =
       item.type === 'caffeine'
-        ? (caffeineValue ?? sliderItem.defaultValue)
+        ? (caffeineValue ?? sliderItem!.defaultValue)
         : item.type === 'sugar'
-        ? (sugarValue ?? sliderItem.defaultValue)
-        : sliderItem.defaultValue;
+        ? (sugarValue ?? sliderItem!.defaultValue)
+        : sliderItem!.defaultValue;
 
     setValue((prev) => (prev === next ? prev : next));
+    setInputText((prev) => (prev === String(next) ? prev : String(next)));
   }, [hasSlider, item.type, caffeineValue, sugarValue, item]);
 
-  const valueLabel = useMemo(() => {
-    if (!hasSlider) return '';
-    const s = item as SliderSlide;
-    return `${Math.round(value)}${s.unit}`;
-  }, [value, item, hasSlider]);
+  const commitValue = (raw: number) => {
+    if (!hasSlider) return;
+
+    const clamped = Math.min(sliderItem!.max, Math.max(sliderItem!.min, Math.round(raw)));
+    setValue(clamped);
+    setInputText(String(clamped));
+
+    if (item.type === 'caffeine' || item.type === 'sugar') {
+      onChangeGoal?.(item.type, clamped);
+    }
+  };
 
   const isIntro = item.type === 'intro';
   const isDone = item.type === 'done';
@@ -148,33 +157,55 @@ export default function SlideItem({
       {hasSlider && (
         <View style={styles.sliderArea}>
           <View style={[styles.valueBox, isSliding && styles.valueBoxActive]}>
-            <Text style={styles.valueText}>{valueLabel}</Text>
+            <View style={styles.valueRow}>
+              <TextInput
+                value={inputText}
+                onChangeText={(text) => {
+                  const onlyDigits = text.replace(/[^0-9]/g, '');
+                  setInputText(onlyDigits);
+                }}
+                onBlur={() => {
+                  if (!inputText.trim()) {
+                    commitValue(value);
+                    return;
+                  }
+
+                  const parsed = Number(inputText);
+                  if (Number.isNaN(parsed)) {
+                    commitValue(value);
+                    return;
+                  }
+
+                  commitValue(parsed);
+                }}
+                keyboardType="number-pad"
+                returnKeyType="done"
+                style={styles.valueInput}
+                selectionColor={colors.primary[500]}
+              />
+              <Text style={styles.valueText}>{sliderItem!.unit}</Text>
+            </View>
           </View>
 
           <View style={styles.sliderRangeRow}>
             <Text style={styles.minMax}>
-              {(item as SliderSlide).min}
-              {(item as SliderSlide).unit}
+              {sliderItem!.min}
+              {sliderItem!.unit}
             </Text>
             <Text style={styles.minMax}>
-              {(item as SliderSlide).max}
-              {(item as SliderSlide).unit}
+              {sliderItem!.max}
+              {sliderItem!.unit}
             </Text>
           </View>
 
           <View style={styles.sliderContainer}>
             <Slider
               style={{ flex: 1 }}
-              minimumValue={(item as SliderSlide).min}
-              maximumValue={(item as SliderSlide).max}
+              minimumValue={sliderItem!.min}
+              maximumValue={sliderItem!.max}
               value={value}
               onValueChange={(v) => {
-                const next = Math.round(v);
-                setValue(next);
-
-                if (item.type === 'caffeine' || item.type === 'sugar') {
-                  onChangeGoal?.(item.type, next);
-                }
+                commitValue(v);
               }}
               onSlidingStart={() => setIsSliding(true)}
               onSlidingComplete={() => setIsSliding(false)}
@@ -282,6 +313,21 @@ const styles = StyleSheet.create({
     color: colors.grayscale[100],
     fontSize: 16,
     fontFamily: 'Pretendard-Medium',
+  },
+
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+
+  valueInput: {
+    minWidth: 68,
+    color: colors.grayscale[100],
+    fontSize: 16,
+    fontFamily: 'Pretendard-Medium',
+    textAlign: 'right',
+    paddingVertical: 0,
   },
 
   sliderRangeRow: {

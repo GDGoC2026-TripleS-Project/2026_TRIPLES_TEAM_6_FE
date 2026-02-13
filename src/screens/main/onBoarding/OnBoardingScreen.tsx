@@ -15,7 +15,6 @@ import Chart from '../../../../assets/ComponentsImage/chart.svg';
 
 const { width } = Dimensions.get('window');
 
-
 const slides = [
   {
     id: '1',
@@ -48,7 +47,7 @@ const slides = [
     description:
       '일반적인 성인 권장량은 400mg이에요.\n에스프레소 한 잔에는 약 75mg의 카페인이 들어 있어요.',
     min: 0,
-    max: 1000,
+    max: 600,
     unit: 'mg',
     defaultValue: 400,
   },
@@ -97,17 +96,14 @@ function OnboardingScreen({ navigation }: { navigation: any }) {
     if (currentIndex < slides.length - 1) {
       goTo(currentIndex + 1);
     } else {
-      // 1. 목표치 저장
       setGoals({
         caffeine: caffeineValue,
         sugar: sugarValue,
       });
 
-      // 2. 온보딩 완료 저장 (App.tsx와 동일한 키 사용)
       await storage.set(storageKeys.onboardingDone, 'true');
       await storage.remove(storageKeys.onboardingPending);
 
-      // 3. Main 화면으로 이동
       navigation.replace('Main', {
         screen: 'MainTabs',
         params: { screen: 'Home' },

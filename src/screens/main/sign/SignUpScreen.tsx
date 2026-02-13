@@ -239,7 +239,7 @@ const SignUpScreen: React.FC = () => {
   <View style={styles.container}>
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -251,6 +251,7 @@ const SignUpScreen: React.FC = () => {
           <View style={styles.form}>
             <Text style={styles.label}>아이디</Text>
             <TextField
+              placeholder="아이디"
               value={userName}
               onChangeText={(t) => {
                 setUserName(t);
@@ -268,6 +269,7 @@ const SignUpScreen: React.FC = () => {
 
             <Text style={styles.label}>비밀번호</Text>
             <TextField
+              placeholder="비밀번호"
               value={password}
               onChangeText={(t) => {
                 setPassword(t);
@@ -284,6 +286,7 @@ const SignUpScreen: React.FC = () => {
 
             <Text style={styles.label}>비밀번호 확인</Text>
             <TextField
+              placeholder="비밀번호 확인"
               value={passwordCheck}
               onChangeText={(t) => {
                 setPasswordCheck(t);
@@ -300,6 +303,7 @@ const SignUpScreen: React.FC = () => {
 
             <Text style={styles.label}>닉네임</Text>
             <TextField
+              placeholder="닉네임"
               value={nickname}
               onChangeText={(t) => {
                 setNickname(t);
@@ -316,6 +320,7 @@ const SignUpScreen: React.FC = () => {
 
             <Text style={styles.label}>이메일</Text>
             <TextField
+              placeholder="이메일"
               value={email}
               onChangeText={(t) => {
                 setEmail(t);
@@ -333,37 +338,36 @@ const SignUpScreen: React.FC = () => {
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
-
-    <View style={styles.bottomSection}>
-      <Pressable
-        style={styles.agreeRow}
-        onPress={() => setAgree((p) => !p)}
-        hitSlop={10}
-      >
-        <View style={styles.agreeLeft}>
-          {agree ? (
-            <CheckboxOut width={20} height={20} />
-          ) : (
-            <CheckboxIn width={20} height={20} />
-          )}
-          <Text style={styles.agreeText}>
-            개인정보 수집 및 이용 동의 (필수)
-          </Text>
-        </View>
-        <Pressable onPress={() => navigation.navigate("TermsScreen")}>
-          <Text style={styles.detailText}>자세히 보기</Text>
+      <View style={styles.bottomSection}>
+        <Pressable
+          style={styles.agreeRow}
+          onPress={() => setAgree((p) => !p)}
+          hitSlop={10}
+        >
+          <View style={styles.agreeLeft}>
+            {agree ? (
+              <CheckboxOut width={20} height={20} />
+            ) : (
+              <CheckboxIn width={20} height={20} />
+            )}
+            <Text style={styles.agreeText}>
+              개인정보 수집 및 이용 동의 (필수)
+            </Text>
+          </View>
+          <Pressable onPress={() => navigation.navigate("TermsScreen")}>
+            <Text style={styles.detailText}>자세히 보기</Text>
+          </Pressable>
         </Pressable>
-      </Pressable>
 
-      <View style={styles.submitWrap}>
-        <Button
-          title="가입하기"
-          onPress={onSubmit}
-          disabled={!canSubmit || isLoading}
-        />
+        <View style={styles.submitWrap}>
+          <Button
+            title="가입하기"
+            onPress={onSubmit}
+            disabled={!canSubmit || isLoading}
+          />
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   </View>
 );
 

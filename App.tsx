@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
@@ -67,6 +67,7 @@ const linking: LinkingOptions<AppStackParamList> = {
 
 export default function App() {
   const [isHydrating, setIsHydrating] = useState(true);
+  const [isOnboardingSyncing, setIsOnboardingSyncing] = useState(false);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
   const [onboardingPending, setOnboardingPending] = useState(false);
 
@@ -83,34 +84,36 @@ export default function App() {
     'Pretendard-Bold': require('./assets/fonts/Pretendard-Bold.otf'),
   });
 
+  const refreshOnboardingState = useCallback(async (token?: string | null) => {
+    const [completed, pending] = await Promise.all([
+      storage.get(storageKeys.onboardingDone),
+      storage.get(storageKeys.onboardingPending),
+    ]);
+
+    const done = completed === 'true';
+    let nextPending = pending === 'true';
+
+    if (token && !done) {
+      await storage.set(storageKeys.onboardingPending, 'true');
+      nextPending = true;
+    } else if (done && nextPending) {
+      await storage.remove(storageKeys.onboardingPending);
+      nextPending = false;
+    }
+
+    setOnboardingCompleted(done);
+    setOnboardingPending(nextPending);
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
     (async () => {
       try {
-        const [,, completed, pending] = await Promise.all([
-          hydrate(),
-          hydrateGoals(),
-          storage.get(storageKeys.onboardingDone),
-          storage.get(storageKeys.onboardingPending),
-        ]);
-
-        if (isMounted) {
-          const done = completed === 'true';
-          let nextPending = pending === 'true';
-          const token = useAuthStore.getState().accessToken;
-
-          if (token && !done) {
-            await storage.set(storageKeys.onboardingPending, 'true');
-            nextPending = true;
-          } else if (done && nextPending) {
-            await storage.remove(storageKeys.onboardingPending);
-            nextPending = false;
-          }
-
-          setOnboardingCompleted(done);
-          setOnboardingPending(nextPending);
-        }
+        await Promise.all([hydrate(), hydrateGoals()]);
+        if (!isMounted) return;
+        const token = useAuthStore.getState().accessToken;
+        await refreshOnboardingState(token);
       } finally {
         if (isMounted) setIsHydrating(false);
       }
@@ -119,7 +122,25 @@ export default function App() {
     return () => {
       isMounted = false;
     };
-  }, [hydrate, hydrateGoals]);
+  }, [hydrate, hydrateGoals, refreshOnboardingState]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      if (!accessToken) {
+        if (isMounted) setIsOnboardingSyncing(false);
+        return;
+      }
+      if (isMounted) setIsOnboardingSyncing(true);
+      await refreshOnboardingState(accessToken);
+      if (isMounted) setIsOnboardingSyncing(false);
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [accessToken, refreshOnboardingState]);
 
   useEffect(() => {
     (async () => {
@@ -148,7 +169,7 @@ export default function App() {
     cancelNotification(NOTIFICATION_IDS.DAILY_CLOSE);
   }, [accessToken]);
 
-  if (!loaded || isHydrating) return null;
+  if (!loaded || isHydrating || isOnboardingSyncing) return null;
 
   const shouldBypassAuth = FORCE_ONBOARDING_PREVIEW;
   const showAppFlow = Boolean(accessToken) || shouldBypassAuth;

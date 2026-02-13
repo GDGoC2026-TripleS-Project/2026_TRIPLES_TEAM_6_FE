@@ -268,6 +268,10 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ isLoading: true, errorMessage: undefined });
     try {
       await userApiLayer.deleteMe();
+      await Promise.all([
+        storage.set(storageKeys.onboardingPending, 'true'),
+        storage.remove(storageKeys.onboardingDone),
+      ]);
       set({ isLoading: false });
       return true;
     } catch (e: any) {
