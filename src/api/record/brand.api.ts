@@ -33,7 +33,31 @@ const normalizeBrands = (brands: Brand[], hasAuth: boolean): Brand[] => {
     ? brands
     : brands.map((b) => ({ ...b, isFavorite: false }));
 
+  const priorityOrder = [
+    '스타벅스',
+    '메가커피',
+    '투썸플레이스',
+    '이디야커피',
+    '컴포즈커피',
+    '빽다방',
+    '파스쿠찌',
+    '할리스',
+    '메머드',
+  ];
+
+  const getPriorityIndex = (name: string) => {
+    const exact = priorityOrder.indexOf(name);
+    if (exact >= 0) return exact;
+    const partial = priorityOrder.findIndex((n) => name.includes(n));
+    return partial >= 0 ? partial : Infinity;
+  };
+
   return [...normalized].sort((a, b) => {
+    const aPriority = getPriorityIndex(a.name);
+    const bPriority = getPriorityIndex(b.name);
+    if (aPriority !== bPriority) {
+      return aPriority - bPriority;
+    }
     if (hasAuth && a.isFavorite !== b.isFavorite) {
       return Number(b.isFavorite) - Number(a.isFavorite);
     }
