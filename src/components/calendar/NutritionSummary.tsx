@@ -62,7 +62,7 @@ export default function NutritionSummary({
             </View>
           )}
         </View>
-        {hasCaffeineMax && typeof totalEspressoShotCount === 'number' && totalEspressoShotCount > 0 && (
+        {hasCaffeineMax && typeof totalEspressoShotCount === 'number' &&(
           <Text style={styles.maxText}>
             에스프레소 {formatUnits(totalEspressoShotCount)}/
             {formatUnits(caffeineMax / ESPRESSO_MG)}잔
@@ -93,7 +93,7 @@ export default function NutritionSummary({
             </View>
           )}
         </View>
-        {hasSugarMax && typeof totalSugarCubeCount === 'number' && totalSugarCubeCount > 0 && (
+        {hasSugarMax && typeof totalSugarCubeCount === 'number' && (
           <Text style={styles.maxText}>
             각설탕 {formatUnits(totalSugarCubeCount)}/
             {formatUnits(sugarMax / SUGAR_CUBE_G)}개
