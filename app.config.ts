@@ -18,7 +18,7 @@ const config: ExpoConfig = {
   ios: {
     googleServicesFile: './GoogleService-Info.plist',
     bundleIdentifier: 'com.triples.lastcup',
-    buildNumber: '4',
+    buildNumber: '5',
     supportsTablet: true,
     usesAppleSignIn: true,
     infoPlist: {
