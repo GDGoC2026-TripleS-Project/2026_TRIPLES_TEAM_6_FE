@@ -73,9 +73,7 @@ const config: ExpoConfig = {
       projectId: 'f2fd9b7c-43e3-41e0-a0ee-67617f477007',
     },
   },
-  runtimeVersion: {
-    policy: 'appVersion',
-  },
+  runtimeVersion: '1.0.1',
   updates: {
     url: 'https://u.expo.dev/f2fd9b7c-43e3-41e0-a0ee-67617f477007',
   },
