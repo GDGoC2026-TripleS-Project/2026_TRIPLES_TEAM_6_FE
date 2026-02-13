@@ -27,6 +27,130 @@ const toKoreanDate = (dateString: string) => {
   const [y, m, d] = dateString.split('-');
   return `${y}.${String(Number(m)).padStart(2, '0')}.${String(Number(d)).padStart(2, '0')}`;
 };
+const Header = ({ onBack }: { onBack: () => void }) => (
+  <View style={styles.header}>
+    <Pressable onPress={onBack} hitSlop={10} style={styles.backBtn}>
+      <Ionicons name="chevron-back" size={24} color={colors.grayscale[100]} />
+    </Pressable>
+    <Text style={styles.headerTitle}>기간 별 조회</Text>
+    <View style={{ width: 24 }} />
+  </View>
+);
+
+const PeriodSelector = ({
+  startDate,
+  endDate,
+  onChangePress,
+}: {
+  startDate: string;
+  endDate: string;
+  onChangePress: () => void;
+}) => (
+  <View style={styles.periodRow}>
+    <Text style={styles.periodText}>
+      {toKoreanDate(startDate)} ~ {toKoreanDate(endDate)}
+    </Text>
+    <Pressable onPress={onChangePress} hitSlop={10}>
+      <Text style={styles.changeText}>변경하기</Text>
+    </Pressable>
+  </View>
+);
+
+const SummaryRow = ({
+  label,
+  value,
+  unit,
+  note,
+}: {
+  label: string;
+  value: number;
+  unit: string;
+  note?: string;
+}) => (
+  <View style={styles.summaryRow}>
+    <Text style={styles.summaryRowLabel}>{label}</Text>
+    <View style={styles.summaryValueCol}>
+      <Text style={styles.summaryValue}>
+        {value}
+        {unit}
+      </Text>
+      {note && <Text style={styles.summaryNote}>{note}</Text>}
+    </View>
+  </View>
+);
+
+const SummarySection = ({
+  caffeineTotal,
+  espressoShotCount,
+  sugarTotal,
+  sugarCubeCount,
+}: {
+  caffeineTotal: number;
+  espressoShotCount?: number;
+  sugarTotal: number;
+  sugarCubeCount?: number;
+}) => (
+  <View style={styles.summaryWrap}>
+    <SummaryRow
+      label="섭취한 카페인"
+      value={caffeineTotal}
+      unit="mg"
+      note={
+        typeof espressoShotCount === 'number'
+          ? `에스프레소 약 ${espressoShotCount}잔`
+          : undefined
+      }
+    />
+    <View style={styles.summaryDivider} />
+    <SummaryRow
+      label="섭취한 당류"
+      value={sugarTotal}
+      unit="g"
+      note={
+        typeof sugarCubeCount === 'number'
+          ? `각설탕 약 ${sugarCubeCount}개`
+          : undefined
+      }
+    />
+  </View>
+);
+
+const SectionHeader = ({
+  title,
+  caffeineGoal,
+  sugarGoal,
+}: {
+  title: string;
+  caffeineGoal?: number;
+  sugarGoal?: number;
+}) => {
+  const showGoals = Boolean(caffeineGoal || sugarGoal);
+
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {showGoals && (
+        <Text style={styles.sectionGoal}>
+          목표 {caffeineGoal ?? '-'}mg · {sugarGoal ?? '-'}g
+        </Text>
+      )}
+    </View>
+  );
+};
+
+const EmptyState = ({
+  loading,
+  error,
+}: {
+  loading: boolean;
+  error?: string | null;
+}) => (
+  <View style={styles.empty}>
+    <Text style={styles.emptyText}>
+      {loading ? '불러오는 중...' : error ?? '조회된 음료가 없습니다.'}
+    </Text>
+  </View>
+);
 
 export default function PeriodSearchScreen({ navigation, route }: Props) {
   const initialStart = route?.params?.startDate ?? '2026-01-07';
@@ -54,121 +178,88 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
     fallbackSugar,
   } = usePeriodSearchScreen(initialStart, initialEnd);
 
+  // ==================== 렌더 함수 ====================
   const renderItem = ({ item }: ListRenderItemInfo<PeriodRow>) => {
+    // 섹션 헤더 렌더링
     if (item.type === 'header') {
       const goals = goalByDate[item.date];
       const pickGoal = (...values: Array<number | undefined>) =>
         values.find((v) => typeof v === 'number' && v > 0);
+
       const caffeineGoal = pickGoal(
         item.goalCaffeine,
         goals?.caffeine,
         fallbackCaffeine
       );
-      const sugarGoal = pickGoal(
-        item.goalSugar,
-        goals?.sugar,
-        fallbackSugar
-      );
-      const showGoals = Boolean(caffeineGoal || sugarGoal);
+      const sugarGoal = pickGoal(item.goalSugar, goals?.sugar, fallbackSugar);
+
       return (
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{item.title}</Text>
-          {showGoals && (
-            <Text style={styles.sectionGoal}>
-              목표 {caffeineGoal ?? '-'}mg · {sugarGoal ?? '-'}g
-            </Text>
-          )}
-        </View>
+        <SectionHeader
+          title={item.title}
+          caffeineGoal={caffeineGoal}
+          sugarGoal={sugarGoal}
+        />
       );
     }
 
-    const d = item.drink;
-    const opt = renderOptionText(d);
+    // 음료 아이템 렌더링
+    const drink = item.drink;
+    const option = renderOptionText(drink);
 
     return (
       <DrinkList
-        brandName={d.brandName}
-        menuName={d.menuName}
+        brandName={drink.brandName}
+        menuName={drink.menuName}
         optionText={
-          opt.base ? (
-            <OptionText base={opt.base} extra={opt.extras} />
+          option.base ? (
+            <OptionText base={option.base} extra={option.extras} />
           ) : (
-            <OptionText text={opt.extras[0] || '옵션 없음'} />
+            <OptionText text={option.extras[0] || '옵션 없음'} />
           )
         }
         pills={[
-          { label: '카페인', value: d.caffeineMg, unit: 'mg' },
-          { label: '당류', value: d.sugarG, unit: 'g' },
+          { label: '카페인', value: drink.caffeineMg, unit: 'mg' },
+          { label: '당류', value: drink.sugarG, unit: 'g' },
         ]}
-        rightText={d.count ? `${d.count}잔` : undefined}
-        onPress={() => openDetail(d, item.date)}
+        rightText={drink.count ? `${drink.count}잔` : undefined}
+        onPress={() => openDetail(drink, item.date)}
       />
     );
   };
 
+  // ==================== 이벤트 핸들러 ====================
+  const handleBack = () => navigation.goBack?.();
+  const handleOpenPeriodSheet = () => setSheetVisible(true);
+  const handleClosePeriodSheet = () => setSheetVisible(false);
+  const handlePeriodConfirm = (start: string, end: string) => {
+    handleConfirmPeriod(start, end);
+    setSheetVisible(false);
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => navigation.goBack?.()}
-          hitSlop={10}
-          style={styles.backBtn}
-        >
-          <Ionicons name="chevron-back" size={24} color={colors.grayscale[100]} />
-        </Pressable>
-        <Text style={styles.headerTitle}>기간 별 조회</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <Header onBack={handleBack} />
 
-      <View style={styles.periodRow}>
-        <Text style={styles.periodText}>
-          {toKoreanDate(normalized.start)} - {toKoreanDate(normalized.end)}
-        </Text>
-        <Pressable onPress={() => setSheetVisible(true)} hitSlop={10}>
-          <Text style={styles.changeText}>변경하기</Text>
-        </Pressable>
-      </View>
+      <PeriodSelector
+        startDate={normalized.start}
+        endDate={normalized.end}
+        onChangePress={handleOpenPeriodSheet}
+      />
+      <SummarySection
+        caffeineTotal={summary.caffeineTotal}
+        espressoShotCount={summary.espressoShotCount}
+        sugarTotal={summary.sugarTotal}
+        sugarCubeCount={summary.sugarCubeCount}
+      />
 
-      <View style={styles.summaryWrap}>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>섭취한 카페인</Text>
-          <View style={styles.summaryValueCol}>
-            <Text style={styles.summaryValue}>{summary.caffeineTotal}mg</Text>
-            {typeof summary.espressoShotCount === 'number' && summary.espressoShotCount > 0 && (
-              <Text style={styles.summaryNote}>에스프레소 약 {summary.espressoShotCount}잔</Text>
-            )}
-          </View>
-        </View>
-        <View style={styles.summaryDivider} />
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>섭취한 당류</Text>
-          <View style={styles.summaryValueCol}>
-            <Text style={styles.summaryValue}>{summary.sugarTotal}g</Text>
-            {typeof summary.sugarCubeCount === 'number' && summary.sugarCubeCount > 0 && (
-              <Text style={styles.summaryNote}>각설탕 약 {summary.sugarCubeCount}개</Text>
-            )}
-          </View>
-        </View>
-        <View style={styles.summaryDivider} />
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>마신 음료</Text>
-          <Text style={styles.summaryValue}>{summary.drinkCount}잔</Text>
-        </View>
-      </View>
-
+      <Text style={styles.drinkListLabel}>마신 음료</Text>
       <FlatList
         data={rows}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>
-              {loading ? '불러오는 중...' : loadError ?? '조회된 음료가 없습니다.'}
-            </Text>
-          </View>
-        }
+        ListEmptyComponent={<EmptyState loading={loading} error={loadError} />}
       />
 
       <DrinkDetailSheet
@@ -182,11 +273,8 @@ export default function PeriodSearchScreen({ navigation, route }: Props) {
 
       <PeriodSelectBottomSheet
         visible={sheetVisible}
-        onClose={() => setSheetVisible(false)}
-        onConfirm={(s, e) => {
-          handleConfirmPeriod(s, e);
-          setSheetVisible(false);
-        }}
+        onClose={handleClosePeriodSheet}
+        onConfirm={handlePeriodConfirm}
       />
     </SafeAreaView>
   );
@@ -198,6 +286,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.grayscale[1000],
   },
 
+  // Header
   header: {
     height: 52,
     paddingHorizontal: 16,
@@ -217,6 +306,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-SemiBold',
   },
 
+  // Period Selector
   periodRow: {
     paddingHorizontal: 16,
     paddingTop: 6,
@@ -237,26 +327,23 @@ const styles = StyleSheet.create({
   },
 
   summaryWrap: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
     paddingTop: 6,
     borderBottomWidth: 1,
     borderBottomColor: colors.grayscale[900],
-    marginBottom: 8,
   },
   summaryRow: {
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 10,
   },
   summaryDivider: {
     height: 1,
     backgroundColor: colors.grayscale[800],
     opacity: 0.6,
-    marginVertical: 5,
   },
-  summaryLabel: {
+  summaryRowLabel: {
     color: colors.grayscale[200],
     fontSize: 15,
     fontFamily: 'Pretendard-SemiBold',
@@ -264,22 +351,32 @@ const styles = StyleSheet.create({
   summaryValueCol: {
     alignItems: 'flex-end',
   },
+  summaryValue: {
+    color: colors.primary[500],
+    fontSize: 14,
+    fontFamily: 'Pretendard-SemiBold',
+  },
   summaryNote: {
     color: colors.grayscale[500],
     fontSize: 12,
     fontFamily: 'Pretendard-Regular',
     marginTop: 4,
   },
-  summaryValue: {
-    color: colors.primary[500],
-    fontSize: 14,
-    fontFamily: 'Pretendard-SemiBold',
-  },
 
+  // Drink List
+  drinkListLabel: {
+    color: colors.grayscale[200],
+    fontSize: 15,
+    fontFamily: 'Pretendard-SemiBold',
+    paddingLeft: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
   listContent: {
     paddingBottom: 24,
   },
 
+  // Section Header
   sectionHeader: {
     paddingHorizontal: 16,
     paddingTop: 10,
@@ -297,6 +394,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Regular',
   },
 
+  // Empty State
   empty: {
     paddingTop: 80,
     alignItems: 'center',
