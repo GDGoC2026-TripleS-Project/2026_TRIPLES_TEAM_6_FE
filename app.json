@@ -1,6 +1,14 @@
 {
   "expo": {
     "name": "라스트컵",
-    "slug": "lastcup"
+    "slug": "lastcup",
+    "ios": {
+      "infoPlist": {
+        "CFBundleDisplayName": "라스트컵"
+      }
+    },
+    "android": {
+      "appName": "라스트컵"
+    }
   }
 }

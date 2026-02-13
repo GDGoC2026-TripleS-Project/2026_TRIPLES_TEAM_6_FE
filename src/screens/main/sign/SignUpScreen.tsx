@@ -392,9 +392,9 @@ const SignUpScreen: React.FC = () => {
               >
                 <View style={styles.agreeLeft}>
                   {agree ? (
-                    <CheckboxIn width={20} height={20} />
-                  ) : (
                     <CheckboxOut width={20} height={20} />
+                  ) : (
+                    <CheckboxIn width={20} height={20} />
                   )}
                   <Text style={styles.agreeText}>
                     개인정보 수집 및 이용 동의 (필수)

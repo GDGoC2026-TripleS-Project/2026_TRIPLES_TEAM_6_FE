@@ -23,6 +23,7 @@ const config: ExpoConfig = {
     usesAppleSignIn: true,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
+      CFBundleDisplayName: '라스트컵',
     },
     appleTeamId: '37G422NWZY',
   },
