@@ -34,7 +34,7 @@ const RecordDetailScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const { isFavorite, toggleFavorite } = useFavoriteMenus();
+  const { favorites, isFavorite, toggleFavorite } = useFavoriteMenus();
   const [categories, setCategories] = useState<string[]>([]);
   const [isBrandFavorite, setIsBrandFavorite] = useState(route.params.isFavorite ?? false);
 
@@ -93,6 +93,20 @@ const RecordDetailScreen = () => {
     keyword: searchQuery,
     debounceMs: 250,
   });
+
+  const orderedMenus = useMemo(() => {
+    if (!menus.length) return menus;
+    const favoriteOrder = new Map(favorites.map((menu, idx) => [menu.id, idx]));
+    return [...menus].sort((a, b) => {
+      const aFav = favoriteOrder.has(a.id);
+      const bFav = favoriteOrder.has(b.id);
+      if (aFav !== bFav) return aFav ? -1 : 1;
+      if (aFav && bFav) {
+        return (favoriteOrder.get(a.id) ?? 0) - (favoriteOrder.get(b.id) ?? 0);
+      }
+      return 0;
+    });
+  }, [menus, favorites]);
 
   const handleDrinkPress = (drinkId: number, drinkName: string) => {
     navigation.navigate('RecordDrinkDetail', {
@@ -161,7 +175,7 @@ const RecordDetailScreen = () => {
 
       <View style={styles.listContainer}>
         <FlatList
-          data={menus}
+          data={orderedMenus}
           renderItem={({ item }) => (
             <List 
               title={item.name}

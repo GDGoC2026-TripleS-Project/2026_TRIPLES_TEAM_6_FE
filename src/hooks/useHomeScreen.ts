@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { MainTabNavigationProp } from '../types/navigation';
 import { useGoalStore } from '../store/goalStore';
 import {
@@ -114,6 +114,14 @@ export const useHomeScreen = () => {
       isMounted = false;
     };
   }, [loadDaily]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void getGoalsForDate(dateKey);
+      void loadDaily();
+      return undefined;
+    }, [dateKey, getGoalsForDate, loadDaily])
+  );
 
   const formatDateHeader = (date: Date) => {
     const month = date.getMonth() + 1;

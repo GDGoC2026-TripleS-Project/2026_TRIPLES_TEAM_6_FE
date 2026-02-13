@@ -5,7 +5,7 @@ import type { RouteProp } from '@react-navigation/native';
 import SearchField from '../../../components/common/SearchField';
 import List from '../../../components/common/List';
 import { RootStackParamList } from '../../../types/navigation';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { colors } from '../../../constants/colors';
 import {
   addBrandFavorite,
@@ -61,9 +61,16 @@ const RecordScreen = () => {
     }
   };
 
-  const filteredCafeList = brands.filter((cafe) =>
-    cafe.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCafeList = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    const indexMap = new Map(brands.map((brand, idx) => [brand.id, idx]));
+    return brands
+      .filter((cafe) => cafe.name.toLowerCase().includes(query))
+      .sort((a, b) => {
+        if (a.isFavorite !== b.isFavorite) return a.isFavorite ? -1 : 1;
+        return (indexMap.get(a.id) ?? 0) - (indexMap.get(b.id) ?? 0);
+      });
+  }, [brands, searchQuery]);
   return (
     <View style={styles.container}>
       <View style={{ paddingVertical: 16 }}>

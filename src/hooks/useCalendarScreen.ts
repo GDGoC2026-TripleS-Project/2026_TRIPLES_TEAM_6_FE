@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { MainTabNavigationProp } from '../types/navigation';
 import { useGoalStore } from '../store/goalStore';
 import {
@@ -198,9 +198,9 @@ export const useCalendarScreen = () => {
   );
 
   const fetchMonthDates = useCallback(
-    async (key: string, setActive: boolean) => {
+    async (key: string, setActive: boolean, force = false) => {
       const cached = monthCacheRef.current[key];
-      if (cached) {
+      if (cached && !force) {
         if (setActive && visibleMonthRef.current === key) {
           setEventDates(cached);
         }
@@ -241,6 +241,15 @@ export const useCalendarScreen = () => {
       isMounted = false;
     };
   }, [monthKey, fetchMonthDates]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void getGoalsForDate(selectedDate);
+      void loadDaily();
+      void fetchMonthDates(monthKey, true, true);
+      return undefined;
+    }, [selectedDate, monthKey, getGoalsForDate, loadDaily, fetchMonthDates])
+  );
 
   const onToggleSkip = (next: boolean) => {
     setSkippedByDate((prev) => ({
