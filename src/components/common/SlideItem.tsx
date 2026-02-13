@@ -318,16 +318,15 @@ const styles = StyleSheet.create({
   valueRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    textAlign: 'center',
+    justifyContent: 'center',
   },
 
   valueInput: {
-    minWidth: 68,
     color: colors.grayscale[100],
     fontSize: 16,
     fontFamily: 'Pretendard-Medium',
-    textAlign: 'right',
-    paddingVertical: 0,
+    textAlignVertical: 'center',
   },
 
   sliderRangeRow: {

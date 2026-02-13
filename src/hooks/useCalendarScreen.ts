@@ -110,44 +110,49 @@ export const useCalendarScreen = () => {
   const totalCaffeineMg = daily?.totalCaffeineMg;
   const totalSugarG = daily?.totalSugarG;
 
-  const loadDaily = useCallback(async () => {
+  const loadDaily = useCallback(async (): Promise<DailyIntake | null> => {
     const cached = dailyCacheRef.current[selectedDate];
     if (cached) {
       setDaily(cached);
     }
     setDailyLoading(true);
     setDailyError(null);
+    let nextDaily: DailyIntake | null = cached ?? null;
     try {
       const res = await fetchDailyIntake(selectedDate);
       if (res.success && res.data) {
         dailyCacheRef.current[selectedDate] = res.data;
         setDaily(res.data);
+        nextDaily = res.data;
       } else {
         if (!dailyCacheRef.current[selectedDate]) {
-          setDaily({
+          nextDaily = {
             date: selectedDate,
             totalCaffeineMg: 0,
             totalSugarG: 0,
             drinkCount: 0,
             drinks: [],
-          });
+          };
+          setDaily(nextDaily);
         }
         setDailyError(res.error?.message ?? '일별 기록을 불러오지 못했습니다.');
       }
     } catch {
       if (!dailyCacheRef.current[selectedDate]) {
-        setDaily({
+        nextDaily = {
           date: selectedDate,
           totalCaffeineMg: 0,
           totalSugarG: 0,
           drinkCount: 0,
           drinks: [],
-        });
+        };
+        setDaily(nextDaily);
       }
       setDailyError('일별 기록을 불러오지 못했습니다.');
     } finally {
       setDailyLoading(false);
     }
+    return nextDaily;
   }, [selectedDate]);
 
   useEffect(() => {
@@ -172,6 +177,25 @@ export const useCalendarScreen = () => {
   useEffect(() => {
     visibleMonthRef.current = visibleMonth;
   }, [visibleMonth]);
+
+  const syncEventDate = useCallback(
+    (dateString: string, hasRecordNext: boolean) => {
+      const key = dateString.slice(0, 7);
+      const cached = monthCacheRef.current[key];
+      if (!cached) return;
+      const exists = cached.includes(dateString);
+      let next = cached;
+      if (hasRecordNext && !exists) next = [...cached, dateString];
+      if (!hasRecordNext && exists) next = cached.filter((d) => d !== dateString);
+      if (next !== cached) {
+        monthCacheRef.current[key] = next;
+        if (visibleMonthRef.current === key) {
+          setEventDates(next);
+        }
+      }
+    },
+    []
+  );
 
   const fetchMonthDates = useCallback(
     async (key: string, setActive: boolean) => {
@@ -323,6 +347,7 @@ export const useCalendarScreen = () => {
   const handleDelete = (drinkId?: string) => {
     const targetId = selectedIntakeId ?? drinkId;
     if (!targetId) return;
+    const dateKey = selectedDate;
     Alert.alert('섭취 기록 삭제', '이 기록을 삭제할까요?', [
       { text: '취소', style: 'cancel' },
       {
@@ -337,7 +362,9 @@ export const useCalendarScreen = () => {
               return;
             }
             closeDetail();
-            await loadDaily();
+            const nextDaily = await loadDaily();
+            const hasRecordNext = (nextDaily?.drinks?.length ?? 0) > 0;
+            syncEventDate(dateKey, hasRecordNext);
           } catch (e: any) {
             if (__DEV__) {
               console.log('[INTAKE DELETE FAIL] id:', targetId);
